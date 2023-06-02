@@ -1,12 +1,12 @@
 {
   "name": "orders-mvp",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "init-btc": "npx browserify --standalone bitcoin - -o src/lib/bitcoin.js <<<\"module.exports = require('bitcoinjs-lib');\"",
-    "build": "pnpm run init-btc && vue-tsc && vite build",
+    "build": "vue-tsc && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
