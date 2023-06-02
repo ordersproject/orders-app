@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "init-btc": "npx browserify --standalone bitcoin - -o src/lib/bitcoin.js <<<\"module.exports = require('bitcoinjs-lib');\"",
-    "build": "npm run init-btc && vue-tsc && vite build",
+    "build": "pnpm run init-btc && vue-tsc && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
