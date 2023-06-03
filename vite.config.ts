@@ -31,7 +31,6 @@ export default defineConfig({
     },
   },
   build: {
-    minify: false,
     rollupOptions: {
       external: ['bitcoin', 'bitcoin.js'],
     },

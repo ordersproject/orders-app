@@ -14,4 +14,10 @@ const router = VueRouter.createRouter({
 
 const pinia = createPinia()
 
-createApp(App).use(router).use(pinia).mount('#app')
+// wait until bitcoin is loaded then mount the app
+const launchInterval = setInterval(() => {
+  if (window.bitcoin) {
+    createApp(App).use(router).use(pinia).mount('#app')
+    clearInterval(launchInterval)
+  }
+}, 100)
