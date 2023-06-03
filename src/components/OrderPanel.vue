@@ -81,6 +81,7 @@ async function updateBalance() {
 }
 onMounted(async () => {
   const btcjs = window.bitcoin
+  console.log({ btcjs })
   const secp256k1 = await import('tiny-secp256k1')
   btcjs.initEccLib(secp256k1)
   btcJsStore.set(btcjs)
