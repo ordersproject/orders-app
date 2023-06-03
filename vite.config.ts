@@ -30,4 +30,7 @@ export default defineConfig({
       '@': '/src',
     },
   },
+  build: {
+    minify: false,
+  },
 })
