@@ -7,18 +7,12 @@ import {
   useDummiesStore,
   useNetworkStore,
 } from '@/store'
-import { calculateFee, getTxHex, getUtxos } from '@/lib/helpers'
+import { calculateFee, getTxHex } from '@/lib/helpers'
+
 import { ElMessage } from 'element-plus'
 import { DUMMY_UTXO_VALUE, ORD_UTXO_VALUE, EXTREME_FEEB } from '@/lib/constants'
 import { Buffer } from 'buffer'
-
-export type SimpleUtxo = {
-  txId: string
-  scriptPk: string
-  satoshis: number
-  outputIndex: number
-  addressType: any
-}
+import { getUtxos2 } from '@/queries'
 
 const props = defineProps<{
   order: PsbtWrapper
@@ -137,7 +131,7 @@ async function buy() {
   ]
 
   // Step 8: add payment input
-  const paymentUtxo = await getUtxos(address).then((result: SimpleUtxo[]) => {
+  const paymentUtxo = await getUtxos2(address).then((result) => {
     // choose the largest utxo
     const utxo = result.reduce((prev, curr) => {
       if (prev.satoshis > curr.satoshis) {
@@ -206,7 +200,6 @@ async function buy() {
     const newDummies = [
       {
         txId: pushTxId,
-        scriptPk: paymentUtxo.scriptPk,
         satoshis: DUMMY_UTXO_VALUE,
         outputIndex: newDummiesIndex[0],
         addressType: 2,
@@ -214,7 +207,6 @@ async function buy() {
       },
       {
         txId: pushTxId,
-        scriptPk: paymentUtxo.scriptPk,
         satoshis: DUMMY_UTXO_VALUE,
         outputIndex: newDummiesIndex[1],
         addressType: 2,

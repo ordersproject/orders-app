@@ -3,6 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@headlessui/vue': ^1.7.13
   '@heroicons/vue': ^2.0.18
+  '@tanstack/vue-query': ^4.29.11
   '@vitejs/plugin-vue': ^4.1.0
   '@vueuse/core': ^10.1.2
   autoprefixer: ^10.4.14
@@ -10,6 +11,7 @@ specifiers:
   browserify: ^17.0.0
   buffer: ^6.0.3
   element-plus: ^2.3.5
+  lucide-vue-next: ^0.236.0
   pinia: ^2.1.3
   postcss: ^8.4.23
   prettier: ^2.8.8
@@ -32,11 +34,13 @@ specifiers:
 dependencies:
   '@headlessui/vue': 1.7.13_vue@3.3.4
   '@heroicons/vue': 2.0.18_vue@3.3.4
+  '@tanstack/vue-query': 4.29.11_vue@3.3.4
   '@vueuse/core': 10.1.2_vue@3.3.4
   bitcoinjs-lib: 6.1.0
   browserify: 17.0.0
   buffer: 6.0.3
   element-plus: 2.3.5_vue@3.3.4
+  lucide-vue-next: 0.236.0_vue@3.3.4
   pinia: 2.1.3_typescript@5.0.4+vue@3.3.4
   tiny-secp256k1: 2.2.1
   vue: 3.3.4
@@ -542,6 +546,33 @@ packages:
 
   /@sxzz/popperjs-es/2.11.7:
     resolution: {integrity: sha512-Ccy0NlLkzr0Ex2FKvh2X+OyERHXJ88XJ1MXtsI9y9fGexlaXaVTPzBCRBwIxFkORuOb+uBqeu+RqnpgYTEZRUQ==}
+    dev: false
+
+  /@tanstack/match-sorter-utils/8.8.4:
+    resolution: {integrity: sha512-rKH8LjZiszWEvmi01NR72QWZ8m4xmXre0OOwlRGnjU01Eqz/QnN+cqpty2PJ0efHblq09+KilvyR7lsbzmXVEw==}
+    engines: {node: '>=12'}
+    dependencies:
+      remove-accents: 0.4.2
+    dev: false
+
+  /@tanstack/query-core/4.29.11:
+    resolution: {integrity: sha512-8C+hF6SFAb/TlFZyS9FItgNwrw4PMa7YeX+KQYe2ZAiEz6uzg6yIr+QBzPkUwZ/L0bXvGd1sufTm3wotoz+GwQ==}
+    dev: false
+
+  /@tanstack/vue-query/4.29.11_vue@3.3.4:
+    resolution: {integrity: sha512-HxaACzKQv3zlDyu2QHirMQpDNszdsQ+0vZqCzjDf1hkhQNYS+98Ofy4SvnKjSfUBsmNDc88YkZDo78eJh638jA==}
+    peerDependencies:
+      '@vue/composition-api': ^1.1.2
+      vue: ^2.5.0 || ^3.0.0
+    peerDependenciesMeta:
+      '@vue/composition-api':
+        optional: true
+    dependencies:
+      '@tanstack/match-sorter-utils': 8.8.4
+      '@tanstack/query-core': 4.29.11
+      '@vue/devtools-api': 6.5.0
+      vue: 3.3.4
+      vue-demi: 0.13.11_vue@3.3.4
     dev: false
 
   /@types/estree/1.0.1:
@@ -1739,6 +1770,14 @@ packages:
       yallist: 4.0.0
     dev: true
 
+  /lucide-vue-next/0.236.0_vue@3.3.4:
+    resolution: {integrity: sha512-hkrBT6qSWtWDuJd+qxl9ZEi+Fa5zm6FuKE5Yy5BezCxh5JMPE5ooTl6iOVPQbwhEApK8r4GOpt8kwOVJL0npWQ==}
+    peerDependencies:
+      vue: '>=3.0.1'
+    dependencies:
+      vue: 3.3.4
+    dev: false
+
   /magic-string/0.27.0:
     resolution: {integrity: sha512-8UnnX2PeRAPZuN12svgR9j7M1uWMovg/CEnIwIG0LFkXSJJe4PdfUGiTGl8V9bsBHFUtfVINcSyYxd7q+kx9fA==}
     engines: {node: '>=12'}
@@ -2228,6 +2267,10 @@ packages:
     dependencies:
       picomatch: 2.3.1
     dev: true
+
+  /remove-accents/0.4.2:
+    resolution: {integrity: sha512-7pXIJqJOq5tFgG1A2Zxti3Ht8jJF337m4sowbuHsW30ZnkQFnDzy9qBNhgzX8ZLW4+UBcXiiR7SwR6pokHsxiA==}
+    dev: false
 
   /resolve/1.22.2:
     resolution: {integrity: sha512-Sb+mjNHOULsBv818T40qSPeRiuWLyaGMa5ewydRLFimneixmVy2zdivRl+AF6jaYPC8ERxGDmFSiqui6SfPd+g==}
@@ -2728,6 +2771,21 @@ packages:
 
   /vm-browserify/1.1.2:
     resolution: {integrity: sha512-2ham8XPWTONajOR0ohOKOHXkm3+gaBmGut3SRuu75xLd/RRaY6vqgh8NBYYk7+RW3u5AtzPQZG8F10LHkl0lAQ==}
+    dev: false
+
+  /vue-demi/0.13.11_vue@3.3.4:
+    resolution: {integrity: sha512-IR8HoEEGM65YY3ZJYAjMlKygDQn25D5ajNFNoKh9RSDMQtlzCxtfQjdQgv9jjK+m3377SsJXY8ysq8kLCZL25A==}
+    engines: {node: '>=12'}
+    hasBin: true
+    requiresBuild: true
+    peerDependencies:
+      '@vue/composition-api': ^1.0.0-rc.1
+      vue: ^3.0.0-0 || ^2.6.0
+    peerDependenciesMeta:
+      '@vue/composition-api':
+        optional: true
+    dependencies:
+      vue: 3.3.4
     dev: false
 
   /vue-demi/0.14.5_vue@3.3.4:

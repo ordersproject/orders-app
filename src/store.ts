@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 type BitcoinJs = typeof import('bitcoinjs-lib')
-import type { SimpleUtxo } from '@/lib/helpers'
 import { useLocalStorage } from '@vueuse/core'
 import type { RemovableRef } from '@vueuse/core'
+import { SimpleUtxoFromMempool } from './queries'
 
 export const useAddressStore = defineStore('address', {
   state: () => {
@@ -64,7 +64,7 @@ export const useBtcJsStore = defineStore('btcjs', {
   },
 })
 
-export type DummyUtxo = SimpleUtxo & {
+export type DummyUtxo = SimpleUtxoFromMempool & {
   txHex: string
 }
 export const useDummiesStore = defineStore('dummies', {

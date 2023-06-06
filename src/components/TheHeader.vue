@@ -4,7 +4,7 @@ import logoIcon from '@/assets/logo-icon.png?url'
 import logoText from '@/assets/logo-text.svg?url'
 import logo from '@/assets/logo.svg?url'
 import unisatIcon from '@/assets/unisat-icon.png?url'
-import { calculateFee, getTxHex, getUtxos, prettyAddress } from '@/lib/helpers'
+import { calculateFee, getTxHex, prettyAddress } from '@/lib/helpers'
 import { ElMessage } from 'element-plus'
 import {
   useAddressStore,
@@ -16,6 +16,7 @@ import {
 import type { Network } from '@/store'
 import { DUMMY_UTXO_VALUE, EXTREME_FEEB, MIN_FEEB } from '@/lib/constants'
 import { Buffer } from 'buffer'
+import { getUtxos2 } from '@/queries'
 
 const address = useAddressStore()
 const dummiesStore = useDummiesStore()
@@ -85,7 +86,7 @@ async function checkDummies() {
 
   checkingDummies.value = true
   // find out if there are two dummy utxos for the construction of psbt
-  const candidates = await getUtxos(address.get!).then((utxos) => {
+  const candidates = await getUtxos2(address.get!).then((utxos) => {
     console.log({ utxos })
     // only take two dummy utxos
     return utxos
@@ -118,7 +119,7 @@ async function checkDummies() {
 async function createDummies() {
   if (!address.get) return
 
-  const paymentUtxo = await getUtxos(address.get!).then((utxos) => {
+  const paymentUtxo = await getUtxos2(address.get!).then((utxos) => {
     console.log({ utxos })
     // only take two dummy utxos
     return utxos.filter(
@@ -134,6 +135,13 @@ async function createDummies() {
   }
 
   const btcjs = btcjsStore.get!
+
+  const paymentHex = await getTxHex(paymentUtxo.txId)
+  // get scriptPk
+  const paymentTx = btcjs.Transaction.fromHex(paymentHex)
+  const paymentOutput = paymentTx.outs[paymentUtxo.outputIndex]
+  const paymentScriptPk = paymentOutput.script
+
   const dummiesPsbt = new btcjs.Psbt({
     network: btcjs.networks[networkStore.btcNetwork],
   })
@@ -141,7 +149,7 @@ async function createDummies() {
     hash: paymentUtxo.txId,
     index: paymentUtxo.outputIndex,
     witnessUtxo: {
-      script: Buffer.from(paymentUtxo.scriptPk, 'hex'),
+      script: paymentScriptPk,
       value: paymentUtxo.satoshis,
     },
   })
@@ -170,7 +178,6 @@ async function createDummies() {
   const dummies: DummyUtxo[] = [
     {
       txId: pushedTxid,
-      scriptPk: paymentUtxo.scriptPk,
       satoshis: DUMMY_UTXO_VALUE,
       outputIndex: 0,
       addressType: 2,
@@ -178,7 +185,6 @@ async function createDummies() {
     },
     {
       txId: pushedTxid,
-      scriptPk: paymentUtxo.scriptPk,
       satoshis: DUMMY_UTXO_VALUE,
       outputIndex: 1,
       addressType: 2,
