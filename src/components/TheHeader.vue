@@ -17,6 +17,7 @@ import type { Network } from '@/store'
 import { DUMMY_UTXO_VALUE, EXTREME_FEEB, MIN_FEEB } from '@/lib/constants'
 import { Buffer } from 'buffer'
 import { getUtxos2 } from '@/queries'
+import utils from '@/utils'
 
 const address = useAddressStore()
 const dummiesStore = useDummiesStore()
@@ -34,8 +35,7 @@ onMounted(async () => {
   console.log({ addresses })
   if (addresses && addresses.length) {
     address.set(addresses[0])
-
-    await checkDummies()
+    //await checkDummies()
   }
 
   // getNetwork
@@ -53,7 +53,7 @@ async function connectWallet() {
   if (connectRes && connectRes.length) {
     address.set(connectRes[0])
 
-    await checkDummies()
+    //await checkDummies()
   }
 }
 
@@ -81,6 +81,7 @@ function copyAddress() {
 }
 
 const checkingDummies = ref(false)
+
 async function checkDummies() {
   if (!address.get) return
 
@@ -192,7 +193,6 @@ async function createDummies() {
     },
   ]
   dummiesStore.set(dummies)
-
   ElMessage.success('Dummies created. You are ready to go!')
 }
 </script>
@@ -238,7 +238,7 @@ async function createDummies() {
         </div>
 
         <!-- ready button -->
-        <div class="pl-2" v-if="!dummiesStore.has">
+        <!-- <div class="pl-2" v-if="!dummiesStore.has">
           <button
             class="rounded bg-orange-500/50 px-2 py-1 text-xs"
             @click="createDummies"
@@ -250,7 +250,7 @@ async function createDummies() {
           <span class="text-xs text-orange-300" v-else>
             Checking Dummies...
           </span>
-        </div>
+        </div> -->
       </div>
     </div>
   </header>
