@@ -35,7 +35,7 @@ export const getBidCandidates = async (
     .then((res) => res.json())
     .then(({ data: { availableList } }) => availableList)
 
-  return candidates
+  return candidates || []
 }
 
 export const getBidCandidateInfo = async ({
@@ -56,6 +56,7 @@ export const getBidCandidateInfo = async ({
   net: 'livenet' | 'testnet'
   tick: string
   psbtRaw: string
+  orderId: string
 }> => {
   const candidateInfo = await fetch(
     `https://api.ordbook.io/book/brc20/order/bid?net=${network}&tick=${tick}&inscriptionId=${inscriptionId}&inscriptionNumber=${inscriptionNumber}&coinAmount=${coinAmount}&total=${total}`,
@@ -71,20 +72,96 @@ export const getBidCandidateInfo = async ({
   return candidateInfo
 }
 
+export type Order = {
+  amount: number
+  buyerAddress: string
+  coinAmount: number
+  coinDecimalNum: number
+  coinRatePrice: number
+  net: 'livenet' | 'testnet'
+  orderId: string
+  orderState: number
+  orderType: number
+  psbtRaw: string
+  sellerAddress: string
+  tick: string
+  timestamp: number
+}
+export const getOrders = async ({
+  type,
+  network,
+}: {
+  type: 'bid' | 'ask'
+  network: 'livenet' | 'testnet'
+}) => {
+  const orderType = type === 'ask' ? 1 : 2
+  const orders: Order[] = await fetch(
+    `https://api.ordbook.io/book/brc20/orders?net=${network}&orderType=${orderType}&orderState=1`,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  )
+    .then((res) => res.json())
+    .then(({ data: { results } }) => results)
+
+  return orders
+}
+
+export const pushSellTake = async ({
+  network,
+  psbtRaw,
+  orderId,
+  address,
+  value,
+  amount,
+}: {
+  network: 'livenet' | 'testnet'
+  psbtRaw: string
+  orderId: string
+  address: string
+  value: number
+  amount: string
+}) => {
+  const sellEndpoint = `https://api.ordbook.io/book/brc20/order/bid/do`
+  console.log({ value })
+  const sellRes = await fetch(sellEndpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      net: network,
+      psbtRaw,
+      orderId,
+      address,
+      value,
+      amount,
+    }),
+  }).then((res) => res.json())
+
+  return sellRes
+}
+
 export const pushBidOrder = async ({
   network,
   address,
   tick,
   psbtRaw,
   feeb,
+  fee,
   total,
+  orderId,
 }: {
   network: 'livenet' | 'testnet'
   address: string
   tick: string
   psbtRaw: string
   feeb: number
+  fee: number
   total: number
+  orderId: string
 }) => {
   const createEndpoint = `https://api.ordbook.io/book/brc20/order/bid/push`
   const createRes = await fetch(createEndpoint, {
@@ -98,7 +175,9 @@ export const pushBidOrder = async ({
       tick,
       psbtRaw,
       rate: feeb,
+      fee,
       amount: total,
+      orderId,
     }),
   }).then((res) => res.json())
 
@@ -113,6 +192,9 @@ export type SimpleUtxoFromMempool = {
 }
 export const getUtxos2 = async (address: string) => {
   const network = useNetworkStore().network
+  if (network === 'livenet') {
+    return getUtxosFromYouKnowWhere(address)
+  }
 
   const url = `https://ordex.riverrun.online/api/utxos2?address=${address}&network=${network}`
   const paymentUtxos: SimpleUtxoFromMempool[] = await fetch(url, {
@@ -133,4 +215,41 @@ export const getUtxos2 = async (address: string) => {
     })
 
   return paymentUtxos
+}
+
+export const getUtxosFromYouKnowWhere = async (address: string) => {
+  const network = useNetworkStore().network
+
+  const url = `https://ordex.riverrun.online/api/utxos?address=${address}&network=${network}`
+  const paymentUtxos: SimpleUtxoFromMempool[] = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+    .then((res) => res.json())
+    .then(({ result }) => result)
+
+  return paymentUtxos
+}
+
+export type FeebPlan = {
+  title: string
+  desc: string
+  feeRate: number
+}
+export const getFeebPlans = async ({
+  network,
+}: {
+  network: 'livenet' | 'testnet'
+}): Promise<FeebPlan[]> => {
+  const url = `https://ordex.riverrun.online/api/feeb-plans?network=${network}`
+  const feebPlans = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+    .then((res) => res.json())
+    .then(({ result: { list } }) => list)
+
+  return feebPlans
 }

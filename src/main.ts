@@ -3,11 +3,15 @@ import { createPinia } from 'pinia'
 import './style.css'
 import App from './App.vue'
 import Home from './pages/Home.vue'
+import Dev from './pages/Dev.vue'
 import * as VueRouter from 'vue-router'
 import 'element-plus/theme-chalk/dark/css-vars.css'
 import { VueQueryPlugin } from '@tanstack/vue-query'
 
-const routes = [{ path: '/', component: Home }]
+const routes = [
+  { path: '/', component: Home },
+  { path: '/dev', component: Dev },
+]
 const router = VueRouter.createRouter({
   history: VueRouter.createWebHistory(),
   routes,

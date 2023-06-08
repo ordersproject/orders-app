@@ -1,11 +1,20 @@
-import { useAddressStore, useDummiesStore, useNetworkStore } from '@/store'
+import {
+  useAddressStore,
+  useBtcJsStore,
+  useDummiesStore,
+  useNetworkStore,
+} from '@/store'
 import { SimpleUtxo, calculateFee, getTxHex } from './helpers'
 import {
   DUMMY_UTXO_VALUE,
-  PUBLISHER_LIVENET_ADDRESS,
-  PUBLISHER_TESTNET_ADDRESS,
+  SERVICE_LIVENET_ADDRESS,
+  SERVICE_TESTNET_ADDRESS,
 } from './constants'
-import { getBidCandidateInfo, getUtxos2 } from '@/queries'
+import {
+  SimpleUtxoFromMempool,
+  getBidCandidateInfo,
+  getUtxos2,
+} from '@/queries'
 
 export async function buildAskLimit({
   network,
@@ -31,7 +40,7 @@ export async function buildBidLimit({
   const networkStore = useNetworkStore()
   const orderNetwork = networkStore.network
   const btcNetwork = networkStore.btcNetwork
-  console.log({ coinAmount })
+  console.log({ coinAmount, total })
   const btcjs = window.bitcoin
   const address = useAddressStore().get!
 
@@ -66,7 +75,8 @@ export async function buildBidLimit({
       hash: dummyUtxo.txId,
       index: dummyUtxo.outputIndex,
       witnessUtxo: dummyTx.outs[dummyUtxo.outputIndex],
-      sighashType: btcjs.Transaction.SIGHASH_ALL,
+      sighashType:
+        btcjs.Transaction.SIGHASH_ALL | btcjs.Transaction.SIGHASH_ANYONECANPAY,
     }
     bid.addInput(dummyInput)
     totalInput += dummyUtxo.satoshis
@@ -99,15 +109,13 @@ export async function buildBidLimit({
   const exchangeOutput = exchange.txOutputs[0]
   bid.addOutput(exchangeOutput)
 
-  // Step 6: publisher fee
-  const publisherAddress =
-    btcNetwork === 'bitcoin'
-      ? PUBLISHER_LIVENET_ADDRESS
-      : PUBLISHER_TESTNET_ADDRESS
-  const publisherFee = Math.max(2000, exchangeOutput.value * 0.01)
+  // Step 6: service fee
+  const serviceAddress =
+    btcNetwork === 'bitcoin' ? SERVICE_LIVENET_ADDRESS : SERVICE_TESTNET_ADDRESS
+  const serviceFee = Math.max(2000, exchangeOutput.value * 0.01)
   bid.addOutput({
-    address: publisherAddress,
-    value: publisherFee,
+    address: serviceAddress,
+    value: serviceFee,
   })
 
   // Step 7: add 2 dummies output for future use
@@ -133,6 +141,7 @@ export async function buildBidLimit({
     })
     return utxo
   })
+  console.log({ paymentUtxo })
 
   if (!paymentUtxo) {
     throw new Error('no utxo')
@@ -148,7 +157,8 @@ export async function buildBidLimit({
     hash: paymentUtxo.txId,
     index: paymentUtxo.outputIndex,
     witnessUtxo: tx.outs[paymentUtxo.outputIndex],
-    sighashType: btcjs.Transaction.SIGHASH_ALL,
+    sighashType:
+      btcjs.Transaction.SIGHASH_ALL | btcjs.Transaction.SIGHASH_ANYONECANPAY,
   }
 
   bid.addInput(paymentInput)
@@ -168,7 +178,12 @@ export async function buildBidLimit({
   )
   // postponer should be integer
   const postponer = Math.round(total * 0.25)
-  const changeValue = totalInput - totalOutput - fee + postponer
+  const changeValue =
+    paymentInput.witnessUtxo.value -
+    total -
+    fee -
+    serviceFee -
+    DUMMY_UTXO_VALUE * 2
 
   console.log({ changeValue, totalInput, totalOutput, fee, postponer })
 
@@ -179,8 +194,10 @@ export async function buildBidLimit({
 
   return {
     order: bid,
+    orderId: candidateInfo.orderId,
     type: 'bid',
     feeb,
+    fee,
     postponer,
     total,
   }
@@ -210,5 +227,87 @@ export async function buildBidLimit({
     // ]
     // dummiesStore.set(newDummies)
     // await
+  }
+}
+
+export async function buildBuyTake() {}
+
+export async function buildSellTake({
+  total,
+  amount,
+}: {
+  total: number
+  amount: number
+}) {
+  const networkStore = useNetworkStore()
+  const address = useAddressStore().get!
+  const btcjs = useBtcJsStore().get!
+
+  // Step 1: Get the ordinal utxo as input
+  // if testnet, we use a cardinal utxo as a fake one
+  let ordinalUtxo: SimpleUtxoFromMempool
+  if (networkStore.network === 'testnet') {
+    const cardinalUtxo = await getUtxos2(address).then((result) => {
+      // choose the smallest utxo, but bigger than 600
+      const smallOne = result.reduce((prev, curr) => {
+        if (
+          (curr.satoshis < prev.satoshis && curr.satoshis > 600) ||
+          (prev && prev.satoshis <= 600)
+        ) {
+          return curr
+        } else {
+          return prev
+        }
+      }, result[0])
+
+      return smallOne
+    })
+    console.log({ cardinalUtxo })
+
+    if (!cardinalUtxo) {
+      throw new Error('no utxo')
+    }
+
+    ordinalUtxo = cardinalUtxo
+  } else {
+    throw new Error('not implemented')
+  }
+
+  // fetch and decode rawTx of the utxo
+  const rawTx = await getTxHex(ordinalUtxo.txId)
+  // decode rawTx
+  const ordinalPreTx = btcjs.Transaction.fromHex(rawTx)
+  const ordinalDetail = ordinalPreTx.outs[ordinalUtxo.outputIndex]
+  const ordinalValue = ordinalDetail.value
+
+  // build psbt
+  const sell = new btcjs.Psbt({
+    network: btcjs.networks[networkStore.btcNetwork],
+  })
+
+  for (const output in ordinalPreTx.outs) {
+    try {
+      ordinalPreTx.setWitness(parseInt(output), [])
+    } catch (e: any) {}
+  }
+
+  sell.addInput({
+    hash: ordinalUtxo.txId,
+    index: ordinalUtxo.outputIndex,
+    witnessUtxo: ordinalPreTx.outs[ordinalUtxo.outputIndex],
+    sighashType:
+      btcjs.Transaction.SIGHASH_SINGLE | btcjs.Transaction.SIGHASH_ANYONECANPAY,
+  })
+
+  // Step 2: Build output as what the seller want (BTC)
+  sell.addOutput({
+    address,
+    value: total,
+  })
+
+  return {
+    order: sell,
+    type: 'sell',
+    value: ordinalValue,
   }
 }

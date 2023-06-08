@@ -14,8 +14,7 @@ import {
   useNetworkStore,
 } from '@/store'
 import type { Network } from '@/store'
-import { DUMMY_UTXO_VALUE, EXTREME_FEEB, MIN_FEEB } from '@/lib/constants'
-import { Buffer } from 'buffer'
+import { DUMMY_UTXO_VALUE, MIN_FEEB } from '@/lib/constants'
 import { getUtxos2 } from '@/queries'
 import utils from '@/utils'
 
@@ -32,7 +31,6 @@ onMounted(async () => {
 
   // try to get current address
   const addresses = await window.unisat.getAccounts()
-  console.log({ addresses })
   if (addresses && addresses.length) {
     address.set(addresses[0])
     //await checkDummies()
@@ -88,7 +86,6 @@ async function checkDummies() {
   checkingDummies.value = true
   // find out if there are two dummy utxos for the construction of psbt
   const candidates = await getUtxos2(address.get!).then((utxos) => {
-    console.log({ utxos })
     // only take two dummy utxos
     return utxos
       .filter((utxo) => utxo.satoshis === DUMMY_UTXO_VALUE)
@@ -121,7 +118,6 @@ async function createDummies() {
   if (!address.get) return
 
   const paymentUtxo = await getUtxos2(address.get!).then((utxos) => {
-    console.log({ utxos })
     // only take two dummy utxos
     return utxos.filter(
       (utxo) => utxo.satoshis >= DUMMY_UTXO_VALUE * 2 + 1000
