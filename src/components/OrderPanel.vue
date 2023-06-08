@@ -31,20 +31,28 @@ import { useQuery } from '@tanstack/vue-query'
 import btcIcon from '@/assets/btc.svg?url'
 import ordiIcon from '@/assets/ordi.svg?url'
 import ordiBtcLogo from '@/assets/ordi-btc.svg?url'
+import { calculateFee, getTxHex, prettyBalance } from '@/lib/helpers'
 import {
-  SimpleUtxo,
-  calculateFee,
-  getTxHex,
-  prettyBalance,
-} from '@/lib/helpers'
-import { DUMMY_UTXO_VALUE } from '@/lib/constants'
-import { buildAskLimit, buildBidLimit } from '@/lib/order'
+  DUMMY_UTXO_VALUE,
+  SERVICE_LIVENET_ADDRESS,
+  SERVICE_TESTNET_ADDRESS,
+} from '@/lib/constants'
+import {
+  buildAskLimit,
+  buildBidLimit,
+  buildSellTake,
+} from '@/lib/order-builder'
 import {
   getOrdiBalance,
   getBidCandidates,
   BidCandidate,
   pushBidOrder,
-getUtxos2,
+  pushSellTake,
+  getUtxos2,
+  getFeebPlans,
+  getOrders,
+  Order,
+  FeebPlan,
 } from '@/queries'
 import OrderList from './OrderList.vue'
 import {
@@ -56,29 +64,20 @@ import {
 
 const unisat = window.unisat
 
-export type PsbtWrapper = {
-  id: string
-  psbtRaw: string
-  createdAt: number
-  address: string
-  coinAmount: number
-  coinRatePrice: string
-  amount: number
-}
 const btcJsStore = useBtcJsStore()
 const addressStore = useAddressStore()
 const dummiesStore = useDummiesStore()
 const networkStore = useNetworkStore()
 
-const endpoint = `https://api.ordbook.io/book/brc20/orders?orderState=1&net=${networkStore.ordersNetwork}`
-const btcjs = window.bitcoin
-
-const sellPsbtWrappers: Ref<PsbtWrapper[]> = ref([])
-fetch(endpoint).then(async (res) => {
-  const jsoned = await res.json()
-  if (jsoned.data && jsoned.data.results) {
-    sellPsbtWrappers.value = jsoned.data.results.filter((item: any) => !!item)
-  }
+const { data: askOrders } = useQuery({
+  queryKey: ['askOrders', { network: networkStore.network }],
+  queryFn: () => getOrders({ type: 'ask', network: networkStore.network }),
+  placeholderData: [],
+})
+const { data: bidOrders } = useQuery({
+  queryKey: ['bidOrders', { network: networkStore.network }],
+  queryFn: () => getOrders({ type: 'bid', network: networkStore.network }),
+  placeholderData: [],
 })
 
 const balance = ref(0)
@@ -100,74 +99,117 @@ onMounted(async () => {
   await updateBalance()
 })
 
-const selectedOrders: Ref<PsbtWrapper[]> = ref([])
-const candidateOrders = computed(() => {
-  if (usePrice.value === 0) return []
+const takeModeTab = ref(0)
+function changeTakeModeTab(index: number) {
+  takeModeTab.value = index
+}
 
-  return sellPsbtWrappers.value
+const selectedBuyOrders: Ref<Order[]> = ref([])
+const selectedSellOrders: Ref<Order[]> = ref([])
+
+const candidateBuyOrders = computed(() => {
+  if (useBuyPrice.value === 0) return []
+  if (!askOrders.value) return []
+
+  return askOrders.value
     .filter((item) => {
-      return Number(item.coinRatePrice) / 1e8 === usePrice.value
+      return Number(item.coinRatePrice) / 1e8 === useBuyPrice.value
+    })
+    .slice(0, 1)
+})
+const candidateSellOrders = computed(() => {
+  if (useSellPrice.value === 0) return []
+  if (!bidOrders.value) return []
+
+  return bidOrders.value
+    .filter((item) => {
+      return Number(item.coinRatePrice) / 1e8 === useSellPrice.value
     })
     .slice(0, 1)
 })
 
-const selectedCoinAmount = computed(() => {
-  return selectedOrders.value.reduce((acc, cur) => {
+const selectedBuyCoinAmount = computed(() => {
+  return selectedBuyOrders.value.reduce((acc, cur) => {
+    return acc + Number(cur.coinAmount)
+  }, 0)
+})
+const selectedSellCoinAmount = computed(() => {
+  return selectedSellOrders.value.reduce((acc, cur) => {
     return acc + Number(cur.coinAmount)
   }, 0)
 })
 
-const feebPlanList = [
-  {
-    feeb: 11,
-    speed: 'Slow',
-    label: 'extreme',
-    estimate: 'About 1h',
-  },
-  {
-    feeb: 33,
-    speed: 'Avg',
-    label: 'medium',
-    estimate: 'About 30min',
-  },
-  {
-    feeb: 46,
-    speed: 'Fast',
-    label: 'fast',
-    estimate: 'About 10min',
-  },
-]
-const selectedFeebPlan = ref(feebPlanList[0])
+const { data: feebPlans } = useQuery({
+  queryKey: ['feebPlans', { network: networkStore.network }],
+  queryFn: () => getFeebPlans({ network: networkStore.network }),
+})
+const selectedFeebPlan: Ref<FeebPlan | undefined> = ref()
+watch(feebPlans, (plans) => {
+  if (!plans) return
 
-const fees = computed(() => {
-  if (!selectedCoinAmount.value) return 0
-
-  const ordersCount = selectedOrders.value.length
-
-  return calculateFee(selectedFeebPlan.value.feeb, 4, 6) * ordersCount
+  selectedFeebPlan.value = plans[0]
 })
 
-const prettyFees = computed(() => {
-  if (!fees.value) return '0'
+const buyFees = computed(() => {
+  if (!selectedBuyCoinAmount.value) return 0
+  if (!selectedFeebPlan.value) return 0
 
-  const feeInBtc = fees.value / 1e8
+  const ordersCount = selectedBuyOrders.value.length
+
+  return calculateFee(selectedFeebPlan.value.feeRate, 4, 6) * ordersCount
+})
+const sellFees = computed(() => {
+  if (!selectedSellCoinAmount.value) return 0
+  if (!selectedFeebPlan.value) return 0
+
+  const ordersCount = selectedSellOrders.value.length
+
+  return calculateFee(selectedFeebPlan.value.feeRate, 4, 6) * ordersCount // TODO
+})
+
+const prettyBuyFees = computed(() => {
+  if (!buyFees.value) return '0'
+
+  const feeInBtc = buyFees.value / 1e8
+
+  return `≈${feeInBtc.toFixed(8)} BTC`
+})
+const prettySellFees = computed(() => {
+  if (!sellFees.value) return '0'
+
+  const feeInBtc = sellFees.value / 1e8
 
   return `≈${feeInBtc.toFixed(8)} BTC`
 })
 
-function handleChangeUsePrice(price: number) {
-  usePrice.value = price
+const useBuyPrice = ref(0)
+const useSellPrice = ref(0)
+
+function setUseBuyPrice(price: number) {
+  takeModeTab.value = 0
+  useBuyPrice.value = price
+}
+function setUseSellPrice(price: number) {
+  takeModeTab.value = 1
+  useSellPrice.value = price
 }
 
-const usePrice = ref(0)
 // watch use price change, update selected orders
-watch(usePrice, (price) => {
-  console.log({ price })
-  if (price === 0) {
-    selectedOrders.value = []
+watch(useBuyPrice, (price) => {
+  if (price === 0 || !askOrders.value) {
+    selectedBuyOrders.value = []
   } else {
-    selectedOrders.value = sellPsbtWrappers.value.filter((item) => {
-      return Number(item.coinRatePrice) / 1e8 <= price
+    selectedBuyOrders.value = candidateBuyOrders.value.filter((item) => {
+      return Number(item.coinRatePrice) / 1e8 === price
+    })
+  }
+})
+watch(useSellPrice, (price) => {
+  if (price === 0 || !bidOrders.value) {
+    selectedSellOrders.value = []
+  } else {
+    selectedSellOrders.value = candidateSellOrders.value.filter((item) => {
+      return Number(item.coinRatePrice) / 1e8 === price
     })
   }
 })
@@ -175,13 +217,14 @@ watch(usePrice, (price) => {
 async function buildOrder() {
   setIsOpen(true)
   isBuilding.value = true
+  let buildRes: any
 
   if (isLimitExchangeMode.value) {
     if (limitExchangeType.value === 'bid') {
       if (!selectedBidCandidate.value) return
 
       // ask dex to do the prerequisite work
-      const buildRes = await buildBidLimit({
+      buildRes = await buildBidLimit({
         total: Math.round(
           bidExchangePrice.value *
             Number(selectedBidCandidate.value.coinAmount) *
@@ -191,26 +234,41 @@ async function buildOrder() {
         inscriptionId: selectedBidCandidate.value.inscriptionId,
         inscriptionNumber: selectedBidCandidate.value.inscriptionNumber,
       })
-
-      isBuilding.value = false
-
-      if (!buildRes) return
-
-      builtInfo.value = buildRes
-      return
     }
 
     // return buildAskLimit({
     //   total: askExchangePrice.value * askExchangeOrdiAmount.value * 1e8,
     //   amount: askExchangeOrdiAmount.value,
     // })
+  } else {
+    if (takeModeTab.value === 0) {
+      // buy
+      if (!selectedBuyOrders.value.length) return
+
+      buildRes = await buildBuyTake()
+    } else if (takeModeTab.value === 1) {
+      // sell
+      if (!selectedSellOrders.value.length) return
+
+      const total = selectedSellOrders.value.reduce((acc, cur) => {
+        return acc + Number(cur.amount)
+      }, 0)
+
+      buildRes = {
+        ...(await buildSellTake({
+          total,
+          amount: selectedSellCoinAmount.value,
+        })),
+        orderId: selectedSellOrders.value[0].orderId,
+        amount: selectedSellOrders.value[0].coinAmount.toString(),
+      }
+    }
   }
 
-  const buildRes = await buildBuyAnswer()
   isBuilding.value = false
-  if (!buildRes) return
 
-  console.log({ buyOrder: buildRes.order })
+  if (!buildRes) return
+  console.log({ buildRes })
   builtInfo.value = buildRes
   return
 }
@@ -226,19 +284,43 @@ async function submitOrder() {
   console.log({ signed })
 
   // 2. push
-  const pushRes = await pushBidOrder({
-    psbtRaw: signed,
-    network: networkStore.ordersNetwork,
-    address: addressStore.get!,
-    tick: 'ordi',
-    feeb: builtInfo.value.feeb,
-    total: builtInfo.value.total,
-  })
-  console.log({ pushRes })
+  let pushed: any
+  switch (builtInfo.value!.type) {
+    // case 'buy':
+    //   await pushBuyOrder(signed)
+    //   break
+    case 'sell':
+      pushed = await pushSellTake({
+        psbtRaw: signed,
+        network: networkStore.ordersNetwork,
+        orderId: builtInfo.value.orderId,
+        address: addressStore.get!,
+        value: builtInfo.value.value,
+        amount: builtInfo.value.amount,
+      })
+      break
+    case 'bid':
+      pushed = await pushBidOrder({
+        psbtRaw: signed,
+        network: networkStore.ordersNetwork,
+        address: addressStore.get!,
+        tick: 'ordi',
+        feeb: builtInfo.value.feeb,
+        fee: builtInfo.value.fee,
+        total: builtInfo.value.total,
+        orderId: builtInfo.value.orderId,
+      })
+      break
+    // case 'ask':
+    //   await pushAskOrder(signed)
+    //   break
+  }
+
+  console.log({ pushed })
 }
 
 // buy
-async function buildBuyAnswer() {
+async function buildBuyTake() {
   if (!btcJsStore.get) {
     return
   }
@@ -254,7 +336,7 @@ async function buildBuyAnswer() {
 
   const address = addressStore.get
   const btcjs = btcJsStore.get
-  const order = selectedOrders.value[0]
+  const order = selectedBuyOrders.value[0]
 
   const sellPsbt = btcjs.Psbt.fromHex(order.psbtRaw, {
     network: btcjs.networks[networkStore.btcNetwork],
@@ -310,7 +392,16 @@ async function buildBuyAnswer() {
   const sellerOutput = sellPsbt.txOutputs[0]
   buyPsbt.addOutput(sellerOutput)
 
-  // TODO: Step 6: publisher fee
+  // Step 6: service fee
+  const serviceAddress =
+    networkStore.btcNetwork === 'bitcoin'
+      ? SERVICE_LIVENET_ADDRESS
+      : SERVICE_TESTNET_ADDRESS
+  const serviceFee = Math.max(2000, sellPsbt.txOutputs[0].value * 0.01)
+  buyPsbt.addOutput({
+    address: serviceAddress,
+    value: serviceFee,
+  })
 
   // Step 7: add 2 dummies output for future use
   buyPsbt.addOutput({
@@ -361,7 +452,7 @@ async function buildBuyAnswer() {
 
   // Step 9: add change output
   const fee = calculateFee(
-    selectedFeebPlan.value.feeb,
+    selectedFeebPlan.value?.feeRate || 1,
     buyPsbt.txInputs.length,
     buyPsbt.txOutputs.length // already taken care of the exchange output bytes calculation
   )
@@ -382,6 +473,15 @@ async function buildBuyAnswer() {
   return {
     order: buyPsbt,
     type: 'buy',
+    price: order.coinRatePrice,
+    fromAmount: order.amount,
+    fromSymbol: 'BTC',
+    toAmount: order.coinAmount,
+    toSymbol: 'ORDI',
+    feeb: selectedFeebPlan.value?.feeRate || 1,
+    fee,
+    serviceFee,
+    totalSpent: order.amount + fee + serviceFee,
   }
 
   // sign
@@ -426,7 +526,7 @@ async function buildBuyAnswer() {
       },
       body: JSON.stringify({
         net: networkStore.ordersNetwork,
-        orderId: order.id,
+        orderId: order.orderId,
         orderState: 2,
         psbtRaw: signed,
       }),
@@ -443,7 +543,7 @@ const isBuilding = ref(false)
 const builtInfo = ref()
 
 // limit exchange mode
-const isLimitExchangeMode = ref(true)
+const isLimitExchangeMode = ref(false)
 const limitExchangeType: Ref<'bid' | 'ask'> = ref('bid')
 const marketPrice = ref(0.00000154)
 
@@ -544,9 +644,11 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
     <!-- table -->
     <div class="flex items-start gap-x-8 p-8">
       <OrderList
-        :sellPsbtWrappers="sellPsbtWrappers"
-        class="flex-1"
-        @use-price="(price) => handleChangeUsePrice(price)"
+        :askOrders="askOrders"
+        :bidOrders="bidOrders"
+        class="flex-1 self-stretch"
+        @use-buy-price="(price) => setUseBuyPrice(price)"
+        @use-sell-price="(price) => setUseSellPrice(price)"
       />
 
       <!-- operate panel -->
@@ -829,14 +931,35 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
 
       <div class="flex-1" v-else>
         <!-- tabs -->
-        <TabGroup>
-          <TabList class="flex items-center justify-center gap-4">
-            <Tab class="w-28 rounded bg-green-600 py-2">Buy</Tab>
-            <Tab disabled class="w-28 rounded bg-zinc-800 py-2 text-zinc-600"
-              >Sell</Tab
+        <TabGroup :selectedIndex="takeModeTab" @change="changeTakeModeTab">
+          <TabList
+            class="flex items-center justify-center gap-4"
+            v-slot="{ selectedIndex }"
+          >
+            <Tab
+              class="w-28 rounded py-2"
+              :class="
+                selectedIndex === 0
+                  ? 'bg-green-500 text-white'
+                  : 'bg-zinc-700 text-zinc-300'
+              "
             >
+              Buy
+            </Tab>
+            <Tab
+              class="w-28 rounded py-2 text-white"
+              :class="
+                selectedIndex === 1
+                  ? 'bg-red-500 text-white'
+                  : 'bg-zinc-700 text-zinc-300'
+              "
+            >
+              Sell
+            </Tab>
           </TabList>
+
           <TabPanels class="mt-8">
+            <!-- buy panel -->
             <TabPanel class="">
               <div
                 class="flex items-center justify-between rounded-md border border-zinc-500 p-2"
@@ -851,7 +974,8 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                     type="text"
                     class="w-full rounded bg-zinc-700 py-2 pl-2 pr-12 text-right placeholder-zinc-500 outline-none"
                     placeholder="BTC"
-                    v-model.number="usePrice"
+                    :value="useBuyPrice.toFixed(8)"
+                    @input="(event: any) => (useBuyPrice = parseFloat(event.target.value))"
                   />
                   <span
                     class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
@@ -874,7 +998,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                 </div>
 
                 <Listbox
-                  v-model="selectedOrders"
+                  v-model="selectedBuyOrders"
                   multiple
                   as="div"
                   class="relative max-w-[67%] grow"
@@ -883,7 +1007,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                     class="relative w-full cursor-default rounded bg-zinc-700 py-2 pl-3 pr-20 text-right text-sm focus:outline-none"
                   >
                     <span class="block truncate">
-                      {{ selectedCoinAmount }}
+                      {{ selectedBuyCoinAmount }}
                     </span>
 
                     <span
@@ -898,10 +1022,10 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                     class="absolute z-10 mt-4 max-h-60 w-full translate-x-2 overflow-auto rounded-md border border-zinc-500 bg-zinc-900 p-2 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
                   >
                     <ListboxOption
-                      v-for="psbt in candidateOrders"
+                      v-for="psbt in candidateBuyOrders"
                       v-slot="{ active, selected }"
                       as="template"
-                      :key="psbt.id"
+                      :key="psbt.orderId"
                       :value="psbt"
                     >
                       <li
@@ -929,7 +1053,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
               <!-- buy -->
               <div class="mt-12">
                 <!-- feeb select -->
-                <RadioGroup v-model="selectedFeebPlan">
+                <RadioGroup v-model="selectedFeebPlan" v-if="feebPlans">
                   <RadioGroupLabel class="text-xs text-zinc-500">
                     Select Fee Rate
                   </RadioGroupLabel>
@@ -937,9 +1061,9 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                     <RadioGroupOption
                       as="template"
                       v-slot="{ checked, active }"
-                      :key="feebPlan.feeb"
+                      :key="feebPlan.title"
                       :value="feebPlan"
-                      v-for="feebPlan in feebPlanList"
+                      v-for="feebPlan in feebPlans"
                     >
                       <div
                         :class="[
@@ -960,7 +1084,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                             "
                             class="mb-2 text-center text-sm font-bold"
                           >
-                            {{ feebPlan.speed }}
+                            {{ feebPlan.title }}
                           </RadioGroupLabel>
 
                           <RadioGroupDescription
@@ -969,8 +1093,8 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                               checked ? 'text-orange-100' : 'text-zinc-500'
                             "
                           >
-                            <div>{{ `${feebPlan.feeb} sat/vB` }}</div>
-                            <div class="mt-1">{{ feebPlan.estimate }}</div>
+                            <div>{{ `${feebPlan.feeRate} sat/vB` }}</div>
+                            <div class="mt-1">{{ feebPlan.desc }}</div>
                           </RadioGroupDescription>
                         </div>
                       </div>
@@ -980,18 +1104,18 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
 
                 <div class="mt-4 flex items-center justify-between text-sm">
                   <span class="text-zinc-500">Fees</span>
-                  <span class="text-zinc-300">{{ prettyFees }}</span>
+                  <span class="text-zinc-300">{{ prettyBuyFees }}</span>
                 </div>
 
                 <button
                   class="mt-4 w-full rounded-md py-4 font-bold"
                   :class="
-                    selectedOrders.length
+                    selectedBuyOrders.length
                       ? 'bg-green-500 text-white'
                       : 'bg-zinc-700 text-zinc-500'
                   "
                   @click="buildOrder"
-                  :disabled="!selectedOrders.length"
+                  :disabled="!selectedBuyOrders.length"
                 >
                   Buy ORDI
                 </button>
@@ -1013,7 +1137,183 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
               </div>
             </TabPanel>
 
-            <TabPanel>sell panel</TabPanel>
+            <!-- sell panel -->
+            <TabPanel class="">
+              <div
+                class="flex items-center justify-between rounded-md border border-zinc-500 p-2"
+              >
+                <div class="flex items-center">
+                  <img :src="btcIcon" alt="btc icon" class="h-6 w-6" />
+                  <span class="ml-2 text-zinc-500">Price</span>
+                </div>
+
+                <div class="relative max-w-[67%] grow">
+                  <input
+                    type="text"
+                    class="w-full rounded bg-zinc-700 py-2 pl-2 pr-12 text-right placeholder-zinc-500 outline-none"
+                    placeholder="BTC"
+                    :value="useSellPrice.toFixed(8)"
+                    @input="(event: any) => (useSellPrice = parseFloat(event.target.value))"
+                  />
+                  <span
+                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
+                  >
+                    BTC
+                  </span>
+                </div>
+              </div>
+
+              <!-- estimate -->
+              <!-- <div class="mt-2 text-right text-sm">≈$12.99</div> -->
+
+              <!-- amount -->
+              <div
+                class="mt-4 flex items-center justify-between rounded-md border border-zinc-500 p-2"
+              >
+                <div class="flex items-center">
+                  <img :src="ordiIcon" alt="btc icon" class="h-6 w-6" />
+                  <span class="ml-2 text-zinc-500">Amount</span>
+                </div>
+
+                <Listbox
+                  v-model="selectedSellOrders"
+                  multiple
+                  as="div"
+                  class="relative max-w-[67%] grow"
+                >
+                  <ListboxButton
+                    class="relative w-full cursor-default rounded bg-zinc-700 py-2 pl-3 pr-20 text-right text-sm focus:outline-none"
+                  >
+                    <span class="block truncate">
+                      {{ selectedSellCoinAmount }}
+                    </span>
+
+                    <span
+                      class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
+                    >
+                      <span>ORDI</span>
+                      <ChevronUpDownIcon class="h-5 w-5" aria-hidden="true" />
+                    </span>
+                  </ListboxButton>
+
+                  <ListboxOptions
+                    class="absolute z-10 mt-4 max-h-60 w-full translate-x-2 overflow-auto rounded-md border border-zinc-500 bg-zinc-900 p-2 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                  >
+                    <ListboxOption
+                      v-for="psbt in candidateSellOrders"
+                      v-slot="{ active, selected }"
+                      as="template"
+                      :key="psbt.orderId"
+                      :value="psbt"
+                    >
+                      <li
+                        class="relative flex cursor-pointer items-center justify-between rounded py-2 pl-10 pr-2 transition"
+                        :class="active && 'bg-orange-500/20'"
+                      >
+                        <span
+                          v-if="selected"
+                          class="absolute inset-y-0 left-0 flex items-center pl-3 text-orange-300"
+                        >
+                          <CheckIcon class="h-5 w-5" aria-hidden="true" />
+                        </span>
+                        <span class="text-sm text-zinc-500">
+                          {{ Number(psbt.coinRatePrice) / 1e8 }}
+                        </span>
+                        <span :class="selected && 'text-orange-300'">
+                          {{ psbt.coinAmount }}
+                        </span>
+                      </li>
+                    </ListboxOption>
+                  </ListboxOptions>
+                </Listbox>
+              </div>
+
+              <!-- sell -->
+              <div class="mt-12">
+                <!-- feeb select -->
+                <RadioGroup v-model="selectedFeebPlan" v-if="feebPlans">
+                  <RadioGroupLabel class="text-xs text-zinc-500">
+                    Select Fee Rate
+                  </RadioGroupLabel>
+                  <div class="mt-2 flex justify-center gap-4">
+                    <RadioGroupOption
+                      as="template"
+                      v-slot="{ checked, active }"
+                      :key="feebPlan.title"
+                      :value="feebPlan"
+                      v-for="feebPlan in feebPlans"
+                    >
+                      <div
+                        :class="[
+                          active
+                            ? 'ring-2 ring-white ring-opacity-60 ring-offset-2 ring-offset-orange-300'
+                            : '',
+                          checked
+                            ? 'bg-orange-300/80 text-white'
+                            : 'bg-zinc-800 ',
+                        ]"
+                        class="relative flex-1 cursor-pointer rounded-lg px-5 py-4 text-center text-xs shadow-md focus:outline-none"
+                      >
+                        <div class="">
+                          <RadioGroupLabel
+                            as="p"
+                            :class="
+                              checked ? 'text-orange-100' : 'text-zinc-300'
+                            "
+                            class="mb-2 text-center text-sm font-bold"
+                          >
+                            {{ feebPlan.title }}
+                          </RadioGroupLabel>
+
+                          <RadioGroupDescription
+                            as="div"
+                            :class="
+                              checked ? 'text-orange-100' : 'text-zinc-500'
+                            "
+                          >
+                            <div>{{ `${feebPlan.feeRate} sat/vB` }}</div>
+                            <div class="mt-1">{{ feebPlan.desc }}</div>
+                          </RadioGroupDescription>
+                        </div>
+                      </div>
+                    </RadioGroupOption>
+                  </div>
+                </RadioGroup>
+
+                <div class="mt-4 flex items-center justify-between text-sm">
+                  <span class="text-zinc-500">Fees</span>
+                  <span class="text-zinc-300">{{ prettySellFees }}</span>
+                </div>
+
+                <button
+                  class="mt-4 w-full rounded-md py-4 font-bold"
+                  :class="
+                    selectedSellOrders.length
+                      ? 'bg-green-500 text-white'
+                      : 'bg-zinc-700 text-zinc-500'
+                  "
+                  @click="buildOrder"
+                  :disabled="!selectedSellOrders.length"
+                >
+                  Sell ORDI
+                </button>
+
+                <div
+                  class="mt-4 flex items-center justify-center gap-x-2 text-center text-sm"
+                >
+                  <span class="text-zinc-500">Available</span>
+                  <span class="text-zinc-300">
+                    {{ `${prettyBalance(balance)} BTC` }}
+                  </span>
+                  <button @click="updateBalance">
+                    <ArrowPathIcon
+                      class="h-4 w-4 text-zinc-300"
+                      aria-hidden="true"
+                    />
+                  </button>
+                </div>
+              </div>
+            </TabPanel>
           </TabPanels>
         </TabGroup>
       </div>
@@ -1044,14 +1344,19 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
               <div class="" v-else-if="builtInfo">
                 <div class="flex items-center gap-2">
                   <span class="text-zinc-500">Order Type</span>
-                  <span class="font-bold uppercase text-orange-300">{{
-                    builtInfo.type
-                  }}</span>
+                  <span class="font-bold uppercase text-orange-300">
+                    {{ builtInfo.type }}
+                  </span>
                 </div>
+
+                <div class="mt-4"></div>
               </div>
             </DialogDescription>
 
-            <div class="mt-8 flex items-center justify-center gap-4">
+            <div
+              class="mt-8 flex items-center justify-center gap-4"
+              v-if="builtInfo"
+            >
               <button
                 @click="discardOrder"
                 class="w-24 rounded border border-zinc-700 py-2 text-zinc-500"

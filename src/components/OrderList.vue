@@ -1,33 +1,67 @@
 <script lang="ts" setup>
 import OrderItem from './OrderItem.vue'
-import type { PsbtWrapper } from './OrderPanel.vue'
+import type { Order } from '@/queries'
 
-defineProps<{
-  sellPsbtWrappers: PsbtWrapper[]
-}>()
+withDefaults(
+  defineProps<{
+    askOrders?: Order[]
+    bidOrders?: Order[]
+  }>(),
+  {
+    askOrders: () => [],
+    bidOrders: () => [],
+  }
+)
 
-defineEmits(['usePrice'])
+defineEmits(['useBuyPrice', 'useSellPrice'])
 </script>
 
 <template>
-  <table class="w-full">
-    <thead>
-      <tr>
-        <th class="th">Price (BTC)</th>
-        <th class="th">Amount (ORDI)</th>
-        <th class="th">Total (BTC)</th>
-      </tr>
-    </thead>
+  <div class="flex flex-col">
+    <div class="flex-1">
+      <table class="w-full">
+        <thead>
+          <tr>
+            <th class="th">Price (BTC)</th>
+            <th class="th">Amount (ORDI)</th>
+            <th class="th">Total (BTC)</th>
+          </tr>
+        </thead>
 
-    <tbody>
-      <OrderItem
-        v-for="order in sellPsbtWrappers"
-        :key="order.id"
-        :order="order"
-        @click="$emit('usePrice', Number(order.coinRatePrice) / 1e8)"
-      />
-    </tbody>
-  </table>
+        <tbody>
+          <OrderItem
+            v-for="order in askOrders"
+            :key="order.orderId"
+            :order="order"
+            :order-type="'ask'"
+            @click="$emit('useBuyPrice', Number(order.coinRatePrice) / 1e8)"
+          />
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex-1">
+      <table class="w-full flex-1">
+        <thead class="invisible">
+          <tr>
+            <th class="th">Price (BTC)</th>
+            <th class="th">Amount (ORDI)</th>
+            <th class="th">Total (BTC)</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <OrderItem
+            v-for="order in bidOrders"
+            :key="order.orderId"
+            :order="order"
+            :order-type="'bid'"
+            @click="$emit('useSellPrice', Number(order.coinRatePrice) / 1e8)"
+          />
+        </tbody>
+      </table>
+    </div>
+  </div>
 </template>
 
 <style scoped>
