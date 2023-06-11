@@ -10,13 +10,15 @@ import { calculateFee, getTxHex, prettyAddress } from '@/lib/helpers'
 import { DUMMY_UTXO_VALUE, EXTREME_FEEB, MIN_FEEB } from '@/lib/constants'
 import { ElMessage } from 'element-plus'
 const utils = {
-  checkAndSelectDummies: async () => {
-    const address = useAddressStore()
+  checkAndSelectDummies: async (checkOnly = false, addressParam = null) => {
+    console.log('checking')
+    console.log(addressParam)
+    const address = addressParam || useAddressStore().get!
     const dummiesStore = useDummiesStore()
     const btcjsStore = useBtcJsStore()
     const networkStore = useNetworkStore()
-    if (!address.get) return
-    const candidates = await getUtxos2(address.get!).then((utxos) => {
+    if (!address) return
+    const candidates = await getUtxos2(address).then((utxos) => {
       console.log({ utxos })
       // only take two dummy utxos
       return utxos
@@ -36,9 +38,12 @@ const utils = {
         dummyUtxos.push(dummy)
       }
       dummiesStore.set(dummyUtxos)
+
+      return dummyUtxos
     } else {
-      const paymentUtxo = await getUtxos2(address.get!).then((utxos) => {
-        console.log({ utxos })
+      if (checkOnly) return []
+
+      const paymentUtxo = await getUtxos2(address).then((utxos) => {
         // only take two dummy utxos
         return utxos.filter(
           (utxo) => utxo.satoshis >= DUMMY_UTXO_VALUE * 2 + 1000
@@ -71,8 +76,8 @@ const utils = {
         },
       })
 
-      dummiesPsbt.addOutput({ address: address.get, value: DUMMY_UTXO_VALUE })
-      dummiesPsbt.addOutput({ address: address.get, value: DUMMY_UTXO_VALUE })
+      dummiesPsbt.addOutput({ address: address, value: DUMMY_UTXO_VALUE })
+      dummiesPsbt.addOutput({ address: address, value: DUMMY_UTXO_VALUE })
 
       const fee = calculateFee(
         MIN_FEEB, // minimum feeb
@@ -81,7 +86,7 @@ const utils = {
       )
       const changeValue = paymentUtxo.satoshis - DUMMY_UTXO_VALUE * 2 - fee
 
-      dummiesPsbt.addOutput({ address: address.get, value: changeValue })
+      dummiesPsbt.addOutput({ address: address, value: changeValue })
 
       // push
       const signed = await window.unisat.signPsbt(dummiesPsbt.toHex())

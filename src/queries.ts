@@ -1,4 +1,5 @@
-import { useNetworkStore } from './store'
+import { useAddressStore, useNetworkStore } from './store'
+import { ElMessage } from 'element-plus'
 
 export const getOrdiBalance = async (
   address: string,
@@ -7,7 +8,7 @@ export const getOrdiBalance = async (
   // fake data for testnet
   if (network === 'testnet') {
     // randomize, from 5 to 100
-    const fakeBalance = Math.floor(Math.random() * 95) + 5
+    const fakeBalance = 10
     return fakeBalance
   }
 
@@ -106,7 +107,34 @@ export const getOrders = async ({
     .then((res) => res.json())
     .then(({ data: { results } }) => results)
 
-  return orders
+  return orders || []
+}
+
+export type Brc20 = {
+  inscriptionId: string
+  inscriptionNumber: string
+  amount: string
+}
+export const getBrc20s = async ({
+  tick,
+  address,
+}: {
+  tick: string
+  address: string
+}) => {
+  const brc20s: Brc20[] = await fetch(
+    `https://api.ordbook.io/book/brc20/address/${address}/${tick}`,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  )
+    .then((res) => res.json())
+    .then(({ data: { transferBalanceList } }) => transferBalanceList)
+  console.log({ brc20s })
+
+  return brc20s || []
 }
 
 export const pushSellTake = async ({
@@ -152,6 +180,7 @@ export const pushBidOrder = async ({
   feeb,
   fee,
   total,
+  using,
   orderId,
 }: {
   network: 'livenet' | 'testnet'
@@ -161,6 +190,7 @@ export const pushBidOrder = async ({
   feeb: number
   fee: number
   total: number
+  using: number
   orderId: string
 }) => {
   const createEndpoint = `https://api.ordbook.io/book/brc20/order/bid/push`
@@ -177,6 +207,7 @@ export const pushBidOrder = async ({
       rate: feeb,
       fee,
       amount: total,
+      buyerInValue: using,
       orderId,
     }),
   }).then((res) => res.json())
@@ -252,4 +283,23 @@ export const getFeebPlans = async ({
     .then(({ result: { list } }) => list)
 
   return feebPlans
+}
+
+/**
+ * Unisat API
+ */
+export const getAddress = async () => {
+  if (!window.unisat) {
+    ElMessage.warning('Unisat not available')
+    throw new Error('Unisat not available')
+  }
+
+  const addresses = await window.unisat.getAccounts()
+  if (addresses && addresses.length > 0) {
+    useAddressStore().set(addresses[0])
+    return addresses[0]
+  }
+
+  ElMessage.warning('Login to Unisat first.')
+  throw new Error('Login to Unisat first.')
 }
