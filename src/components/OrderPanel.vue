@@ -31,7 +31,7 @@ import { useQuery } from '@tanstack/vue-query'
 import btcIcon from '@/assets/btc.svg?url'
 import ordiIcon from '@/assets/ordi.svg?url'
 import ordiBtcLogo from '@/assets/ordi-btc.svg?url'
-import { calculateFee, getTxHex, prettyBalance } from '@/lib/helpers'
+import { calculateFee, getTxHex, prettyBalance, sleep } from '@/lib/helpers'
 import {
   DUMMY_UTXO_VALUE,
   SERVICE_LIVENET_ADDRESS,
@@ -223,7 +223,6 @@ async function buildOrder() {
     if (limitExchangeType.value === 'bid') {
       if (!selectedBidCandidate.value) return
 
-      // ask dex to do the prerequisite work
       buildRes = await buildBidLimit({
         total: Math.round(
           bidExchangePrice.value *
@@ -234,12 +233,12 @@ async function buildOrder() {
         inscriptionId: selectedBidCandidate.value.inscriptionId,
         inscriptionNumber: selectedBidCandidate.value.inscriptionNumber,
       })
+    } else {
+      buildRes = await buildAskLimit({
+        total: askExchangePrice.value * askExchangeOrdiAmount.value * 1e8,
+        amount: askExchangeOrdiAmount.value,
+      })
     }
-
-    // return buildAskLimit({
-    //   total: askExchangePrice.value * askExchangeOrdiAmount.value * 1e8,
-    //   amount: askExchangeOrdiAmount.value,
-    // })
   } else {
     if (takeModeTab.value === 0) {
       // buy
@@ -254,11 +253,21 @@ async function buildOrder() {
         return acc + Number(cur.amount)
       }, 0)
 
+      const sellTake = await buildSellTake({
+        total,
+        amount: selectedSellCoinAmount.value,
+      }).catch(async (err) => {
+        await sleep(500)
+
+        console.log({ err })
+        ElMessage.error(err.message)
+        setIsOpen(false)
+        builtInfo.value = undefined
+        isLimitExchangeMode.value = false
+      })
+
       buildRes = {
-        ...(await buildSellTake({
-          total,
-          amount: selectedSellCoinAmount.value,
-        })),
+        ...sellTake,
         orderId: selectedSellOrders.value[0].orderId,
         amount: selectedSellOrders.value[0].coinAmount.toString(),
       }
@@ -268,7 +277,6 @@ async function buildOrder() {
   isBuilding.value = false
 
   if (!buildRes) return
-  console.log({ buildRes })
   builtInfo.value = buildRes
   return
 }
@@ -281,10 +289,11 @@ function discardOrder() {
 async function submitOrder() {
   // 1. sign
   const signed = await unisat.signPsbt(builtInfo.value!.order.toHex())
+  let pushed: any
+
   console.log({ signed })
 
   // 2. push
-  let pushed: any
   switch (builtInfo.value!.type) {
     // case 'buy':
     //   await pushBuyOrder(signed)
@@ -304,19 +313,27 @@ async function submitOrder() {
         psbtRaw: signed,
         network: networkStore.ordersNetwork,
         address: addressStore.get!,
-        tick: 'ordi',
+        tick: 'orxc',
         feeb: builtInfo.value.feeb,
         fee: builtInfo.value.fee,
         total: builtInfo.value.total,
+        using: builtInfo.value.using,
         orderId: builtInfo.value.orderId,
       })
       break
-    // case 'ask':
-    //   await pushAskOrder(signed)
-    //   break
+    case 'ask':
+    // await pushAskOrder(signed)
+    // break
   }
 
   console.log({ pushed })
+
+  // 3. update dummies
+
+  // 4. close modal
+  setIsOpen(false)
+  builtInfo.value = undefined
+  isLimitExchangeMode.value = false
 }
 
 // buy
@@ -543,7 +560,7 @@ const isBuilding = ref(false)
 const builtInfo = ref()
 
 // limit exchange mode
-const isLimitExchangeMode = ref(false)
+const isLimitExchangeMode = ref(true)
 const limitExchangeType: Ref<'bid' | 'ask'> = ref('bid')
 const marketPrice = ref(0.00000154)
 
@@ -605,7 +622,7 @@ const { data: bidCandidates } = useQuery({
       network: networkStore.network,
     },
   ],
-  queryFn: () => getBidCandidates(networkStore.network, 'ordi'),
+  queryFn: () => getBidCandidates(networkStore.network, 'orxc'),
 })
 const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
 </script>
@@ -702,6 +719,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
             </TabList>
 
             <TabPanels class="mt-8">
+              <!-- bid panel -->
               <TabPanel class="">
                 <div class="rounded-md border border-zinc-500 p-2">
                   <div class="flex items-center justify-between">
@@ -715,7 +733,8 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                         type="text"
                         class="w-full rounded bg-zinc-700 py-2 pl-2 pr-16 text-right placeholder-zinc-500 outline-none"
                         placeholder="BTC"
-                        v-model.number="bidExchangePrice"
+                        :value="bidExchangePrice.toFixed(8)"
+                        @input="(event: any) => (bidExchangePrice = parseFloat(event.target.value))"
                       />
                       <span
                         class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
@@ -728,7 +747,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   <div
                     class="cursor-pointer pt-2 text-right text-xs text-zinc-500"
                     @click="
-                      bidExchangePrice = Number((marketPrice * 0.8).toFixed(8))
+                      bidExchangePrice = Number((marketPrice * 0.99).toFixed(8))
                     "
                     title="Use market price"
                   >
@@ -832,6 +851,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                 </div>
               </TabPanel>
 
+              <!-- ask panel -->
               <TabPanel class="">
                 <div class="rounded-md border border-zinc-500 p-2">
                   <div class="flex items-center justify-between">
@@ -858,7 +878,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   <div
                     class="cursor-pointer pt-2 text-right text-xs text-zinc-500"
                     @click="
-                      askExchangePrice = Number((marketPrice * 1.2).toFixed(8))
+                      askExchangePrice = Number((marketPrice * 1.01).toFixed(8))
                     "
                     title="Use market price"
                   >
@@ -917,7 +937,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                         ? 'bg-orange-300 text-orange-900'
                         : 'bg-zinc-700 text-zinc-500'
                     "
-                    @click="setIsOpen(true)"
+                    @click="buildOrder"
                     :disabled="!canPlaceAskOrder"
                   >
                     Place Ask Order
@@ -1217,7 +1237,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                           <CheckIcon class="h-5 w-5" aria-hidden="true" />
                         </span>
                         <span class="text-sm text-zinc-500">
-                          {{ Number(psbt.coinRatePrice) / 1e8 }}
+                          {{ (Number(psbt.coinRatePrice) / 1e8).toFixed(8) }}
                         </span>
                         <span :class="selected && 'text-orange-300'">
                           {{ psbt.coinAmount }}

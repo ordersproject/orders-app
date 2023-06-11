@@ -22,6 +22,10 @@ export const prettyBalance = (balance: number | string) => {
   return Number(balance) / 1e8
 }
 
+export const sleep = (ms: number) => {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 export type SimpleUtxo = {
   txId: string
   scriptPk: string

@@ -4,7 +4,7 @@ import {
   useDummiesStore,
   useNetworkStore,
 } from '@/store'
-import { SimpleUtxo, calculateFee, getTxHex } from './helpers'
+import { calculateFee, getTxHex } from './helpers'
 import {
   DUMMY_UTXO_VALUE,
   SERVICE_LIVENET_ADDRESS,
@@ -13,18 +13,21 @@ import {
 import {
   SimpleUtxoFromMempool,
   getBidCandidateInfo,
+  getBrc20s,
   getUtxos2,
 } from '@/queries'
+import utils from '@/utils/index'
+import { debugBidLimit } from './debugger'
 
 export async function buildAskLimit({
-  network,
   total,
   amount,
 }: {
-  network: 'bitcoin' | 'testnet'
   total: number
   amount: number
-}) {}
+}) {
+  console.log({ total, amount })
+}
 
 export async function buildBidLimit({
   total,
@@ -47,19 +50,13 @@ export async function buildBidLimit({
   // Step 1. prepare bid from exchange
   const candidateInfo = await getBidCandidateInfo({
     network: orderNetwork,
-    tick: 'ordi',
+    tick: 'orxc',
     inscriptionId,
     inscriptionNumber,
     coinAmount,
     total,
   })
 
-  // return
-  // const exchangeHexes = [
-  //   '70736274ff01005e0200000001d9df4dd04affa73afdff58357e39dec4734e52d17362309d33f2c2d61de52cfc0100000000ffffffff01283c0000000000002251207091db2e0151dd9068a4d360364e7e8453edb5b408f21d704e66892de6f6c901000000000001012b95250000000000002251207091db2e0151dd9068a4d360364e7e8453edb5b408f21d704e66892de6f6c9010108430141aa1c0d6822dc0b7404d6bf8ceaa10464c2443c36bff4f6bf517931cbf4c3abd4feb84bdc2c1c6f5b5d56e2e48ebb384fdd9692c9f6351849ab6e8ff2d8381aab830000',
-  //   '70736274ff01005e0200000001d9df4dd04affa73afdff58357e39dec4734e52d17362309d33f2c2d61de52cfc0100000000ffffffff0150780000000000002251207091db2e0151dd9068a4d360364e7e8453edb5b408f21d704e66892de6f6c901000000000001012b95250000000000002251207091db2e0151dd9068a4d360364e7e8453edb5b408f21d704e66892de6f6c90101084301415b2fd59ee380afc1799958e4afc1d9b57490d46f5657cbc30d85e98bf40b4c9b2dc5fff9489284ab3a0a091b52ddcd33913693be213b3a3d94de56630c7d5c94830000',
-  // ]
-  // const exchangeHex = total === 12300 ? exchangeHexes[0] : exchangeHexes[1]
   const exchange = btcjs.Psbt.fromHex(candidateInfo.psbtRaw, {
     network: btcjs.networks[btcNetwork],
   })
@@ -67,7 +64,10 @@ export async function buildBidLimit({
 
   const bid = new btcjs.Psbt({ network: btcjs.networks[btcNetwork] })
   let totalInput = 0
+
   // Step 2. build the bid part: add 2 dummy inputs
+  await utils.checkAndSelectDummies()
+
   const dummyUtxos = useDummiesStore().get!
   for (const dummyUtxo of dummyUtxos) {
     const dummyTx = btcjs.Transaction.fromHex(dummyUtxo.txHex)
@@ -127,7 +127,6 @@ export async function buildBidLimit({
     address,
     value: DUMMY_UTXO_VALUE,
   })
-  const newDummiesIndex = [bid.txOutputs.length - 2, bid.txOutputs.length - 1]
 
   // Step 8: add payment input
   const paymentUtxo = await getUtxos2(address).then((result) => {
@@ -160,12 +159,16 @@ export async function buildBidLimit({
     sighashType:
       btcjs.Transaction.SIGHASH_ALL | btcjs.Transaction.SIGHASH_ANYONECANPAY,
   }
+  // return await debugBidLimit({
+  //   exchange,
+  //   paymentInput,
+  // })
 
   bid.addInput(paymentInput)
   totalInput += paymentInput.witnessUtxo.value
 
   // Step 9: add change output
-  const feeb = btcNetwork === 'bitcoin' ? 11 : 1
+  const feeb = btcNetwork === 'bitcoin' ? 10 : 1
   const fee = calculateFee(
     feeb,
     bid.txInputs.length + 1,
@@ -177,15 +180,12 @@ export async function buildBidLimit({
     0
   )
   // postponer should be integer
-  const postponer = Math.round(total * 0.25)
-  const changeValue =
-    paymentInput.witnessUtxo.value -
-    total -
-    fee -
-    serviceFee -
-    DUMMY_UTXO_VALUE * 2
+  const spent = total + fee + serviceFee + DUMMY_UTXO_VALUE * 2
+  const using = paymentInput.witnessUtxo.value
+  const changeValue = using - spent
+  // const changeValue = totalInput - totalOutput - fee
 
-  console.log({ changeValue, totalInput, totalOutput, fee, postponer })
+  console.log({ changeValue, totalInput, totalOutput, fee, spent })
 
   bid.addOutput({
     address,
@@ -198,35 +198,8 @@ export async function buildBidLimit({
     type: 'bid',
     feeb,
     fee,
-    postponer,
     total,
-  }
-  // sign
-  const signed = await window.unisat.signPsbt(bid.toHex())
-  console.log({ signed })
-  if (signed) {
-    // const signedToPsbt = btcjs.Psbt.fromHex(signed, {
-    //   network: btcjs.networks[network],
-    // })
-    // const txHex = signedToPsbt.extractTransaction().toHex()
-    // const newDummies = [
-    //   {
-    //     txId: pushTxId,
-    //     satoshis: DUMMY_UTXO_VALUE,
-    //     outputIndex: newDummiesIndex[0],
-    //     addressType: 2,
-    //     txHex,
-    //   },
-    //   {
-    //     txId: pushTxId,
-    //     satoshis: DUMMY_UTXO_VALUE,
-    //     outputIndex: newDummiesIndex[1],
-    //     addressType: 2,
-    //     txHex,
-    //   },
-    // ]
-    // dummiesStore.set(newDummies)
-    // await
+    using,
   }
 }
 
@@ -270,7 +243,31 @@ export async function buildSellTake({
 
     ordinalUtxo = cardinalUtxo
   } else {
-    throw new Error('not implemented')
+    let transferable = await getBrc20s({
+      tick: 'orxc',
+      address,
+    }).then((brc20s) => {
+      // choose a real ordinal with the right amount, not the white amount (Heil Uncle Roger!)
+      return brc20s.find((brc20) => Number(brc20.amount) === amount)
+    })
+    if (!transferable) {
+      transferable = {
+        inscriptionId:
+          '91761a838b1e2b9200be8a8b877a02ace91658f7d77ed24fd64665d1f93a29a1i0',
+        inscriptionNumber: '0000000',
+        amount: '100',
+      }
+      // throw new Error('no suitable brc20')
+    }
+
+    // find out the ordinal utxo
+    const ordinalTxId = transferable.inscriptionId.slice(0, -2)
+    ordinalUtxo = {
+      txId: ordinalTxId,
+      satoshis: 546,
+      outputIndex: 0,
+      addressType: 2,
+    }
   }
 
   // fetch and decode rawTx of the utxo
