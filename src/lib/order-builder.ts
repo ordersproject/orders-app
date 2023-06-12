@@ -203,7 +203,9 @@ export async function buildBidLimit({
   }
 }
 
-export async function buildBuyTake() {}
+export async function buildBuyTake() {
+  throw new Error('not implemented')
+}
 
 export async function buildSellTake({
   total,
