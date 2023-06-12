@@ -1,4 +1,5 @@
-import { useAddressStore, useNetworkStore } from './store'
+import { DUMMY_UTXO_VALUE } from './lib/constants'
+import { useAddressStore, useBtcJsStore, useNetworkStore } from './store'
 import { ElMessage } from 'element-plus'
 
 export const getOrdiBalance = async (
@@ -206,6 +207,40 @@ export const pushAskOrder = async ({
   }).then((res) => res.json())
 
   return createRes
+}
+
+export const pushBuyTake = async ({
+  network,
+  psbtRaw,
+  orderId,
+}: {
+  network: 'livenet' | 'testnet'
+  psbtRaw: string
+  orderId: string
+}) => {
+  const pushTxId = await window.unisat.pushPsbt(psbtRaw)
+  console.log({ pushTxId })
+
+  // if pushed successfully, update the Dummies
+  if (pushTxId) {
+    // notify update psbt status
+    const updateEndpoint = `https://api.ordbook.io/book/brc20/order/update`
+    const updateRes = await fetch(updateEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        net: network,
+        orderId,
+        orderState: 2,
+        psbtRaw,
+      }),
+    })
+  }
+
+  // reload
+  window.location.reload()
 }
 
 export const pushBidOrder = async ({

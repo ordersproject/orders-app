@@ -298,8 +298,159 @@ export async function buildBidLimit({
   }
 }
 
-export async function buildBuyTake() {
-  throw new Error('not implemented')
+export async function buildBuyTake({
+  order,
+  feeb,
+}: {
+  order: {
+    psbtRaw: string
+    coinRatePrice: number
+    amount: number
+    coinAmount: number
+    orderId: string
+  }
+  feeb: number
+}) {
+  const address = useAddressStore().get!
+  const btcjs = useBtcJsStore().get!
+  const btcNetwork = useNetworkStore().btcNetwork
+  const dummiesStore = useDummiesStore()
+
+  const sellPsbt = btcjs.Psbt.fromHex(order.psbtRaw, {
+    network: btcjs.networks[btcNetwork],
+  })
+
+  console.log({ sellPsbt })
+
+  const buyPsbt = new btcjs.Psbt({
+    network: btcjs.networks[btcNetwork],
+  })
+  let totalInput = 0
+
+  // Step 1: add 2 dummy inputs
+  const dummyUtxos = dummiesStore.get!
+  for (const dummyUtxo of dummyUtxos) {
+    const dummyTx = btcjs.Transaction.fromHex(dummyUtxo.txHex)
+    const dummyInput = {
+      hash: dummyUtxo.txId,
+      index: dummyUtxo.outputIndex,
+      witnessUtxo: dummyTx.outs[dummyUtxo.outputIndex],
+      sighashType: btcjs.Transaction.SIGHASH_ALL,
+    }
+    buyPsbt.addInput(dummyInput)
+    totalInput += dummyUtxo.satoshis
+  }
+
+  // Step 2: add placeholder 0-indexed output
+  buyPsbt.addOutput({
+    address,
+    value: DUMMY_UTXO_VALUE * 2,
+  })
+
+  // Step 3: add ordinal output
+  const ordValue = sellPsbt.data.inputs[0].witnessUtxo!.value
+  const ordOutput = {
+    address,
+    value: ordValue,
+  }
+  buyPsbt.addOutput(ordOutput)
+
+  // Step 4: sellerInput, in
+  const sellerInput = {
+    hash: sellPsbt.txInputs[0].hash,
+    index: sellPsbt.txInputs[0].index,
+    witnessUtxo: sellPsbt.data.inputs[0].witnessUtxo,
+    finalScriptWitness: sellPsbt.data.inputs[0].finalScriptWitness,
+  }
+
+  buyPsbt.addInput(sellerInput)
+  totalInput += sellerInput.witnessUtxo!.value
+
+  // Step 5: sellerOutput, in
+  const sellerOutput = sellPsbt.txOutputs[0]
+  buyPsbt.addOutput(sellerOutput)
+
+  // Step 6: service fee
+  const serviceAddress =
+    btcNetwork === 'bitcoin' ? SERVICE_LIVENET_ADDRESS : SERVICE_TESTNET_ADDRESS
+  const serviceFee = Math.max(2000, sellPsbt.txOutputs[0].value * 0.01)
+  buyPsbt.addOutput({
+    address: serviceAddress,
+    value: serviceFee,
+  })
+
+  // Step 7: add 2 dummies output for future use
+  buyPsbt.addOutput({
+    address,
+    value: DUMMY_UTXO_VALUE,
+  })
+  buyPsbt.addOutput({
+    address,
+    value: DUMMY_UTXO_VALUE,
+  })
+  const newDummiesIndex = [
+    buyPsbt.txOutputs.length - 2,
+    buyPsbt.txOutputs.length - 1,
+  ]
+
+  // Step 8: add payment input
+  const paymentUtxo = await getUtxos2(address).then((result) => {
+    // choose the largest utxo
+    const utxo = result.reduce((prev, curr) => {
+      if (prev.satoshis > curr.satoshis) {
+        return prev
+      } else {
+        return curr
+      }
+    })
+    return utxo
+  })
+
+  if (!paymentUtxo) {
+    throw new Error('no utxo')
+  }
+
+  // query rawTx of the utxo
+  const rawTx = await getTxHex(paymentUtxo.txId)
+  // decode rawTx
+  const tx = btcjs.Transaction.fromHex(rawTx)
+
+  // construct input
+  const paymentInput = {
+    hash: paymentUtxo.txId,
+    index: paymentUtxo.outputIndex,
+    witnessUtxo: tx.outs[paymentUtxo.outputIndex],
+    sighashType: btcjs.Transaction.SIGHASH_ALL,
+  }
+
+  buyPsbt.addInput(paymentInput)
+  totalInput += paymentInput.witnessUtxo.value
+
+  // Step 9: add change output
+  const fee = calculateFee(
+    feeb,
+    buyPsbt.txInputs.length,
+    buyPsbt.txOutputs.length // already taken care of the exchange output bytes calculation
+  )
+
+  const totalOutput = buyPsbt.txOutputs.reduce(
+    (partialSum, a) => partialSum + a.value,
+    0
+  )
+  const changeValue = totalInput - totalOutput - fee
+
+  console.log({ changeValue, totalInput, totalOutput, fee })
+
+  buyPsbt.addOutput({
+    address,
+    value: changeValue,
+  })
+
+  return {
+    order: buyPsbt,
+    type: 'buy',
+    orderId: order.orderId,
+  }
 }
 
 export async function buildSellTake({

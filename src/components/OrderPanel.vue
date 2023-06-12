@@ -48,6 +48,7 @@ import {
   BidCandidate,
   pushBidOrder,
   pushAskOrder,
+  pushBuyTake,
   pushSellTake,
   getUtxos2,
   getFeebPlans,
@@ -62,6 +63,7 @@ import {
   useDummiesStore,
   useNetworkStore,
 } from '@/store'
+import { buildBuyTake } from '@/lib/order-builder'
 
 const unisat = window.unisat
 
@@ -247,7 +249,10 @@ async function buildOrder() {
       // buy
       if (!selectedBuyOrders.value.length) return
 
-      buildRes = await buildBuyTake()
+      buildRes = await buildBuyTake({
+        order: selectedBuyOrders.value[0],
+        feeb: selectedFeebPlan.value?.feeRate || 1,
+      })
     } else if (takeModeTab.value === 1) {
       // sell
       if (!selectedSellOrders.value.length) return
@@ -298,9 +303,13 @@ async function submitOrder() {
 
   // 2. push
   switch (builtInfo.value!.type) {
-    // case 'buy':
-    //   await pushBuyOrder(signed)
-    //   break
+    case 'buy':
+      await pushBuyTake({
+        psbtRaw: signed,
+        network: networkStore.ordersNetwork,
+        orderId: builtInfo.value.orderId,
+      })
+      break
     case 'sell':
       pushed = await pushSellTake({
         psbtRaw: signed,
@@ -346,7 +355,7 @@ async function submitOrder() {
 }
 
 // buy
-async function buildBuyTake() {
+async function buildBuyTakeDeprecated() {
   if (!btcJsStore.get) {
     return
   }
