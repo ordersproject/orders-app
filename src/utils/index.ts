@@ -12,7 +12,6 @@ import { ElMessage } from 'element-plus'
 const utils = {
   checkAndSelectDummies: async (checkOnly = false, addressParam = null) => {
     console.log('checking')
-    console.log(addressParam)
     const address = addressParam || useAddressStore().get!
     const dummiesStore = useDummiesStore()
     const btcjsStore = useBtcJsStore()
@@ -41,8 +40,10 @@ const utils = {
 
       return dummyUtxos
     } else {
+      console.log('good', checkOnly)
       if (checkOnly) return []
 
+      console.log('hi')
       const paymentUtxo = await getUtxos2(address).then((utxos) => {
         // only take two dummy utxos
         return utxos.filter(
@@ -80,11 +81,12 @@ const utils = {
       dummiesPsbt.addOutput({ address: address, value: DUMMY_UTXO_VALUE })
 
       const fee = calculateFee(
-        MIN_FEEB, // minimum feeb
+        10, // minimum feeb
         1,
         2 // already taken care of the exchange output bytes calculation
       )
       const changeValue = paymentUtxo.satoshis - DUMMY_UTXO_VALUE * 2 - fee
+      console.log('here')
 
       dummiesPsbt.addOutput({ address: address, value: changeValue })
 

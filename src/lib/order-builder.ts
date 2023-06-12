@@ -27,6 +27,101 @@ export async function buildAskLimit({
   amount: number
 }) {
   console.log({ total, amount })
+  const networkStore = useNetworkStore()
+  const btcjs = useBtcJsStore().get!
+  const address = useAddressStore().get!
+  const network = networkStore.network
+  const btcNetwork = networkStore.btcNetwork
+
+  // 获取地址
+  const tick = 'orxc'
+
+  // Step 1: Get the ordinal utxo as input
+  // if testnet, we use a cardinal utxo as a fake one
+  let ordinalUtxo: SimpleUtxoFromMempool
+  if (networkStore.network === 'testnet') {
+    const cardinalUtxo = await getUtxos2(address).then((result) => {
+      // choose the smallest utxo, but bigger than 600
+      const smallOne = result.reduce((prev, curr) => {
+        if (
+          (curr.satoshis < prev.satoshis && curr.satoshis > 600) ||
+          (prev && prev.satoshis <= 600)
+        ) {
+          return curr
+        } else {
+          return prev
+        }
+      }, result[0])
+
+      return smallOne
+    })
+    console.log({ cardinalUtxo })
+
+    if (!cardinalUtxo) {
+      throw new Error('no utxo')
+    }
+
+    ordinalUtxo = cardinalUtxo
+  } else {
+    let transferable = await getBrc20s({
+      tick: 'orxc',
+      address,
+    }).then((brc20s) => {
+      // choose a real ordinal with the right amount, not the white amount (Heil Uncle Roger!)
+      return brc20s.find((brc20) => Number(brc20.amount) === amount)
+    })
+    if (!transferable) {
+      throw new Error('No suitable BRC20 tokens')
+    }
+
+    // find out the ordinal utxo
+    const ordinalTxId = transferable.inscriptionId.slice(0, -2)
+    ordinalUtxo = {
+      txId: ordinalTxId,
+      satoshis: 546,
+      outputIndex: 0,
+      addressType: 2,
+    }
+  }
+
+  // fetch and decode rawTx of the utxo
+  const rawTx = await getTxHex(ordinalUtxo.txId)
+  // decode rawTx
+  const ordinalPreTx = btcjs.Transaction.fromHex(rawTx)
+  const ordinalDetail = ordinalPreTx.outs[ordinalUtxo.outputIndex]
+  const ordinalValue = ordinalDetail.value
+
+  // build psbt
+  const ask = new btcjs.Psbt({
+    network: btcjs.networks[networkStore.btcNetwork],
+  })
+
+  for (const output in ordinalPreTx.outs) {
+    try {
+      ordinalPreTx.setWitness(parseInt(output), [])
+    } catch (e: any) {}
+  }
+
+  ask.addInput({
+    hash: ordinalUtxo.txId,
+    index: ordinalUtxo.outputIndex,
+    witnessUtxo: ordinalPreTx.outs[ordinalUtxo.outputIndex],
+    sighashType:
+      btcjs.Transaction.SIGHASH_SINGLE | btcjs.Transaction.SIGHASH_ANYONECANPAY,
+  })
+
+  // Step 2: Build output as what the seller want (BTC)
+  ask.addOutput({
+    address,
+    value: total,
+  })
+
+  return {
+    order: ask,
+    type: 'ask',
+    value: ordinalValue,
+    amount,
+  }
 }
 
 export async function buildBidLimit({
@@ -253,13 +348,7 @@ export async function buildSellTake({
       return brc20s.find((brc20) => Number(brc20.amount) === amount)
     })
     if (!transferable) {
-      transferable = {
-        inscriptionId:
-          '91761a838b1e2b9200be8a8b877a02ace91658f7d77ed24fd64665d1f93a29a1i0',
-        inscriptionNumber: '0000000',
-        amount: '100',
-      }
-      // throw new Error('no suitable brc20')
+      throw new Error('No suitable BRC20 tokens')
     }
 
     // find out the ordinal utxo

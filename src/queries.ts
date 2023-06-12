@@ -91,13 +91,16 @@ export type Order = {
 export const getOrders = async ({
   type,
   network,
+  sort = 'asc',
 }: {
   type: 'bid' | 'ask'
   network: 'livenet' | 'testnet'
+  sort: 'asc' | 'desc'
 }) => {
   const orderType = type === 'ask' ? 1 : 2
+  const sortType = sort === 'asc' ? 1 : -1
   const orders: Order[] = await fetch(
-    `https://api.ordbook.io/book/brc20/orders?net=${network}&orderType=${orderType}&orderState=1`,
+    `https://api.ordbook.io/book/brc20/orders?net=${network}&orderType=${orderType}&orderState=1&sortKey=coinRatePrice&sortType=${sortType}`,
     {
       headers: {
         'Content-Type': 'application/json',
@@ -170,6 +173,39 @@ export const pushSellTake = async ({
   }).then((res) => res.json())
 
   return sellRes
+}
+
+export const pushAskOrder = async ({
+  network,
+  address,
+  tick,
+  psbtRaw,
+  amount,
+}: {
+  network: 'livenet' | 'testnet'
+  address: string
+  tick: string
+  psbtRaw: string
+  amount: number
+}) => {
+  const createEndpoint = `https://api.ordbook.io/book/brc20/order/ask/push`
+  const createRes = await fetch(createEndpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      psbtRaw,
+      address,
+      net: network,
+      orderState: 1,
+      orderType: 1,
+      tick,
+      coinAmount: amount,
+    }),
+  }).then((res) => res.json())
+
+  return createRes
 }
 
 export const pushBidOrder = async ({

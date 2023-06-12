@@ -19,7 +19,7 @@ export const prettyAddress = (address: string, len = 6) => {
 }
 
 export const prettyBalance = (balance: number | string) => {
-  return Number(balance) / 1e8
+  return (Number(balance) / 1e8).toFixed(8)
 }
 
 export const sleep = (ms: number) => {

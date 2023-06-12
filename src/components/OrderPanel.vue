@@ -47,6 +47,7 @@ import {
   getBidCandidates,
   BidCandidate,
   pushBidOrder,
+  pushAskOrder,
   pushSellTake,
   getUtxos2,
   getFeebPlans,
@@ -71,12 +72,14 @@ const networkStore = useNetworkStore()
 
 const { data: askOrders } = useQuery({
   queryKey: ['askOrders', { network: networkStore.network }],
-  queryFn: () => getOrders({ type: 'ask', network: networkStore.network }),
+  queryFn: () =>
+    getOrders({ type: 'ask', network: networkStore.network, sort: 'asc' }),
   placeholderData: [],
 })
 const { data: bidOrders } = useQuery({
   queryKey: ['bidOrders', { network: networkStore.network }],
-  queryFn: () => getOrders({ type: 'bid', network: networkStore.network }),
+  queryFn: () =>
+    getOrders({ type: 'bid', network: networkStore.network, sort: 'desc' }),
   placeholderData: [],
 })
 
@@ -322,8 +325,14 @@ async function submitOrder() {
       })
       break
     case 'ask':
-    // await pushAskOrder(signed)
-    // break
+      await pushAskOrder({
+        psbtRaw: signed,
+        network: networkStore.ordersNetwork,
+        address: addressStore.get!,
+        tick: 'orxc',
+        amount: builtInfo.value.amount,
+      })
+      break
   }
 
   console.log({ pushed })
@@ -560,7 +569,7 @@ const isBuilding = ref(false)
 const builtInfo = ref()
 
 // limit exchange mode
-const isLimitExchangeMode = ref(true)
+const isLimitExchangeMode = ref(false)
 const limitExchangeType: Ref<'bid' | 'ask'> = ref('bid')
 const marketPrice = ref(0.00000154)
 
@@ -639,7 +648,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
       <!-- title -->
       <div class="col-span-2 flex items-center justify-center gap-2">
         <img :src="ordiBtcLogo" class="h-8" />
-        <span class="font-bold">ORDI-BTC</span>
+        <span class="font-bold">ORXC-BTC</span>
       </div>
 
       <!-- limit exchange button -->
@@ -664,8 +673,8 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
         :askOrders="askOrders"
         :bidOrders="bidOrders"
         class="flex-1 self-stretch"
-        @use-buy-price="(price) => setUseBuyPrice(price)"
-        @use-sell-price="(price) => setUseSellPrice(price)"
+        @use-buy-price="(price: number) => setUseBuyPrice(price)"
+        @use-sell-price="(price: number) => setUseSellPrice(price)"
       />
 
       <!-- operate panel -->

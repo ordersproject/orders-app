@@ -124,7 +124,7 @@ function copyAddress() {
         <div class="pl-2" v-if="!dummiesStore.has">
           <HelpCircle
             class="h-5 text-zinc-500"
-            @click="utils.checkAndSelectDummies"
+            @click="utils.checkAndSelectDummies()"
           />
         </div>
         <div class="pl-2" v-else>
