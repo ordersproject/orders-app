@@ -55,6 +55,8 @@ import {
   getOrders,
   Order,
   FeebPlan,
+  getBrc20s,
+  Brc20,
 } from '@/queries'
 import OrderList from './OrderList.vue'
 import {
@@ -75,7 +77,7 @@ const networkStore = useNetworkStore()
 const { data: askOrders } = useQuery({
   queryKey: ['askOrders', { network: networkStore.network }],
   queryFn: () =>
-    getOrders({ type: 'ask', network: networkStore.network, sort: 'asc' }),
+    getOrders({ type: 'ask', network: networkStore.network, sort: 'desc' }),
   placeholderData: [],
 })
 const { data: bidOrders } = useQuery({
@@ -240,8 +242,10 @@ async function buildOrder() {
       })
     } else {
       buildRes = await buildAskLimit({
-        total: askExchangePrice.value * askExchangeOrdiAmount.value * 1e8,
-        amount: askExchangeOrdiAmount.value,
+        total: Math.round(
+          askExchangePrice.value * askLimitBrcAmount.value * 1e8
+        ),
+        amount: askLimitBrcAmount.value,
       })
     }
   } else {
@@ -352,221 +356,9 @@ async function submitOrder() {
   setIsOpen(false)
   builtInfo.value = undefined
   isLimitExchangeMode.value = false
-}
 
-// buy
-async function buildBuyTakeDeprecated() {
-  if (!btcJsStore.get) {
-    return
-  }
-
-  if (!addressStore.get) {
-    ElMessage.error('Please connect to wallet first')
-    return
-  }
-  if (!dummiesStore.has) {
-    ElMessage.error('Please generate 2 dummy utxos to your address to continue')
-    return
-  }
-
-  const address = addressStore.get
-  const btcjs = btcJsStore.get
-  const order = selectedBuyOrders.value[0]
-
-  const sellPsbt = btcjs.Psbt.fromHex(order.psbtRaw, {
-    network: btcjs.networks[networkStore.btcNetwork],
-  })
-
-  console.log({ sellPsbt })
-
-  const buyPsbt = new btcjs.Psbt({
-    network: btcjs.networks[networkStore.btcNetwork],
-  })
-  let totalInput = 0
-
-  // Step 1: add 2 dummy inputs
-  const dummyUtxos = dummiesStore.get!
-  for (const dummyUtxo of dummyUtxos) {
-    const dummyTx = btcjs.Transaction.fromHex(dummyUtxo.txHex)
-    const dummyInput = {
-      hash: dummyUtxo.txId,
-      index: dummyUtxo.outputIndex,
-      witnessUtxo: dummyTx.outs[dummyUtxo.outputIndex],
-      sighashType: btcjs.Transaction.SIGHASH_ALL,
-    }
-    buyPsbt.addInput(dummyInput)
-    totalInput += dummyUtxo.satoshis
-  }
-
-  // Step 2: add placeholder 0-indexed output
-  buyPsbt.addOutput({
-    address,
-    value: DUMMY_UTXO_VALUE * 2,
-  })
-
-  // Step 3: add ordinal output
-  const ordValue = sellPsbt.data.inputs[0].witnessUtxo!.value
-  const ordOutput = {
-    address,
-    value: ordValue,
-  }
-  buyPsbt.addOutput(ordOutput)
-
-  // Step 4: sellerInput, in
-  const sellerInput = {
-    hash: sellPsbt.txInputs[0].hash,
-    index: sellPsbt.txInputs[0].index,
-    witnessUtxo: sellPsbt.data.inputs[0].witnessUtxo,
-    finalScriptWitness: sellPsbt.data.inputs[0].finalScriptWitness,
-  }
-
-  buyPsbt.addInput(sellerInput)
-  totalInput += sellerInput.witnessUtxo!.value
-
-  // Step 5: sellerOutput, in
-  const sellerOutput = sellPsbt.txOutputs[0]
-  buyPsbt.addOutput(sellerOutput)
-
-  // Step 6: service fee
-  const serviceAddress =
-    networkStore.btcNetwork === 'bitcoin'
-      ? SERVICE_LIVENET_ADDRESS
-      : SERVICE_TESTNET_ADDRESS
-  const serviceFee = Math.max(2000, sellPsbt.txOutputs[0].value * 0.01)
-  buyPsbt.addOutput({
-    address: serviceAddress,
-    value: serviceFee,
-  })
-
-  // Step 7: add 2 dummies output for future use
-  buyPsbt.addOutput({
-    address,
-    value: DUMMY_UTXO_VALUE,
-  })
-  buyPsbt.addOutput({
-    address,
-    value: DUMMY_UTXO_VALUE,
-  })
-  const newDummiesIndex = [
-    buyPsbt.txOutputs.length - 2,
-    buyPsbt.txOutputs.length - 1,
-  ]
-
-  // Step 8: add payment input
-  const paymentUtxo = await getUtxos2(address).then((result) => {
-    // choose the largest utxo
-    const utxo = result.reduce((prev, curr) => {
-      if (prev.satoshis > curr.satoshis) {
-        return prev
-      } else {
-        return curr
-      }
-    })
-    return utxo
-  })
-
-  if (!paymentUtxo) {
-    throw new Error('no utxo')
-  }
-
-  // query rawTx of the utxo
-  const rawTx = await getTxHex(paymentUtxo.txId)
-  // decode rawTx
-  const tx = btcjs.Transaction.fromHex(rawTx)
-
-  // construct input
-  const paymentInput = {
-    hash: paymentUtxo.txId,
-    index: paymentUtxo.outputIndex,
-    witnessUtxo: tx.outs[paymentUtxo.outputIndex],
-    sighashType: btcjs.Transaction.SIGHASH_ALL,
-  }
-
-  buyPsbt.addInput(paymentInput)
-  totalInput += paymentInput.witnessUtxo.value
-
-  // Step 9: add change output
-  const fee = calculateFee(
-    selectedFeebPlan.value?.feeRate || 1,
-    buyPsbt.txInputs.length,
-    buyPsbt.txOutputs.length // already taken care of the exchange output bytes calculation
-  )
-
-  const totalOutput = buyPsbt.txOutputs.reduce(
-    (partialSum, a) => partialSum + a.value,
-    0
-  )
-  const changeValue = totalInput - totalOutput - fee
-
-  console.log({ changeValue, totalInput, totalOutput, fee })
-
-  buyPsbt.addOutput({
-    address,
-    value: changeValue,
-  })
-
-  return {
-    order: buyPsbt,
-    type: 'buy',
-    price: order.coinRatePrice,
-    fromAmount: order.amount,
-    fromSymbol: 'BTC',
-    toAmount: order.coinAmount,
-    toSymbol: 'ORDI',
-    feeb: selectedFeebPlan.value?.feeRate || 1,
-    fee,
-    serviceFee,
-    totalSpent: order.amount + fee + serviceFee,
-  }
-
-  // sign
-  const signed = await unisat.signPsbt(buyPsbt.toHex())
-  console.log({ signed })
-
-  // push
-  const pushTxId = await unisat.pushPsbt(signed)
-  console.log({ pushTxId })
-
-  // if pushed successfully, update the Dummies
-  if (pushTxId) {
-    const signedToPsbt = btcjs.Psbt.fromHex(signed, {
-      network: btcjs.networks[networkStore.btcNetwork],
-    })
-    const txHex = signedToPsbt.extractTransaction().toHex()
-    const newDummies = [
-      {
-        txId: pushTxId,
-        satoshis: DUMMY_UTXO_VALUE,
-        outputIndex: newDummiesIndex[0],
-        addressType: 2,
-        txHex,
-      },
-      {
-        txId: pushTxId,
-        satoshis: DUMMY_UTXO_VALUE,
-        outputIndex: newDummiesIndex[1],
-        addressType: 2,
-        txHex,
-      },
-    ]
-
-    dummiesStore.set(newDummies)
-
-    // notify update psbt status
-    const updateEndpoint = `https://api.ordbook.io/book/brc20/order/update`
-    const updateRes = await fetch(updateEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        net: networkStore.ordersNetwork,
-        orderId: order.orderId,
-        orderState: 2,
-        psbtRaw: signed,
-      }),
-    })
-  }
+  // reload
+  window.location.reload()
 }
 
 // confirm modal
@@ -597,11 +389,20 @@ const canPlaceBidOrder = computed(() => {
 
 const askExchangePrice = ref(0)
 const askExchangeOrdiAmount = ref(0)
+const askLimitBrcAmount = computed(() => {
+  if (networkStore.network === 'testnet') {
+    return askExchangeOrdiAmount.value
+  }
+
+  if (!selectedAskCandidate.value) return 0
+
+  return Number(selectedAskCandidate.value.amount)
+})
 const askTotalExchangePrice = computed(() => {
-  return (askExchangePrice.value * askExchangeOrdiAmount.value).toFixed(8)
+  return (askExchangePrice.value * askLimitBrcAmount.value).toFixed(8)
 })
 const canPlaceAskOrder = computed(() => {
-  return askExchangePrice.value > 0 && askExchangeOrdiAmount.value > 0
+  return askExchangePrice.value > 0 && askLimitBrcAmount.value > 0
 })
 const { data: ordiBalance } = useQuery({
   queryKey: [
@@ -613,6 +414,26 @@ const { data: ordiBalance } = useQuery({
   ],
   queryFn: () => getOrdiBalance(addressStore.get!, networkStore.network),
 })
+const { data: myBrc20Candidates } = useQuery({
+  queryKey: [
+    'myBrc20Candidates',
+    {
+      address: addressStore.get,
+      network: networkStore.network,
+    },
+  ],
+  queryFn: () =>
+    getBrc20s({
+      address: addressStore.get!,
+      tick: 'orxc',
+    }),
+
+  enabled: computed(
+    () => networkStore.network !== 'testnet' && !!addressStore.get
+  ),
+})
+const selectedAskCandidate: Ref<Brc20 | undefined> = ref()
+
 const { data: btcBalance } = useQuery({
   queryKey: [
     'btcBalance',
@@ -883,7 +704,8 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                         type="text"
                         class="w-full rounded bg-zinc-700 py-2 pl-2 pr-16 text-right placeholder-zinc-500 outline-none"
                         placeholder="BTC"
-                        v-model.number="askExchangePrice"
+                        :value="askExchangePrice.toFixed(8)"
+                        @input="(event: any) => (askExchangePrice = parseFloat(event.target.value))"
                       />
                       <span
                         class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
@@ -915,7 +737,10 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                       <span class="ml-2 text-zinc-500">Amount</span>
                     </div>
 
-                    <div class="relative max-w-[67%] grow">
+                    <div
+                      class="relative max-w-[67%] grow"
+                      v-if="networkStore.network === 'testnet'"
+                    >
                       <input
                         type="text"
                         class="w-full rounded bg-zinc-700 py-2 pl-2 pr-16 text-right placeholder-zinc-500 outline-none"
@@ -928,10 +753,64 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                         ORDI
                       </span>
                     </div>
+
+                    <Listbox
+                      v-model="selectedAskCandidate"
+                      v-else
+                      as="div"
+                      class="relative max-w-[67%] grow"
+                    >
+                      <ListboxButton
+                        class="relative w-full cursor-default rounded bg-zinc-700 py-2 pl-3 pr-20 text-right text-sm focus:outline-none"
+                      >
+                        <span class="block truncate">
+                          {{ selectedAskCandidate?.amount || '-' }}
+                        </span>
+
+                        <span
+                          class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
+                        >
+                          <span>ORDI</span>
+                          <ChevronUpDownIcon
+                            class="h-5 w-5"
+                            aria-hidden="true"
+                          />
+                        </span>
+                      </ListboxButton>
+
+                      <ListboxOptions
+                        class="absolute z-10 mt-4 max-h-60 w-full translate-x-2 overflow-auto rounded-md border border-zinc-500 bg-zinc-900 p-2 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                      >
+                        <ListboxOption
+                          v-for="askCandidate in myBrc20Candidates"
+                          v-slot="{ active, selected }"
+                          as="template"
+                          :key="askCandidate.inscriptionId"
+                          :value="askCandidate"
+                        >
+                          <li
+                            class="relative flex cursor-pointer items-center justify-end rounded py-2 pl-10 pr-2 transition"
+                            :class="active && 'bg-orange-500/20'"
+                          >
+                            <span
+                              v-if="selected"
+                              class="absolute inset-y-0 left-0 flex items-center pl-3 text-orange-300"
+                            >
+                              <CheckIcon class="h-5 w-5" aria-hidden="true" />
+                            </span>
+
+                            <span :class="selected && 'text-orange-300'">
+                              {{ askCandidate.amount }}
+                            </span>
+                          </li>
+                        </ListboxOption>
+                      </ListboxOptions>
+                    </Listbox>
                   </div>
 
                   <div
                     class="cursor-pointer pt-2 text-right text-xs text-zinc-500"
+                    v-if="networkStore.network === 'testnet'"
                     @click="askExchangeOrdiAmount = ordiBalance || 0"
                     title="Sell all ORDI"
                   >
