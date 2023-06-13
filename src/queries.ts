@@ -219,6 +219,7 @@ export const pushBuyTake = async ({
   orderId: string
 }) => {
   const pushTxId = await window.unisat.pushPsbt(psbtRaw)
+  const address = useAddressStore().address!
   console.log({ pushTxId })
 
   // if pushed successfully, update the Dummies
@@ -232,15 +233,13 @@ export const pushBuyTake = async ({
       },
       body: JSON.stringify({
         net: network,
+        address,
         orderId,
         orderState: 2,
         psbtRaw,
       }),
     })
   }
-
-  // reload
-  window.location.reload()
 }
 
 export const pushBidOrder = async ({

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue'
-import logo from '@/assets/logo.svg?url'
+import logo from '@/assets/logo-new.png?url'
 import unisatIcon from '@/assets/unisat-icon.png?url'
 import { prettyAddress } from '@/lib/helpers'
 import { ElMessage } from 'element-plus'
@@ -85,7 +85,7 @@ function copyAddress() {
 <template>
   <header class="flex items-center justify-between px-6 py-4">
     <h1 class="flex items-center gap-2">
-      <img class="h-7" :src="logo" alt="Logo" />
+      <img class="h-8" :src="logo" alt="Logo" />
     </h1>
 
     <div class="flex gap-2">

@@ -31,12 +31,7 @@ import { useQuery } from '@tanstack/vue-query'
 import btcIcon from '@/assets/btc.svg?url'
 import ordiIcon from '@/assets/ordi.svg?url'
 import ordiBtcLogo from '@/assets/ordi-btc.svg?url'
-import { calculateFee, getTxHex, prettyBalance, sleep } from '@/lib/helpers'
-import {
-  DUMMY_UTXO_VALUE,
-  SERVICE_LIVENET_ADDRESS,
-  SERVICE_TESTNET_ADDRESS,
-} from '@/lib/constants'
+import { calculateFee, prettyBalance, sleep } from '@/lib/helpers'
 import {
   buildAskLimit,
   buildBidLimit,
@@ -50,7 +45,6 @@ import {
   pushAskOrder,
   pushBuyTake,
   pushSellTake,
-  getUtxos2,
   getFeebPlans,
   getOrders,
   Order,
@@ -154,7 +148,7 @@ const selectedFeebPlan: Ref<FeebPlan | undefined> = ref()
 watch(feebPlans, (plans) => {
   if (!plans) return
 
-  selectedFeebPlan.value = plans[0]
+  selectedFeebPlan.value = plans[1]
 })
 
 const buyFees = computed(() => {
@@ -358,7 +352,7 @@ async function submitOrder() {
   isLimitExchangeMode.value = false
 
   // reload
-  window.location.reload()
+  // window.location.reload()
 }
 
 // confirm modal
@@ -620,7 +614,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                         <span
                           class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                         >
-                          <span>ORDI</span>
+                          <span>ORXC</span>
                           <ChevronUpDownIcon
                             class="h-5 w-5"
                             aria-hidden="true"
@@ -750,7 +744,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                       <span
                         class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                       >
-                        ORDI
+                        ORXC
                       </span>
                     </div>
 
@@ -770,7 +764,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                         <span
                           class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                         >
-                          <span>ORDI</span>
+                          <span>ORXC</span>
                           <ChevronUpDownIcon
                             class="h-5 w-5"
                             aria-hidden="true"
@@ -812,9 +806,9 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                     class="cursor-pointer pt-2 text-right text-xs text-zinc-500"
                     v-if="networkStore.network === 'testnet'"
                     @click="askExchangeOrdiAmount = ordiBalance || 0"
-                    title="Sell all ORDI"
+                    title="Sell all ORXC"
                   >
-                    {{ `Balance: ${ordiBalance} ORDI` }}
+                    {{ `Balance: ${ordiBalance} ORXC` }}
                   </div>
                 </div>
 
@@ -930,7 +924,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                     <span
                       class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                     >
-                      <span>ORDI</span>
+                      <span>ORXC</span>
                       <ChevronUpDownIcon class="h-5 w-5" aria-hidden="true" />
                     </span>
                   </ListboxButton>
@@ -1034,7 +1028,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   @click="buildOrder"
                   :disabled="!selectedBuyOrders.length"
                 >
-                  Buy ORDI
+                  Buy ORXC
                 </button>
 
                 <div
@@ -1108,7 +1102,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                     <span
                       class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                     >
-                      <span>ORDI</span>
+                      <span>ORXC</span>
                       <ChevronUpDownIcon class="h-5 w-5" aria-hidden="true" />
                     </span>
                   </ListboxButton>
@@ -1212,7 +1206,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   @click="buildOrder"
                   :disabled="!selectedSellOrders.length"
                 >
-                  Sell ORDI
+                  Sell ORXC
                 </button>
 
                 <div

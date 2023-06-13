@@ -23,7 +23,7 @@ defineEmits(['useBuyPrice', 'useSellPrice'])
         <thead>
           <tr>
             <th class="th">Price (BTC)</th>
-            <th class="th">Amount (ORDI)</th>
+            <th class="th">Amount (ORXC)</th>
             <th class="th">Total (BTC)</th>
           </tr>
         </thead>
@@ -45,7 +45,7 @@ defineEmits(['useBuyPrice', 'useSellPrice'])
         <thead class="invisible">
           <tr>
             <th class="th">Price (BTC)</th>
-            <th class="th">Amount (ORDI)</th>
+            <th class="th">Amount (ORXC)</th>
             <th class="th">Total (BTC)</th>
           </tr>
         </thead>

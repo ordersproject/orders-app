@@ -9,4 +9,4 @@ export const EXTREME_FEEB = 1
 export const SERVICE_TESTNET_ADDRESS =
   'tb1pwzgaktsp28weq69y6dsrvnn7s3f7mdd5prep6uzwv6yjmehkeyqs3axgu3'
 export const SERVICE_LIVENET_ADDRESS =
-  'bc1pwzgaktsp28weq69y6dsrvnn7s3f7mdd5prep6uzwv6yjmehkeyqsx4s8x7'
+  'bc1qwqr3vscc2k9x7rhl5ldgsnd6ykh35a5amu4r2h'
