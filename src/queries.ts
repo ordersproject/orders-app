@@ -171,7 +171,13 @@ export const pushSellTake = async ({
       value,
       amount,
     }),
-  }).then((res) => res.json())
+  })
+    .then((res) => res.json())
+    .then((res) => {
+      if (res.code === 1) {
+        throw new Error(res.message)
+      }
+    })
 
   return sellRes
 }

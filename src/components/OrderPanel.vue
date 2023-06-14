@@ -29,8 +29,7 @@ import { ElMessage } from 'element-plus'
 import { useQuery } from '@tanstack/vue-query'
 
 import btcIcon from '@/assets/btc.svg?url'
-import ordiIcon from '@/assets/ordi.svg?url'
-import ordiBtcLogo from '@/assets/ordi-btc.svg?url'
+import orxcIcon from '@/assets/orxc.png?url'
 import { calculateFee, prettyBalance, sleep } from '@/lib/helpers'
 import {
   buildAskLimit,
@@ -61,6 +60,7 @@ import {
 } from '@/store'
 import { buildBuyTake } from '@/lib/order-builder'
 import utils from '@/utils'
+import OrderPanelHeader from './OrderPanelHeader.vue'
 
 const unisat = window.unisat
 
@@ -318,55 +318,63 @@ function discardOrder() {
 }
 
 async function submitOrder() {
-  // 1. sign
-  const signed = await unisat.signPsbt(builtInfo.value.order.toHex())
-  console.log({ signed })
+  try {
+    // 1. sign
+    const signed = await unisat.signPsbt(builtInfo.value.order.toHex())
+    console.log({ signed })
 
-  let pushed: any
-  // 2. push
-  switch (builtInfo.value!.type) {
-    case 'buy':
-      await pushBuyTake({
-        psbtRaw: signed,
-        network: networkStore.ordersNetwork,
-        orderId: builtInfo.value.orderId,
-      })
-      break
-    case 'sell':
-      pushed = await pushSellTake({
-        psbtRaw: signed,
-        network: networkStore.ordersNetwork,
-        orderId: builtInfo.value.orderId,
-        address: addressStore.get!,
-        value: builtInfo.value.value,
-        amount: builtInfo.value.amount,
-      })
-      break
-    case 'bid':
-      pushed = await pushBidOrder({
-        psbtRaw: signed,
-        network: networkStore.ordersNetwork,
-        address: addressStore.get!,
-        tick: 'orxc',
-        feeb: builtInfo.value.feeb,
-        fee: builtInfo.value.fee,
-        total: builtInfo.value.total,
-        using: builtInfo.value.using,
-        orderId: builtInfo.value.orderId,
-      })
-      break
-    case 'ask':
-      await pushAskOrder({
-        psbtRaw: signed,
-        network: networkStore.ordersNetwork,
-        address: addressStore.get!,
-        tick: 'orxc',
-        amount: builtInfo.value.amount,
-      })
-      break
+    let pushed: any
+    // 2. push
+    switch (builtInfo.value!.type) {
+      case 'buy':
+        await pushBuyTake({
+          psbtRaw: signed,
+          network: networkStore.ordersNetwork,
+          orderId: builtInfo.value.orderId,
+        })
+        break
+      case 'sell':
+        pushed = await pushSellTake({
+          psbtRaw: signed,
+          network: networkStore.ordersNetwork,
+          orderId: builtInfo.value.orderId,
+          address: addressStore.get!,
+          value: builtInfo.value.value,
+          amount: builtInfo.value.amount,
+        })
+        break
+      case 'bid':
+        pushed = await pushBidOrder({
+          psbtRaw: signed,
+          network: networkStore.ordersNetwork,
+          address: addressStore.get!,
+          tick: 'orxc',
+          feeb: builtInfo.value.feeb,
+          fee: builtInfo.value.fee,
+          total: builtInfo.value.total,
+          using: builtInfo.value.using,
+          orderId: builtInfo.value.orderId,
+        })
+        break
+      case 'ask':
+        await pushAskOrder({
+          psbtRaw: signed,
+          network: networkStore.ordersNetwork,
+          address: addressStore.get!,
+          tick: 'orxc',
+          amount: builtInfo.value.amount,
+        })
+        break
+    }
+
+    console.log({ pushed })
+  } catch (err: any) {
+    ElMessage.error(err.message)
+    setIsOpen(false)
+    builtInfo.value = undefined
+    isLimitExchangeMode.value = false
+    return
   }
-
-  console.log({ pushed })
 
   // 4. close modal
   setIsOpen(false)
@@ -492,34 +500,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
 
 <template>
   <div class="rounded-xl border border-zinc-300">
-    <!-- header -->
-    <div
-      class="grid grid-cols-6 items-center justify-between border-b border-zinc-300 px-4 py-2"
-    >
-      <!-- empty placeholder -->
-      <div class="col-span-2"></div>
-
-      <!-- title -->
-      <div class="col-span-2 flex items-center justify-center gap-2">
-        <img :src="ordiBtcLogo" class="h-8" />
-        <span class="font-bold">ORXC-BTC</span>
-      </div>
-
-      <!-- limit exchange button -->
-      <div class="col-span-2 flex justify-end">
-        <button
-          class="col-span-2 rounded-md border px-4 py-2 text-sm transition hover:border-orange-300 hover:bg-orange-300 hover:text-white"
-          :class="
-            isLimitExchangeMode
-              ? 'border-orange-300 bg-orange-300 text-orange-900'
-              : 'border-zinc-300 text-zinc-300'
-          "
-          @click="isLimitExchangeMode = !isLimitExchangeMode"
-        >
-          Limit Exchange
-        </button>
-      </div>
-    </div>
+    <OrderPanelHeader v-model:is-limit-exchange-mode="isLimitExchangeMode" />
 
     <!-- table -->
     <div class="flex items-start gap-x-8 p-8">
@@ -625,7 +606,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                 <div class="mt-4 rounded-md border border-zinc-500 p-2">
                   <div class="flex items-center justify-between">
                     <div class="flex items-center">
-                      <img :src="ordiIcon" alt="btc icon" class="h-6 w-6" />
+                      <img :src="orxcIcon" alt="btc icon" class="h-6 w-6" />
                       <span class="ml-2 text-zinc-500">Amount</span>
                     </div>
 
@@ -757,7 +738,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                 <div class="mt-4 rounded-md border border-zinc-500 p-2">
                   <div class="flex items-center justify-between">
                     <div class="flex items-center">
-                      <img :src="ordiIcon" alt="btc icon" class="h-6 w-6" />
+                      <img :src="orxcIcon" alt="btc icon" class="h-6 w-6" />
                       <span class="ml-2 text-zinc-500">Amount</span>
                     </div>
 
@@ -934,7 +915,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                 class="mt-4 flex items-center justify-between rounded-md border border-zinc-500 p-2"
               >
                 <div class="flex items-center">
-                  <img :src="ordiIcon" alt="btc icon" class="h-6 w-6" />
+                  <img :src="orxcIcon" alt="btc icon" class="h-6 w-6" />
                   <span class="ml-2 text-zinc-500">Amount</span>
                 </div>
 
@@ -1112,7 +1093,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                 class="mt-4 flex items-center justify-between rounded-md border border-zinc-500 p-2"
               >
                 <div class="flex items-center">
-                  <img :src="ordiIcon" alt="btc icon" class="h-6 w-6" />
+                  <img :src="orxcIcon" alt="btc icon" class="h-6 w-6" />
                   <span class="ml-2 text-zinc-500">Amount</span>
                 </div>
 
