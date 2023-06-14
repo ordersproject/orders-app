@@ -58,11 +58,9 @@ import {
   useBtcJsStore,
   useDummiesStore,
   useNetworkStore,
-  useFutureUtxosStore,
 } from '@/store'
 import { buildBuyTake } from '@/lib/order-builder'
 import utils from '@/utils'
-import { Psbt } from 'bitcoinjs-lib'
 
 const unisat = window.unisat
 

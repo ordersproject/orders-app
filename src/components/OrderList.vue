@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { Settings2Icon } from 'lucide-vue-next'
 import OrderItem from './OrderItem.vue'
 import type { Order } from '@/queries'
 
@@ -25,6 +26,7 @@ defineEmits(['useBuyPrice', 'useSellPrice'])
             <th class="th">Price (BTC)</th>
             <th class="th">Amount (ORXC)</th>
             <th class="th">Total (BTC)</th>
+            <th class="th"></th>
           </tr>
         </thead>
 
@@ -47,6 +49,7 @@ defineEmits(['useBuyPrice', 'useSellPrice'])
             <th class="th">Price (BTC)</th>
             <th class="th">Amount (ORXC)</th>
             <th class="th">Total (BTC)</th>
+            <th class="th"></th>
           </tr>
         </thead>
 

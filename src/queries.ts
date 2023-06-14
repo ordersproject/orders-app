@@ -242,6 +242,25 @@ export const pushBuyTake = async ({
   }
 }
 
+export const cancelOrder = async ({ orderId }: { orderId: string }) => {
+  const address = useAddressStore().address!
+  const network = useNetworkStore().network
+
+  const updateEndpoint = `https://api.ordbook.io/book/brc20/order/update`
+  await fetch(updateEndpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      net: network,
+      address,
+      orderId,
+      orderState: 3,
+    }),
+  })
+}
+
 export const pushBidOrder = async ({
   network,
   address,
