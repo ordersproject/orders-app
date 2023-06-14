@@ -63,12 +63,13 @@ async function onCancel() {
     <td class="td">{{ order.coinAmount }}</td>
     <td class="td">{{ prettyTotalAmount }}</td>
     <td class="td">
-      <XCircleIcon
-        v-if="isMyOrder"
-        class="h-4 w-4 text-zinc-500 transition hover:text-zinc-300"
-        @click.stop="onCancel"
-        title="Cancel Order"
-      />
+      <div class="flex h-full w-full items-center justify-center">
+        <button @click.stop="onCancel" title="Cancel Order" v-if="isMyOrder">
+          <XCircleIcon
+            class="h-4 w-4 text-zinc-500 transition hover:text-zinc-300"
+          />
+        </button>
+      </div>
     </td>
   </tr>
 </template>
