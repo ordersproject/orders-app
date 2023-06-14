@@ -96,16 +96,21 @@ function copyAddress() {
     </h1>
 
     <div class="flex gap-2">
-      <button
-        class="h-10 cursor-pointer items-center divide-x divide-zinc-800 rounded-lg bg-black/90 px-4 text-sm text-zinc-300 transition hover:text-orange-300"
-        v-if="addressStore.get"
-        :title="`Switch to ${
+      <el-tooltip
+        effect="light"
+        placement="bottom"
+        :content="`Click to switch to ${
           networkStore.network === 'testnet' ? 'livenet' : 'testnet'
-        }`"
-        @click="switchNetwork"
+        } `"
+        v-if="addressStore.get"
       >
-        {{ networkStore.network }}
-      </button>
+        <button
+          class="h-10 cursor-pointer items-center divide-x divide-zinc-800 rounded-lg bg-black/90 px-4 text-sm text-zinc-300 transition hover:text-orange-300"
+          @click="switchNetwork"
+        >
+          {{ networkStore.network }}
+        </button>
+      </el-tooltip>
 
       <button
         class="h-10 rounded-lg border-2 border-orange-300 px-4 transition hover:border-orange-400 hover:bg-orange-400"
