@@ -18,7 +18,12 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@headlessui/vue'
-import { CheckIcon, ChevronsUpDownIcon, RefreshCcwIcon, XIcon } from 'lucide-vue-next'
+import {
+  CheckIcon,
+  ChevronsUpDownIcon,
+  RefreshCcwIcon,
+  XIcon,
+} from 'lucide-vue-next'
 import { Loader } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import { useQuery } from '@tanstack/vue-query'
@@ -45,6 +50,7 @@ import {
   FeebPlan,
   getBrc20s,
   Brc20,
+  getMarketPrice,
 } from '@/queries'
 import OrderList from './OrderList.vue'
 import {
@@ -400,7 +406,10 @@ const builtInfo = ref()
 // limit exchange mode
 const isLimitExchangeMode = ref(false)
 const limitExchangeType: Ref<'bid' | 'ask'> = ref('bid')
-const marketPrice = ref(0.00000154)
+const { data: marketPrice } = useQuery({
+  queryKey: ['marketPrice', { network: networkStore.network, tick: 'ORXC' }],
+  queryFn: () => getMarketPrice({ tick: 'ORXC' }),
+})
 
 const bidExchangePrice = ref(0)
 const bidTotalExchangePrice = computed(() => {
@@ -586,12 +595,13 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
 
                   <div
                     class="cursor-pointer pt-2 text-right text-xs text-zinc-500"
+                    v-if="marketPrice"
                     @click="
                       bidExchangePrice = Number((marketPrice * 0.99).toFixed(8))
                     "
                     title="Use market price"
                   >
-                    {{ `Market Price: ${marketPrice} BTC` }}
+                    {{ `Market Price: ${marketPrice.toFixed(8)} BTC` }}
                   </div>
                 </div>
 
@@ -718,12 +728,13 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
 
                   <div
                     class="cursor-pointer pt-2 text-right text-xs text-zinc-500"
+                    v-if="marketPrice"
                     @click="
                       askExchangePrice = Number((marketPrice * 1.01).toFixed(8))
                     "
                     title="Use market price"
                   >
-                    {{ `Market Price: ${marketPrice} BTC` }}
+                    {{ `Market Price: ${marketPrice.toFixed(8)} BTC` }}
                   </div>
                 </div>
 

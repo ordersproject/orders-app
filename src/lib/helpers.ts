@@ -1,5 +1,11 @@
 import { useNetworkStore } from '@/store'
-import type { Psbt } from 'bitcoinjs-lib'
+import { type Psbt } from 'bitcoinjs-lib'
+import { clsx, type ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
 
 export function calculateFee(feeRate: number, vinLen: number, voutLen: number) {
   const baseTxSize = 10

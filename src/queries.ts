@@ -114,6 +114,39 @@ export const getOrders = async ({
   return orders || []
 }
 
+export type Ticker = {
+  amount: string
+  avgPrice: string
+  tick: string
+  pair: string
+  net: 'livenet' | 'testnet'
+}
+export const getMarketPrice = async ({ tick }: { tick: string }) => {
+  // const network = useNetworkStore().network
+  const network = 'livenet' // TODO
+  const marketPrice: number = await fetch(
+    `https://api.ordbook.io/book/brc20/tickers?tick=${tick}&net=${network}`,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  )
+    .then((res) => res.json())
+    .then(({ data: { results: tickers } }) => tickers)
+    .then((tickers: Ticker[]) => {
+      if (tickers.length === 0) return 0
+
+      const theTicker = tickers.find(
+        (ticker) => ticker.tick === tick && ticker.net === network
+      )
+
+      return theTicker ? Number(theTicker.avgPrice) : 0
+    })
+
+  return marketPrice / 1e8
+}
+
 export type Brc20 = {
   inscriptionId: string
   inscriptionNumber: string

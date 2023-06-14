@@ -1,7 +1,11 @@
 <script lang="ts" setup>
-import { Settings2Icon } from 'lucide-vue-next'
+import { useQuery } from '@tanstack/vue-query'
 import OrderItem from './OrderItem.vue'
-import type { Order } from '@/queries'
+import { getMarketPrice, type Order } from '@/queries'
+import { useNetworkStore } from '@/store'
+import { cn } from '@/lib/helpers'
+
+const networkStore = useNetworkStore()
 
 withDefaults(
   defineProps<{
@@ -15,6 +19,11 @@ withDefaults(
 )
 
 defineEmits(['useBuyPrice', 'useSellPrice'])
+
+const { data: marketPrice } = useQuery({
+  queryKey: ['marketPrice', { network: networkStore.network, tick: 'ORXC' }],
+  queryFn: () => getMarketPrice({ tick: 'ORXC' }),
+})
 </script>
 
 <template>
@@ -40,6 +49,12 @@ defineEmits(['useBuyPrice', 'useSellPrice'])
           />
         </tbody>
       </table>
+    </div>
+
+    <div
+      :class="cn('text-xl', marketPrice ? 'text-green-500' : 'text-zinc-500')"
+    >
+      {{ marketPrice?.toFixed(8) || '-' }}
     </div>
 
     <div class="flex-1">
