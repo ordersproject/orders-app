@@ -224,7 +224,8 @@ async function buildOrder() {
 
   if (!dummiesStore.has) {
     // build dummies first
-    buildProcessTip.value = 'Building prerequisites...'
+    buildProcessTip.value =
+      'Step 1. Building prerequisites. Needed only once per address.'
     try {
       await utils.checkAndSelectDummies({})
     } catch (e: any) {
