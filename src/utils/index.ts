@@ -10,8 +10,11 @@ import { calculateFee, getTxHex, prettyAddress } from '@/lib/helpers'
 import { DUMMY_UTXO_VALUE, EXTREME_FEEB, MIN_FEEB } from '@/lib/constants'
 import { ElMessage } from 'element-plus'
 const utils = {
-  checkAndSelectDummies: async (checkOnly = false, addressParam = null) => {
-    console.log('checking')
+  checkAndSelectDummies: async ({
+    checkOnly = false,
+    addressParam = null,
+    collectMode = false,
+  }) => {
     const address = addressParam || useAddressStore().get!
     const dummiesStore = useDummiesStore()
     const btcjsStore = useBtcJsStore()
@@ -40,15 +43,16 @@ const utils = {
 
       return dummyUtxos
     } else {
-      console.log('good', checkOnly)
       if (checkOnly) return []
 
-      console.log('hi')
       const paymentUtxo = await getUtxos2(address).then((utxos) => {
         // only take two dummy utxos
-        return utxos.filter(
-          (utxo) => utxo.satoshis >= DUMMY_UTXO_VALUE * 2 + 1000
-        )[0]
+        return utxos
+          .filter((utxo) => utxo.satoshis >= DUMMY_UTXO_VALUE * 2 + 1000)
+          .reduce((prev, curr) => {
+            // pick the one with the most satoshis
+            return prev.satoshis > curr.satoshis ? prev : curr
+          }, utxos[0])
       })
 
       if (!paymentUtxo) {
@@ -58,7 +62,6 @@ const utils = {
       }
 
       const btcjs = btcjsStore.get!
-
       const paymentHex = await getTxHex(paymentUtxo.txId)
       // get scriptPk
       const paymentTx = btcjs.Transaction.fromHex(paymentHex)
@@ -80,15 +83,20 @@ const utils = {
       dummiesPsbt.addOutput({ address: address, value: DUMMY_UTXO_VALUE })
       dummiesPsbt.addOutput({ address: address, value: DUMMY_UTXO_VALUE })
 
+      const feeb = networkStore.network === 'testnet' ? EXTREME_FEEB : MIN_FEEB
       const fee = calculateFee(
-        10, // minimum feeb
+        feeb, // minimum feeb
         1,
         2 // already taken care of the exchange output bytes calculation
       )
       const changeValue = paymentUtxo.satoshis - DUMMY_UTXO_VALUE * 2 - fee
-      console.log('here')
 
       dummiesPsbt.addOutput({ address: address, value: changeValue })
+      if (collectMode) {
+        return {
+          psbt: dummiesPsbt,
+        }
+      }
 
       // push
       const signed = await window.unisat.signPsbt(dummiesPsbt.toHex())

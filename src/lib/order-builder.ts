@@ -160,9 +160,6 @@ export async function buildBidLimit({
   const bid = new btcjs.Psbt({ network: btcjs.networks[btcNetwork] })
   let totalInput = 0
 
-  // Step 2. build the bid part: add 2 dummy inputs
-  await utils.checkAndSelectDummies()
-
   const dummyUtxos = useDummiesStore().get!
   for (const dummyUtxo of dummyUtxos) {
     const dummyTx = btcjs.Transaction.fromHex(dummyUtxo.txHex)

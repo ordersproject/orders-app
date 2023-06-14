@@ -22,12 +22,6 @@ onMounted(async () => {
     ElMessage.warning('Unisat not available')
   }
 
-  // try to get current address
-  // const addresses = await window.unisat.getAccounts()
-  // if (addresses && addresses.length) {
-  //   address.set(addresses[0])
-  // }
-
   // getNetwork
   const network: Network = await window.unisat.getNetwork()
   networkStore.set(network)
@@ -53,7 +47,11 @@ const { data: address } = useQuery({
 const enabled = computed(() => !!address.value)
 useQuery({
   queryKey: ['dummies', { network: networkStore.network }],
-  queryFn: async () => utils.checkAndSelectDummies(true, address.value),
+  queryFn: async () =>
+    utils.checkAndSelectDummies({
+      checkOnly: true,
+      addressParam: address.value,
+    }),
   retry: 0,
   enabled,
 })
@@ -85,7 +83,7 @@ function copyAddress() {
 <template>
   <header class="flex items-center justify-between px-6 py-4">
     <h1 class="flex items-center gap-2">
-      <img class="h-8" :src="logo" alt="Logo" />
+      <img class="h-9" :src="logo" alt="Logo" />
     </h1>
 
     <div class="flex gap-2">
@@ -124,7 +122,7 @@ function copyAddress() {
         <div class="pl-2" v-if="!dummiesStore.has">
           <HelpCircle
             class="h-5 text-zinc-500"
-            @click="utils.checkAndSelectDummies()"
+            @click="utils.checkAndSelectDummies({})"
           />
         </div>
         <div class="pl-2" v-else>

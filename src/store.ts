@@ -85,3 +85,11 @@ export const useDummiesStore = defineStore('dummies', {
     },
   },
 })
+
+export const useFutureUtxosStore = defineStore('futureUtxos', {
+  state: () => {
+    return {
+      utxos: [] as any[],
+    }
+  },
+})

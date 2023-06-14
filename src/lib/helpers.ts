@@ -1,4 +1,5 @@
 import { useNetworkStore } from '@/store'
+import type { Psbt } from 'bitcoinjs-lib'
 
 export function calculateFee(feeRate: number, vinLen: number, voutLen: number) {
   const baseTxSize = 10
@@ -8,6 +9,17 @@ export function calculateFee(feeRate: number, vinLen: number, voutLen: number) {
   const txSize = baseTxSize + vinLen * inSize + (voutLen + 1) * outSize
 
   const fee = txSize * feeRate
+  return fee
+}
+
+export function calculatePsbtFee(feeRate: number, psbt: Psbt) {
+  let txSize = psbt.extractTransaction(true).toBuffer().length
+  psbt.data.inputs.forEach((v) => {
+    if (v.finalScriptWitness) {
+      txSize -= v.finalScriptWitness.length * 0.75
+    }
+  })
+  const fee = Math.ceil(txSize * feeRate)
   return fee
 }
 

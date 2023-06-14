@@ -58,8 +58,11 @@ import {
   useBtcJsStore,
   useDummiesStore,
   useNetworkStore,
+  useFutureUtxosStore,
 } from '@/store'
 import { buildBuyTake } from '@/lib/order-builder'
+import utils from '@/utils'
+import { Psbt } from 'bitcoinjs-lib'
 
 const unisat = window.unisat
 
@@ -215,69 +218,93 @@ watch(useSellPrice, (price) => {
   }
 })
 
+const buildProcessTip = ref('Building Transaction...')
 async function buildOrder() {
   setIsOpen(true)
   isBuilding.value = true
   let buildRes: any
 
-  if (isLimitExchangeMode.value) {
-    if (limitExchangeType.value === 'bid') {
-      if (!selectedBidCandidate.value) return
-
-      buildRes = await buildBidLimit({
-        total: Math.round(
-          bidExchangePrice.value *
-            Number(selectedBidCandidate.value.coinAmount) *
-            1e8
-        ),
-        coinAmount: Number(selectedBidCandidate.value.coinAmount),
-        inscriptionId: selectedBidCandidate.value.inscriptionId,
-        inscriptionNumber: selectedBidCandidate.value.inscriptionNumber,
-      })
-    } else {
-      buildRes = await buildAskLimit({
-        total: Math.round(
-          askExchangePrice.value * askLimitBrcAmount.value * 1e8
-        ),
-        amount: askLimitBrcAmount.value,
-      })
+  if (!dummiesStore.has) {
+    // build dummies first
+    buildProcessTip.value = 'Building prerequisites...'
+    try {
+      await utils.checkAndSelectDummies({})
+    } catch (e: any) {
+      ElMessage.error(e.message)
+      setIsOpen(false)
+      builtInfo.value = undefined
+      isLimitExchangeMode.value = false
+      return
     }
-  } else {
-    if (takeModeTab.value === 0) {
-      // buy
-      if (!selectedBuyOrders.value.length) return
+  }
 
-      buildRes = await buildBuyTake({
-        order: selectedBuyOrders.value[0],
-        feeb: selectedFeebPlan.value?.feeRate || 1,
-      })
-    } else if (takeModeTab.value === 1) {
-      // sell
-      if (!selectedSellOrders.value.length) return
+  buildProcessTip.value = 'Building Transaction...'
 
-      const total = selectedSellOrders.value.reduce((acc, cur) => {
-        return acc + Number(cur.amount)
-      }, 0)
+  try {
+    if (isLimitExchangeMode.value) {
+      if (limitExchangeType.value === 'bid') {
+        if (!selectedBidCandidate.value) return
 
-      const sellTake = await buildSellTake({
-        total,
-        amount: selectedSellCoinAmount.value,
-      }).catch(async (err) => {
-        await sleep(500)
+        buildRes = await buildBidLimit({
+          total: Math.round(
+            bidExchangePrice.value *
+              Number(selectedBidCandidate.value.coinAmount) *
+              1e8
+          ),
+          coinAmount: Number(selectedBidCandidate.value.coinAmount),
+          inscriptionId: selectedBidCandidate.value.inscriptionId,
+          inscriptionNumber: selectedBidCandidate.value.inscriptionNumber,
+        })
+      } else {
+        buildRes = await buildAskLimit({
+          total: Math.round(
+            askExchangePrice.value * askLimitBrcAmount.value * 1e8
+          ),
+          amount: askLimitBrcAmount.value,
+        })
+      }
+    } else {
+      if (takeModeTab.value === 0) {
+        // buy
+        if (!selectedBuyOrders.value.length) return
 
-        console.log({ err })
-        ElMessage.error(err.message)
-        setIsOpen(false)
-        builtInfo.value = undefined
-        isLimitExchangeMode.value = false
-      })
+        buildRes = await buildBuyTake({
+          order: selectedBuyOrders.value[0],
+          feeb: selectedFeebPlan.value?.feeRate || 1,
+        })
+      } else if (takeModeTab.value === 1) {
+        // sell
+        if (!selectedSellOrders.value.length) return
 
-      buildRes = {
-        ...sellTake,
-        orderId: selectedSellOrders.value[0].orderId,
-        amount: selectedSellOrders.value[0].coinAmount.toString(),
+        const total = selectedSellOrders.value.reduce((acc, cur) => {
+          return acc + Number(cur.amount)
+        }, 0)
+
+        const sellTake = await buildSellTake({
+          total,
+          amount: selectedSellCoinAmount.value,
+        }).catch(async (err) => {
+          await sleep(500)
+
+          console.log({ err })
+          ElMessage.error(err.message)
+          setIsOpen(false)
+          builtInfo.value = undefined
+          isLimitExchangeMode.value = false
+        })
+
+        buildRes = {
+          ...sellTake,
+          orderId: selectedSellOrders.value[0].orderId,
+          amount: selectedSellOrders.value[0].coinAmount.toString(),
+        }
       }
     }
+  } catch (error: any) {
+    ElMessage.error(error.message)
+    setIsOpen(false)
+    builtInfo.value = undefined
+    isLimitExchangeMode.value = false
   }
 
   isBuilding.value = false
@@ -294,11 +321,10 @@ function discardOrder() {
 
 async function submitOrder() {
   // 1. sign
-  const signed = await unisat.signPsbt(builtInfo.value!.order.toHex())
-  let pushed: any
-
+  const signed = await unisat.signPsbt(builtInfo.value.order.toHex())
   console.log({ signed })
 
+  let pushed: any
   // 2. push
   switch (builtInfo.value!.type) {
     case 'buy':
@@ -344,15 +370,21 @@ async function submitOrder() {
 
   console.log({ pushed })
 
-  // 3. update dummies
-
   // 4. close modal
   setIsOpen(false)
-  builtInfo.value = undefined
-  isLimitExchangeMode.value = false
 
-  // reload
-  // window.location.reload()
+  // Show success message
+  ElMessage({
+    message: `${builtInfo.value.type} order completed!`,
+    type: 'success',
+    onClose: () => {
+      builtInfo.value = undefined
+      isLimitExchangeMode.value = false
+
+      // reload
+      window.location.reload()
+    },
+  })
 }
 
 // confirm modal
@@ -1249,7 +1281,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                 v-if="isBuilding"
               >
                 <Loader class="h-4 w-4 animate-spin-slow" />
-                <span>Building Transaction...</span>
+                <span>{{ buildProcessTip }}</span>
               </div>
 
               <div class="" v-else-if="builtInfo">
