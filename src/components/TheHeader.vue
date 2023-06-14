@@ -1,15 +1,17 @@
 <script lang="ts" setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { useQuery } from '@tanstack/vue-query'
+import { ShieldAlertIcon, CheckCircle2 } from 'lucide-vue-next'
+
 import logo from '@/assets/logo-new.png?url'
 import unisatIcon from '@/assets/unisat-icon.png?url'
 import { prettyAddress } from '@/lib/helpers'
-import { ElMessage } from 'element-plus'
 import { useAddressStore, useDummiesStore, useNetworkStore } from '@/store'
-import type { Network } from '@/store'
-import { useQuery } from '@tanstack/vue-query'
+import { type Network } from '@/store'
 import { getAddress } from '@/queries'
 import utils from '@/utils'
-import { ShieldAlertIcon, CheckCircle2 } from 'lucide-vue-next'
+import { VERSION } from '@/lib/constants'
 
 const addressStore = useAddressStore()
 const networkStore = useNetworkStore()
@@ -92,7 +94,13 @@ function copyAddress() {
 <template>
   <header class="flex items-center justify-between px-6 py-4">
     <h1 class="flex items-center gap-2">
-      <img class="h-9" :src="logo" alt="Logo" />
+      <el-tooltip
+        effect="light"
+        placement="right"
+        :content="`Version ${VERSION}`"
+      >
+        <img class="h-9" :src="logo" alt="Logo" />
+      </el-tooltip>
     </h1>
 
     <div class="flex gap-2">
