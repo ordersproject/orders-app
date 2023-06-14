@@ -391,6 +391,15 @@ export const getAddress = async () => {
 
   const addresses = await window.unisat.getAccounts()
   if (addresses && addresses.length > 0) {
+    if (
+      addresses[0].startsWith('1') ||
+      addresses[0].startsWith('m') ||
+      addresses[0].startsWith('n')
+    ) {
+      ElMessage.error('Please use a SegWit address')
+      throw new Error('Please use a SegWit address')
+    }
+
     useAddressStore().set(addresses[0])
     return addresses[0]
   }

@@ -9,8 +9,7 @@ import type { Network } from '@/store'
 import { useQuery } from '@tanstack/vue-query'
 import { getAddress } from '@/queries'
 import utils from '@/utils'
-import { HelpCircle } from 'lucide-vue-next'
-import { CheckCircle2 } from 'lucide-vue-next'
+import { ShieldAlertIcon, CheckCircle2 } from 'lucide-vue-next'
 
 const addressStore = useAddressStore()
 const networkStore = useNetworkStore()
@@ -35,6 +34,16 @@ async function connectWallet() {
   }
   const connectRes = await window.unisat.requestAccounts()
   if (connectRes && connectRes.length) {
+    // if it's a legacy address(1... or m..., n...), throw error
+    if (
+      connectRes[0].startsWith('1') ||
+      connectRes[0].startsWith('m') ||
+      connectRes[0].startsWith('n')
+    ) {
+      ElMessage.error('Please use a SegWit address')
+      return
+    }
+
     addressStore.set(connectRes[0])
   }
 }
@@ -108,10 +117,9 @@ function copyAddress() {
 
       <div
         class="flex h-10 cursor-pointer items-center divide-x divide-zinc-800 rounded-lg bg-black/90 px-4"
-        title="copy address"
         v-else
       >
-        <div class="flex gap-2 pr-2" @click="copyAddress">
+        <div class="flex gap-2 pr-2" @click="copyAddress" title="copy address">
           <img class="h-5" :src="unisatIcon" alt="Unisat" />
           <span class="text-sm text-orange-300">
             {{ prettyAddress(addressStore.get) }}
@@ -120,10 +128,27 @@ function copyAddress() {
 
         <!-- ready button -->
         <div class="pl-2" v-if="!dummiesStore.has">
-          <HelpCircle
-            class="h-5 text-zinc-500"
-            @click="utils.checkAndSelectDummies({})"
-          />
+          <el-tooltip effect="light" placement="bottom-end">
+            <template #content>
+              <h3 class="my-2 text-sm font-bold text-orange-300">
+                Create 2 dummies UTXOs to begin
+              </h3>
+              <div
+                class="mb-2 max-w-sm space-y-2 text-sm leading-relaxed text-zinc-300"
+              >
+                <p>
+                  When using Orders.Exchange for the first time, it's necessary
+                  to prepare two UTXOs of 600 satoshis as a prerequisite for the
+                  transaction.
+                </p>
+                <p>Click to complete this preparation.</p>
+              </div>
+            </template>
+            <ShieldAlertIcon
+              class="h-5 text-red-500"
+              @click="utils.checkAndSelectDummies({})"
+            />
+          </el-tooltip>
         </div>
         <div class="pl-2" v-else>
           <CheckCircle2 class="h-5 text-orange-300" />

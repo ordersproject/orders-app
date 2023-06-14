@@ -18,12 +18,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@headlessui/vue'
-import {
-  CheckIcon,
-  ChevronUpDownIcon,
-  ArrowPathIcon,
-  XMarkIcon,
-} from '@heroicons/vue/20/solid'
+import { CheckIcon, ChevronsUpDownIcon, RefreshCcwIcon, XIcon } from 'lucide-vue-next'
 import { Loader } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import { useQuery } from '@tanstack/vue-query'
@@ -528,7 +523,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
               class="absolute right-0 top-0"
               @click="isLimitExchangeMode = false"
             >
-              <XMarkIcon class="h-6 w-6 text-zinc-300" aria-hidden="true" />
+              <XIcon class="h-6 w-6 text-zinc-300" aria-hidden="true" />
             </button>
           </div>
 
@@ -627,7 +622,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                           class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                         >
                           <span>ORXC</span>
-                          <ChevronUpDownIcon
+                          <ChevronsUpDownIcon
                             class="h-5 w-5"
                             aria-hidden="true"
                           />
@@ -777,7 +772,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                           class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                         >
                           <span>ORXC</span>
-                          <ChevronUpDownIcon
+                          <ChevronsUpDownIcon
                             class="h-5 w-5"
                             aria-hidden="true"
                           />
@@ -937,7 +932,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                       class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                     >
                       <span>ORXC</span>
-                      <ChevronUpDownIcon class="h-5 w-5" aria-hidden="true" />
+                      <ChevronsUpDownIcon class="h-5 w-5" aria-hidden="true" />
                     </span>
                   </ListboxButton>
 
@@ -1051,7 +1046,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                     {{ `${prettyBalance(balance)} BTC` }}
                   </span>
                   <button @click="updateBalance">
-                    <ArrowPathIcon
+                    <RefreshCcwIcon
                       class="h-4 w-4 text-zinc-300"
                       aria-hidden="true"
                     />
@@ -1115,7 +1110,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                       class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                     >
                       <span>ORXC</span>
-                      <ChevronUpDownIcon class="h-5 w-5" aria-hidden="true" />
+                      <ChevronsUpDownIcon class="h-5 w-5" aria-hidden="true" />
                     </span>
                   </ListboxButton>
 
@@ -1229,7 +1224,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                     {{ `${prettyBalance(balance)} BTC` }}
                   </span>
                   <button @click="updateBalance">
-                    <ArrowPathIcon
+                    <RefreshCcwIcon
                       class="h-4 w-4 text-zinc-300"
                       aria-hidden="true"
                     />
