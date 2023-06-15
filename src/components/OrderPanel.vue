@@ -30,7 +30,7 @@ import { useQuery } from '@tanstack/vue-query'
 
 import btcIcon from '@/assets/btc.svg?url'
 import orxcIcon from '@/assets/orxc.png?url'
-import { calculateFee, prettyBalance, sleep } from '@/lib/helpers'
+import { calculateFee, cn, prettyBalance, sleep } from '@/lib/helpers'
 import {
   buildAskLimit,
   buildBidLimit,
@@ -62,6 +62,7 @@ import {
 import { buildBuyTake } from '@/lib/order-builder'
 import utils from '@/utils'
 import OrderPanelHeader from './OrderPanelHeader.vue'
+import { BookPlusIcon } from 'lucide-vue-next'
 
 const unisat = window.unisat
 
@@ -390,9 +391,13 @@ async function submitOrder() {
       isLimitExchangeMode.value = false
 
       // reload
-      // window.location.reload()
+      window.location.reload()
     },
   })
+}
+
+async function goInscribe() {
+  await window.unisat.inscribeTransfer('ORXC')
 }
 
 // confirm modal
@@ -816,6 +821,27 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                             </span>
                           </li>
                         </ListboxOption>
+
+                        <ListboxOption
+                          as="template"
+                          v-slot="{ active, selected }"
+                          @click="goInscribe"
+                        >
+                          <li
+                            :class="
+                              cn(
+                                'flex cursor-pointer items-center justify-between rounded border-t border-zinc-700 p-2 text-zinc-300 transition',
+                                { 'bg-orange-500/20 text-orange-300': active }
+                              )
+                            "
+                          >
+                            <BookPlusIcon
+                              class="mr-2 h-5 w-5"
+                              aria-hidden="true"
+                            />
+                            <span>Inscribe Transfer</span>
+                          </li>
+                        </ListboxOption>
                       </ListboxOptions>
                     </Listbox>
                   </div>
@@ -968,7 +994,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                           <CheckIcon class="h-5 w-5" aria-hidden="true" />
                         </span>
                         <span class="text-sm text-zinc-500">
-                          {{ Number(psbt.coinRatePrice) / 1e8 }}
+                          {{ (Number(psbt.coinRatePrice) / 1e8).toFixed(8) }}
                         </span>
                         <span :class="selected && 'text-orange-300'">
                           {{ psbt.coinAmount }}

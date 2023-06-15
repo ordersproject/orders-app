@@ -1,9 +1,18 @@
 <script lang="ts" setup>
 import btcLogo from '@/assets/btc.svg?url'
 import orxcLogo from '@/assets/orxc.png?url'
+import whitelist from '@/lib/whitelist'
+import { useAddressStore } from '@/store'
+import { computed } from 'vue'
 
 defineProps(['isLimitExchangeMode'])
 defineEmits(['update:isLimitExchangeMode'])
+
+const addressStore = useAddressStore()
+
+const inWhitelist = computed(() => {
+  return addressStore.get && whitelist.includes(addressStore.get)
+})
 </script>
 
 <template>
@@ -33,6 +42,7 @@ defineEmits(['update:isLimitExchangeMode'])
             : 'border-zinc-300 text-zinc-300'
         "
         @click="$emit('update:isLimitExchangeMode', !isLimitExchangeMode)"
+        v-if="inWhitelist"
       >
         Limit Exchange
       </button>

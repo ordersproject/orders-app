@@ -31,13 +31,22 @@ const utils = {
       const dummyUtxos: DummyUtxo[] = []
 
       // set dummy utxos
-      for (const candidate of candidates) {
-        const txHex = await getTxHex(candidate.txId)
-        const dummy = {
-          ...candidate,
-          txHex,
+      for (let i = 0; i < candidates.length; i++) {
+        const candidate = candidates[i]
+        // if the second candidate has the same txId as the first one, then use the same txHex instead of fetching again.
+        if (i === 1 && candidate.txId === candidates[0].txId) {
+          dummyUtxos.push({
+            ...candidate,
+            txHex: dummyUtxos[0].txHex,
+          })
+        } else {
+          const txHex = await getTxHex(candidate.txId)
+          const dummy = {
+            ...candidate,
+            txHex,
+          }
+          dummyUtxos.push(dummy)
         }
-        dummyUtxos.push(dummy)
       }
       dummiesStore.set(dummyUtxos)
 

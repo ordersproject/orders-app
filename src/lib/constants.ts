@@ -1,4 +1,4 @@
-export const VERSION = '0.1.1 (beta)'
+export const VERSION = '0.1.2 (beta)'
 
 export const DUMMY_UTXO_VALUE = 600
 export const ORD_UTXO_VALUE = 1000
