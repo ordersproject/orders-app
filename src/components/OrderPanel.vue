@@ -390,7 +390,7 @@ async function submitOrder() {
       isLimitExchangeMode.value = false
 
       // reload
-      window.location.reload()
+      // window.location.reload()
     },
   })
 }

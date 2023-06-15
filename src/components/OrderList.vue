@@ -51,10 +51,16 @@ const { data: marketPrice } = useQuery({
       </table>
     </div>
 
-    <div
-      :class="cn('text-xl', marketPrice ? 'text-green-500' : 'text-zinc-500')"
-    >
-      {{ marketPrice?.toFixed(8) || '-' }}
+    <div class="">
+      <el-tooltip :content="`Market Price`" placement="right" effect="light">
+        <span
+          :class="
+            cn('text-xl', marketPrice ? 'text-green-500' : 'text-zinc-500')
+          "
+        >
+          {{ marketPrice?.toFixed(8) || '-' }}
+        </span>
+      </el-tooltip>
     </div>
 
     <div class="flex-1">

@@ -1,6 +1,7 @@
-import { DUMMY_UTXO_VALUE } from './lib/constants'
-import { useAddressStore, useBtcJsStore, useNetworkStore } from './store'
+import sign from './lib/sign'
+import { useAddressStore, useNetworkStore } from './store'
 import { ElMessage } from 'element-plus'
+import fetch from '@/lib/fetch'
 
 export const getOrdiBalance = async (
   address: string,
@@ -228,11 +229,15 @@ export const pushAskOrder = async ({
   psbtRaw: string
   amount: number
 }) => {
+  const { publicKey, signature } = await sign()
+
   const createEndpoint = `https://api.ordbook.io/book/brc20/order/ask/push`
   const createRes = await fetch(createEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
     },
     body: JSON.stringify({
       psbtRaw,
@@ -261,6 +266,8 @@ export const pushBuyTake = async ({
   const address = useAddressStore().address!
   console.log({ pushTxId })
 
+  const { publicKey, signature } = await sign()
+
   // if pushed successfully, update the Dummies
   if (pushTxId) {
     // notify update psbt status
@@ -269,6 +276,8 @@ export const pushBuyTake = async ({
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-Signature': signature,
+        'X-Public-Key': publicKey,
       },
       body: JSON.stringify({
         net: network,
@@ -284,12 +293,15 @@ export const pushBuyTake = async ({
 export const cancelOrder = async ({ orderId }: { orderId: string }) => {
   const address = useAddressStore().address!
   const network = useNetworkStore().network
+  const { publicKey, signature } = await sign()
 
   const updateEndpoint = `https://api.ordbook.io/book/brc20/order/update`
   await fetch(updateEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
     },
     body: JSON.stringify({
       net: network,
@@ -321,26 +333,33 @@ export const pushBidOrder = async ({
   using: number
   orderId: string
 }) => {
-  const createEndpoint = `https://api.ordbook.io/book/brc20/order/bid/push`
-  const createRes = await fetch(createEndpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      net: network,
-      address,
-      tick,
-      psbtRaw,
-      rate: feeb,
-      fee,
-      amount: total,
-      buyerInValue: using,
-      orderId,
-    }),
-  }).then((res) => res.json())
+  try {
+    const { publicKey, signature } = await sign()
+    const createEndpoint = `https://api.ordbook.io/book/brc20/order/bid/push`
+    const createRes = await fetch(createEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Signature': signature,
+        'X-Public-Key': publicKey,
+      },
+      body: JSON.stringify({
+        net: network,
+        address,
+        tick,
+        psbtRaw,
+        rate: feeb,
+        fee,
+        amount: total,
+        buyerInValue: using,
+        orderId,
+      }),
+    }).then((res) => res.json())
 
-  return createRes
+    return createRes
+  } catch (e) {
+    throw e
+  }
 }
 
 export type SimpleUtxoFromMempool = {
