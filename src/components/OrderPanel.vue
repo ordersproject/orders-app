@@ -1305,7 +1305,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                 </div>
 
                 <div class="mt-8 grid grid-cols-2 gap-4 text-left">
-                  <div class="text-zinc-500">Network Fee</div>
+                  <!-- <div class="text-zinc-500">Network Fee</div>
                   <div class="col-span-1">0.00002481 BTC</div>
 
                   <div class="text-zinc-500">Service Fee</div>
@@ -1319,7 +1319,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   <div class="col-span-1">0.00002481 BTC</div>
 
                   <div class="text-zinc-300">Available Balance</div>
-                  <div class="col-span-1">0.00002481 BTC</div>
+                  <div class="col-span-1">0.00002481 BTC</div> -->
                 </div>
               </div>
             </DialogDescription>
