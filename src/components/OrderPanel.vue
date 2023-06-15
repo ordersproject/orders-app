@@ -1283,7 +1283,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
           class="flex min-h-full items-center justify-center p-4 text-center"
         >
           <DialogPanel
-            class="w-full max-w-md transform overflow-hidden rounded-2xl bg-zinc-800 p-6 align-middle shadow-lg shadow-orange-200/10 transition-all"
+            class="w-full max-w-lg transform overflow-hidden rounded-2xl bg-zinc-800 p-6 align-middle shadow-lg shadow-orange-200/10 transition-all"
           >
             <DialogTitle class="text-lg">Confirmation</DialogTitle>
 
@@ -1304,7 +1304,23 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   </span>
                 </div>
 
-                <div class="mt-4"></div>
+                <div class="mt-8 grid grid-cols-2 gap-4 text-left">
+                  <div class="text-zinc-500">Network Fee</div>
+                  <div class="col-span-1">0.00002481 BTC</div>
+
+                  <div class="text-zinc-500">Service Fee</div>
+                  <div class="col-span-1">0.00002481 BTC</div>
+
+                  <div class="col-span-2">
+                    <div class="my-4 w-16 border-t border-zinc-700"></div>
+                  </div>
+
+                  <div class="text-zinc-300">You will spend</div>
+                  <div class="col-span-1">0.00002481 BTC</div>
+
+                  <div class="text-zinc-300">Available Balance</div>
+                  <div class="col-span-1">0.00002481 BTC</div>
+                </div>
               </div>
             </DialogDescription>
 
