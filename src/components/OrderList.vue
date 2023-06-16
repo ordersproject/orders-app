@@ -27,9 +27,9 @@ const { data: marketPrice } = useQuery({
 </script>
 
 <template>
-  <div class="flex flex-col">
-    <div class="flex-1">
-      <table class="w-full">
+  <div class="flex flex-col gap-y-4">
+    <div class="h-full overflow-y-scroll">
+      <table class="w-full" v-if="askOrders.length">
         <thead>
           <tr>
             <th class="th">Price (BTC)</th>
@@ -49,13 +49,17 @@ const { data: marketPrice } = useQuery({
           />
         </tbody>
       </table>
+
+      <div class="flex h-full items-center justify-center" v-else>
+        <span class="text-zinc-500">No ask orders</span>
+      </div>
     </div>
 
     <div class="">
       <el-tooltip :content="`Market Price`" placement="right" effect="light">
         <span
           :class="
-            cn('text-xl', marketPrice ? 'text-green-500' : 'text-zinc-500')
+            cn('text-lg', marketPrice ? 'text-green-500' : 'text-zinc-500')
           "
         >
           {{ marketPrice?.toFixed(8) || '-' }}
@@ -63,8 +67,8 @@ const { data: marketPrice } = useQuery({
       </el-tooltip>
     </div>
 
-    <div class="flex-1">
-      <table class="w-full flex-1">
+    <div class="h-full overflow-y-scroll">
+      <table class="w-full" v-if="bidOrders.length">
         <thead class="invisible">
           <tr>
             <th class="th">Price (BTC)</th>
@@ -84,6 +88,10 @@ const { data: marketPrice } = useQuery({
           />
         </tbody>
       </table>
+
+      <div class="flex h-full items-center justify-center" v-else>
+        <span class="text-zinc-500">No bid orders</span>
+      </div>
     </div>
   </div>
 </template>
