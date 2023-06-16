@@ -137,7 +137,13 @@ export const getOneOrder = async ({
     }
   )
     .then((res) => res.json())
-    .then(({ data: order }) => order)
+    .then((res) => {
+      if (res.code === 1) {
+        throw new Error(res.message)
+      }
+
+      return res.data
+    })
 
   return order
 }
