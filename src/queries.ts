@@ -459,3 +459,20 @@ export const getAddress = async () => {
   ElMessage.warning('Login to Unisat first.')
   throw new Error('Login to Unisat first.')
 }
+
+export const getBalance = async () => {
+  if (!window.unisat) {
+    ElMessage.warning('Unisat not available')
+    throw new Error('Unisat not available')
+  }
+
+  const balance: number = await window.unisat
+    .getBalance()
+    .then(
+      (info: { confirmed: number; unconfirmed: number; total: number }) =>
+        info.total
+    )
+  console.log({ balance })
+
+  return balance
+}

@@ -1,17 +1,18 @@
 <script lang="ts" setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useQuery } from '@tanstack/vue-query'
 import { ShieldAlertIcon, CheckCircle2 } from 'lucide-vue-next'
 
 import logo from '@/assets/logo-new.png?url'
 import unisatIcon from '@/assets/unisat-icon.png?url'
-import { prettyAddress } from '@/lib/helpers'
+import { prettyAddress, prettyCoinDisplay } from '@/lib/helpers'
 import { useAddressStore, useDummiesStore, useNetworkStore } from '@/store'
 import { type Network } from '@/store'
-import { getAddress } from '@/queries'
+import { getAddress, getBalance } from '@/queries'
 import utils from '@/utils'
 import { VERSION } from '@/lib/constants'
+import { LoaderIcon } from 'lucide-vue-next'
 
 const addressStore = useAddressStore()
 const networkStore = useNetworkStore()
@@ -66,6 +67,28 @@ useQuery({
   retry: 0,
   enabled,
 })
+const { data: balance } = useQuery({
+  queryKey: [
+    'balance',
+    { network: networkStore.network, address: address.value },
+  ],
+  queryFn: () => getBalance(),
+  retry: 0,
+  enabled,
+})
+
+// watch if balance is existed but less than 1200 satoshis
+// if so, show warning
+watch(
+  () => balance.value,
+  (newBalance) => {
+    if (newBalance !== undefined && newBalance < 1200) {
+      ElMessage.warning(
+        'Your BTC balance is not enough to start a transaction. Please deposit some BTC to your address.'
+      )
+    }
+  }
+)
 
 async function switchNetwork() {
   if (!window.unisat) {
@@ -113,7 +136,7 @@ function copyAddress() {
         v-if="addressStore.get"
       >
         <button
-          class="h-10 cursor-pointer items-center divide-x divide-zinc-800 rounded-lg bg-black/90 px-4 text-sm text-zinc-300 transition hover:text-orange-300"
+          class="h-10 cursor-pointer items-center rounded-lg bg-black/90 px-4 text-sm text-zinc-300 transition hover:text-orange-300"
           @click="switchNetwork"
         >
           {{ networkStore.network }}
@@ -129,18 +152,25 @@ function copyAddress() {
       </button>
 
       <div
-        class="flex h-10 cursor-pointer items-center divide-x divide-zinc-800 rounded-lg bg-black/90 px-4"
+        class="flex h-10 cursor-pointer items-center divide-x divide-zinc-700 rounded-lg bg-black/90 px-4"
         v-else
       >
-        <div class="flex gap-2 pr-2" @click="copyAddress" title="copy address">
+        <div class="flex gap-2 pr-4" @click="copyAddress" title="copy address">
           <img class="h-5" :src="unisatIcon" alt="Unisat" />
           <span class="text-sm text-orange-300">
             {{ prettyAddress(addressStore.get) }}
           </span>
         </div>
 
+        <div class="px-4 text-sm text-zinc-300">
+          <span v-if="balance !== undefined">{{ prettyCoinDisplay(balance, 'BTC') }}</span>
+          <span v-else>
+            <LoaderIcon class="h-5 animate-spin" />
+          </span>
+        </div>
+
         <!-- ready button -->
-        <div class="pl-2" v-if="!dummiesStore.has">
+        <div class="pl-4" v-if="!dummiesStore.has">
           <el-tooltip effect="light" placement="bottom-end">
             <template #content>
               <h3 class="my-2 text-sm font-bold text-orange-300">
@@ -163,7 +193,7 @@ function copyAddress() {
             />
           </el-tooltip>
         </div>
-        <div class="pl-2" v-else>
+        <div class="pl-4" v-else>
           <CheckCircle2 class="h-5 text-orange-300" />
         </div>
       </div>
