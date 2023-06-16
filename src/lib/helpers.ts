@@ -29,7 +29,8 @@ export function calculatePsbtFee(feeRate: number, psbt: Psbt) {
     address,
     value: 546,
   })
-  const virtualSize = clonedPsbt.data.globalMap.unsignedTx.tx.virtualSize()
+  const unsignedTx: any = clonedPsbt.data.globalMap.unsignedTx
+  const virtualSize = unsignedTx.tx.virtualSize()
   const fee = virtualSize * feeRate
 
   return fee
