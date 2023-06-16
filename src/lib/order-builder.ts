@@ -370,8 +370,8 @@ export async function buildBuyTake({
 
   // Step 6: service fee
   let serviceFee = 0
-  if (!isFree) {
-    serviceFee = sellerOutput.value
+  if (isFree) {
+    serviceFee = 0
   } else {
     const serviceAddress =
       btcNetwork === 'bitcoin'
@@ -439,7 +439,7 @@ export async function buildBuyTake({
     0
   )
   const changeValue = totalInput - totalOutput - fee
-  const totalSpent = ordValue + serviceFee + fee
+  const totalSpent = sellerOutput.value + serviceFee + fee - ordValue
 
   console.log({ changeValue, totalInput, totalOutput, fee })
 
@@ -457,7 +457,7 @@ export async function buildBuyTake({
     serviceFee,
     totalSpent,
     fromSymbol: 'BTC',
-    toSymbol: 'rdex',
+    toSymbol: 'RDEX',
     fromValue: sellerOutput.value,
     toValue: order.coinAmount,
     isFree,
@@ -563,7 +563,7 @@ export async function buildSellTake({
     networkFee: 0,
     serviceFee: 0,
     totalSpent: 0,
-    fromSymbol: 'rdex',
+    fromSymbol: 'RDEX',
     toSymbol: 'BTC',
     fromValue: amount,
     toValue: total,

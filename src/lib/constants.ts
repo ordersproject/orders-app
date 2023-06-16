@@ -1,4 +1,4 @@
-export const VERSION = '0.1.2 (beta)'
+export const VERSION = '0.1.3 (beta)'
 export const CHARGE_SERVICE_FEES = false
 
 export const DUMMY_UTXO_VALUE = 600
@@ -9,7 +9,7 @@ export const MIN_FEEB = 10
 export const EXTREME_FEEB = 1
 
 // exchange
-export const SERVICE_TESTNET_ADDRESS =
-  'tb1pwzgaktsp28weq69y6dsrvnn7s3f7mdd5prep6uzwv6yjmehkeyqs3axgu3'
-export const SERVICE_LIVENET_ADDRESS =
-  'bc1qwqr3vscc2k9x7rhl5ldgsnd6ykh35a5amu4r2h'
+export const SERVICE_TESTNET_ADDRESS = import.meta.env
+  .VITE_SERVICE_TESTNET_ADDRESS
+export const SERVICE_LIVENET_ADDRESS = import.meta.env
+  .VITE_SERVICE_LIVENET_ADDRESS

@@ -263,6 +263,8 @@ export const pushAskOrder = async ({
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
     },
     body: JSON.stringify({
       psbtRaw,

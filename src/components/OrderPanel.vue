@@ -235,7 +235,7 @@ watch(useSellPrice, (price) => {
 function getIconFromSymbol(symbol: string) {
   if (symbol === 'BTC') {
     return btcIcon
-  } else if (symbol === 'rdex') {
+  } else if (symbol === 'RDEX') {
     return rdexIcon
   }
 
@@ -1381,9 +1381,9 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                       class="flex items-center justify-end gap-2"
                       v-if="builtInfo.isFree"
                     >
-                      <span class="text-zinc-500 line-through">
+                      <!-- <span class="text-zinc-500 line-through">
                         {{ prettyBtcDisplay(builtInfo.totalPrice) }}
-                      </span>
+                      </span> -->
                       <span
                         class="rounded bg-green-700/30 px-1 py-0.5 text-xs font-bold text-green-500"
                         >FREE</span
@@ -1401,8 +1401,29 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
 
                   <div class="text-left text-zinc-500">Service Fee</div>
                   <div class="col-span-1 text-right">
-                    {{ prettyBtcDisplay(builtInfo.serviceFee) }}
+                    <div
+                      class="flex items-center justify-end gap-2"
+                      v-if="builtInfo.isFree"
+                    >
+                      <span class="text-zinc-500 line-through">
+                        {{ prettyBtcDisplay(2000) }}
+                      </span>
+                      <span
+                        class="rounded bg-green-700/30 px-1 py-0.5 text-xs font-bold text-green-500"
+                        >FREE</span
+                      >
+                    </div>
+                    <span v-else>
+                      {{ prettyBtcDisplay(builtInfo.serviceFee) }}
+                    </span>
                   </div>
+
+                  <template v-if="builtInfo.isFree">
+                    <div class="text-left text-zinc-500">Inscribe Fee</div>
+                    <div class="col-span-1 text-right">
+                      {{ prettyBtcDisplay(4000) }}
+                    </div>
+                  </template>
 
                   <div class="col-span-2">
                     <div class="my-4 w-16 border-t border-zinc-700"></div>
