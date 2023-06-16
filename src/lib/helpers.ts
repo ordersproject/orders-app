@@ -37,7 +37,19 @@ export const prettyAddress = (address: string, len = 6) => {
 }
 
 export const prettyBalance = (balance: number | string) => {
+  if (balance === 0 || balance === '0') return '0'
+
   return (Number(balance) / 1e8).toFixed(8)
+}
+
+export const prettyBtcDisplay = (balance: number | string) => {
+  return `${prettyBalance(balance)} BTC`
+}
+
+export const prettyCoinDisplay = (balance: number | string, symbol: string) => {
+  if (symbol === 'BTC') return prettyBtcDisplay(balance)
+
+  return `${balance} ${symbol}`
 }
 
 export const sleep = (ms: number) => {

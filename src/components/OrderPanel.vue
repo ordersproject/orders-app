@@ -30,7 +30,14 @@ import { useQuery } from '@tanstack/vue-query'
 
 import btcIcon from '@/assets/btc.svg?url'
 import orxcIcon from '@/assets/orxc.png?url'
-import { calculateFee, cn, prettyBalance, sleep } from '@/lib/helpers'
+import {
+  calculateFee,
+  cn,
+  prettyBalance,
+  prettyBtcDisplay,
+  prettyCoinDisplay,
+  sleep,
+} from '@/lib/helpers'
 import {
   buildAskLimit,
   buildBidLimit,
@@ -63,6 +70,7 @@ import { buildBuyTake } from '@/lib/order-builder'
 import utils from '@/utils'
 import OrderPanelHeader from './OrderPanelHeader.vue'
 import { BookPlusIcon } from 'lucide-vue-next'
+import { ArrowDownIcon } from 'lucide-vue-next'
 
 const unisat = window.unisat
 
@@ -218,6 +226,16 @@ watch(useSellPrice, (price) => {
   }
 })
 
+function getIconFromSymbol(symbol: string) {
+  if (symbol === 'BTC') {
+    return btcIcon
+  } else if (symbol === 'ORXC') {
+    return orxcIcon
+  }
+
+  return ''
+}
+
 const buildProcessTip = ref('Building Transaction...')
 async function buildOrder() {
   setIsOpen(true)
@@ -226,8 +244,7 @@ async function buildOrder() {
 
   if (!dummiesStore.has) {
     // build dummies first
-    buildProcessTip.value =
-      'Step 1. Building prerequisites. Needed only once per address.'
+    buildProcessTip.value = 'Building dummy UTXOs for the first transaction. '
     try {
       await utils.checkAndSelectDummies({})
     } catch (e: any) {
@@ -311,6 +328,7 @@ async function buildOrder() {
   isBuilding.value = false
 
   if (!buildRes) return
+  console.log({ buildRes })
   builtInfo.value = buildRes
   return
 }
@@ -1258,7 +1276,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                 >
                   <span class="text-zinc-500">Available</span>
                   <span class="text-zinc-300">
-                    {{ `${prettyBalance(balance)} BTC` }}
+                    {{ `${prettyBtcDisplay(balance)}` }}
                   </span>
                   <button @click="updateBalance">
                     <RefreshCcwIcon
@@ -1287,7 +1305,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
           >
             <DialogTitle class="text-lg">Confirmation</DialogTitle>
 
-            <DialogDescription as="div" class="mt-4 text-sm">
+            <DialogDescription as="div" class="mt-8 text-sm">
               <div
                 class="mt-4 flex items-center justify-center gap-2 text-zinc-300"
                 v-if="isBuilding"
@@ -1297,35 +1315,95 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
               </div>
 
               <div class="" v-else-if="builtInfo">
-                <div class="flex items-center gap-2">
-                  <span class="text-zinc-500">Order Type</span>
-                  <span class="font-bold uppercase text-orange-300">
-                    {{ builtInfo.type }}
-                  </span>
+                <div class="grid grid-cols-2 items-center">
+                  <div class="flex items-center gap-4">
+                    <span class="text-zinc-500">Order Type</span>
+                    <span class="font-bold uppercase text-orange-300">
+                      {{ builtInfo.type }}
+                    </span>
+                  </div>
+
+                  <div class="space-y-2">
+                    <div class="flex items-center gap-4">
+                      <img
+                        :src="getIconFromSymbol(builtInfo.fromSymbol)"
+                        alt=""
+                        class="h-8 w-8"
+                      />
+                      <span>
+                        {{
+                          prettyCoinDisplay(
+                            builtInfo.fromValue,
+                            builtInfo.fromSymbol
+                          )
+                        }}
+                      </span>
+                    </div>
+
+                    <div class="ml-1">
+                      <ArrowDownIcon class="h-6 w-6 text-zinc-300" />
+                    </div>
+
+                    <div class="flex items-center gap-4">
+                      <img
+                        :src="getIconFromSymbol(builtInfo.toSymbol)"
+                        alt=""
+                        class="h-8 w-8"
+                      />
+                      <span>
+                        {{
+                          prettyCoinDisplay(
+                            builtInfo.toValue,
+                            builtInfo.toSymbol
+                          )
+                        }}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                <div class="mt-8 grid grid-cols-2 gap-4 text-left">
-                  <!-- <div class="text-zinc-500">Network Fee</div>
-                  <div class="col-span-1">0.00002481 BTC</div>
+                <div class="mt-8 grid grid-cols-2 gap-4">
+                  <div class="text-left text-zinc-500">Total Price</div>
+                  <div class="col-span-1 text-right">
+                    {{ prettyBtcDisplay(builtInfo.totalPrice) }}
+                  </div>
 
-                  <div class="text-zinc-500">Service Fee</div>
-                  <div class="col-span-1">0.00002481 BTC</div>
+                  <div class="text-left text-zinc-500">Network Fee</div>
+                  <div class="col-span-1 text-right">
+                    {{ prettyBtcDisplay(builtInfo.networkFee) }}
+                  </div>
+
+                  <div class="text-left text-zinc-500">Service Fee</div>
+                  <div class="col-span-1 text-right">
+                    {{ prettyBtcDisplay(builtInfo.serviceFee) }}
+                  </div>
 
                   <div class="col-span-2">
                     <div class="my-4 w-16 border-t border-zinc-700"></div>
                   </div>
 
-                  <div class="text-zinc-300">You will spend</div>
-                  <div class="col-span-1">0.00002481 BTC</div>
+                  <div class="text-left text-zinc-300">You Will Spend</div>
+                  <div class="col-span-1 text-right">
+                    {{ prettyBtcDisplay(builtInfo.totalSpent) }}
+                  </div>
 
-                  <div class="text-zinc-300">Available Balance</div>
-                  <div class="col-span-1">0.00002481 BTC</div> -->
+                  <div class="text-left text-zinc-300">Available Balance</div>
+                  <div class="col-span-1 flex items-center justify-end gap-2">
+                    <button @click="updateBalance">
+                      <RefreshCcwIcon
+                        class="h-3 w-3 text-zinc-300 transition hover:text-orange-300"
+                        aria-hidden="true"
+                      />
+                    </button>
+
+                    <span>{{ prettyBtcDisplay(balance) }}</span>
+                  </div>
                 </div>
               </div>
             </DialogDescription>
 
             <div
-              class="mt-8 flex items-center justify-center gap-4"
+              class="mt-12 flex items-center justify-center gap-4"
               v-if="builtInfo"
             >
               <button

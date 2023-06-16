@@ -435,6 +435,7 @@ export async function buildBuyTake({
     0
   )
   const changeValue = totalInput - totalOutput - fee
+  const totalSpent = ordValue + serviceFee + fee
 
   console.log({ changeValue, totalInput, totalOutput, fee })
 
@@ -447,6 +448,14 @@ export async function buildBuyTake({
     order: buyPsbt,
     type: 'buy',
     orderId: order.orderId,
+    totalPrice: sellerOutput.value,
+    networkFee: fee,
+    serviceFee,
+    totalSpent,
+    fromSymbol: 'BTC',
+    toSymbol: 'ORXC',
+    fromValue: sellerOutput.value,
+    toValue: order.coinAmount,
   }
 }
 
@@ -545,5 +554,13 @@ export async function buildSellTake({
     order: sell,
     type: 'sell',
     value: ordinalValue,
+    totalPrice: 0,
+    networkFee: 0,
+    serviceFee: 0,
+    totalSpent: 0,
+    fromSymbol: 'ORXC',
+    toSymbol: 'BTC',
+    fromValue: amount,
+    toValue: total,
   }
 }
