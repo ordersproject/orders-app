@@ -85,6 +85,7 @@ export type Order = {
   orderId: string
   orderState: number
   orderType: number
+  freeState?: 1 | 0
   psbtRaw: string
   sellerAddress: string
   tick: string

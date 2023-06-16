@@ -14,6 +14,7 @@ import {
   SimpleUtxoFromMempool,
   getBidCandidateInfo,
   getBrc20s,
+  getOrders,
   getUtxos2,
 } from '@/queries'
 
@@ -297,6 +298,7 @@ export async function buildBuyTake({
     amount: number
     coinAmount: number
     orderId: string
+    freeState?: number
   }
   feeb: number
 }) {
@@ -304,6 +306,8 @@ export async function buildBuyTake({
   const btcjs = useBtcJsStore().get!
   const btcNetwork = useNetworkStore().btcNetwork
   const dummiesStore = useDummiesStore()
+
+  const isFree = order.freeState === 1
 
   const sellPsbt = btcjs.Psbt.fromHex(order.psbtRaw, {
     network: btcjs.networks[btcNetwork],
@@ -360,13 +364,20 @@ export async function buildBuyTake({
   buyPsbt.addOutput(sellerOutput)
 
   // Step 6: service fee
-  const serviceAddress =
-    btcNetwork === 'bitcoin' ? SERVICE_LIVENET_ADDRESS : SERVICE_TESTNET_ADDRESS
-  const serviceFee = Math.max(2000, sellPsbt.txOutputs[0].value * 0.01)
-  buyPsbt.addOutput({
-    address: serviceAddress,
-    value: serviceFee,
-  })
+  let serviceFee = 0
+  if (!isFree) {
+    serviceFee = sellerOutput.value
+  } else {
+    const serviceAddress =
+      btcNetwork === 'bitcoin'
+        ? SERVICE_LIVENET_ADDRESS
+        : SERVICE_TESTNET_ADDRESS
+    serviceFee = Math.max(2000, sellPsbt.txOutputs[0].value * 0.01)
+    buyPsbt.addOutput({
+      address: serviceAddress,
+      value: serviceFee,
+    })
+  }
 
   // Step 7: add 2 dummies output for future use
   buyPsbt.addOutput({
@@ -434,7 +445,7 @@ export async function buildBuyTake({
 
   return {
     order: buyPsbt,
-    type: 'buy',
+    type: isFree ? 'free claim' : 'buy',
     orderId: order.orderId,
     totalPrice: sellerOutput.value,
     networkFee: fee,
@@ -444,6 +455,7 @@ export async function buildBuyTake({
     toSymbol: 'ORXC',
     fromValue: sellerOutput.value,
     toValue: order.coinAmount,
+    isFree,
   }
 }
 

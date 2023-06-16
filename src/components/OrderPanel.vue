@@ -1326,7 +1326,13 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                         alt=""
                         class="h-8 w-8"
                       />
-                      <span>
+                      <span
+                        v-if="builtInfo.isFree"
+                        class="font-bold text-green-500"
+                      >
+                        0
+                      </span>
+                      <span v-else>
                         {{
                           prettyCoinDisplay(
                             builtInfo.fromValue,
@@ -1361,7 +1367,21 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                 <div class="mt-8 grid grid-cols-2 gap-4">
                   <div class="text-left text-zinc-500">Total Price</div>
                   <div class="col-span-1 text-right">
-                    {{ prettyBtcDisplay(builtInfo.totalPrice) }}
+                    <div
+                      class="flex items-center justify-end gap-2"
+                      v-if="builtInfo.isFree"
+                    >
+                      <span class="text-zinc-500 line-through">
+                        {{ prettyBtcDisplay(builtInfo.totalPrice) }}
+                      </span>
+                      <span
+                        class="rounded bg-green-700/30 px-1 py-0.5 text-xs font-bold text-green-500"
+                        >FREE</span
+                      >
+                    </div>
+                    <span v-else>
+                      {{ prettyBtcDisplay(builtInfo.totalPrice) }}
+                    </span>
                   </div>
 
                   <div class="text-left text-zinc-500">Network Fee</div>

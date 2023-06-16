@@ -31,6 +31,9 @@ const isMyOrder = computed(() => {
 
   return props.order.buyerAddress === address
 })
+const isFreeOrder = computed(() => {
+  return props.orderType === 'ask' && props.order.freeState === 1
+})
 
 const queryClient = useQueryClient()
 const { mutate } = useMutation({
@@ -58,10 +61,21 @@ async function onCancel() {
         'text-green-500': orderType === 'bid',
       }"
     >
-      {{ prettyPrice }}
+      <span v-if="isFreeOrder" class=""> 0 </span>
+      <span v-else>
+        {{ prettyPrice }}
+      </span>
     </td>
     <td class="td">{{ order.coinAmount }}</td>
-    <td class="td">{{ prettyTotalAmount }}</td>
+    <td class="td">
+      <span
+        v-if="isFreeOrder"
+        class="rounded bg-green-700/30 px-2 py-1 text-xs font-bold text-green-500"
+      >
+        FREE
+      </span>
+      <span v-else>{{ prettyTotalAmount }}</span>
+    </td>
     <td class="td">
       <div class="flex h-full w-full items-center justify-center">
         <button @click.stop="onCancel" title="Cancel Order" v-if="isMyOrder">
