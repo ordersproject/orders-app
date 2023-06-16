@@ -21,8 +21,8 @@ withDefaults(
 defineEmits(['useBuyPrice', 'useSellPrice'])
 
 const { data: marketPrice } = useQuery({
-  queryKey: ['marketPrice', { network: networkStore.network, tick: 'ORXC' }],
-  queryFn: () => getMarketPrice({ tick: 'ORXC' }),
+  queryKey: ['marketPrice', { network: networkStore.network, tick: 'rdex' }],
+  queryFn: () => getMarketPrice({ tick: 'rdex' }),
 })
 </script>
 
@@ -33,7 +33,7 @@ const { data: marketPrice } = useQuery({
         <thead>
           <tr>
             <th class="th">Price (BTC)</th>
-            <th class="th">Amount (ORXC)</th>
+            <th class="th">Amount (RDEX)</th>
             <th class="th">Total (BTC)</th>
             <th class="th"></th>
           </tr>
@@ -68,7 +68,7 @@ const { data: marketPrice } = useQuery({
         <thead class="invisible">
           <tr>
             <th class="th">Price (BTC)</th>
-            <th class="th">Amount (ORXC)</th>
+            <th class="th">Amount (RDEX)</th>
             <th class="th">Total (BTC)</th>
             <th class="th"></th>
           </tr>

@@ -86,7 +86,6 @@ export type Order = {
   orderState: number
   orderType: number
   freeState?: 1 | 0
-  psbtRaw: string
   sellerAddress: string
   tick: string
   timestamp: number
@@ -95,15 +94,17 @@ export const getOrders = async ({
   type,
   network,
   sort = 'asc',
+  tick = 'rdex',
 }: {
   type: 'bid' | 'ask'
   network: 'livenet' | 'testnet'
   sort: 'asc' | 'desc'
+  tick: string
 }) => {
   const orderType = type === 'ask' ? 1 : 2
   const sortType = sort === 'asc' ? 1 : -1
   const orders: Order[] = await fetch(
-    `https://api.ordbook.io/book/brc20/orders?net=${network}&orderType=${orderType}&orderState=1&sortKey=coinRatePrice&sortType=${sortType}`,
+    `https://api.ordbook.io/book/brc20/orders?net=${network}&orderType=${orderType}&orderState=1&sortKey=coinRatePrice&sortType=${sortType}&tick=${tick}`,
     {
       headers: {
         'Content-Type': 'application/json',
@@ -114,6 +115,31 @@ export const getOrders = async ({
     .then(({ data: { results } }) => results)
 
   return orders || []
+}
+
+type DetailedOrder = Order & { psbtRaw: string }
+export const getOneOrder = async ({
+  orderId,
+}: {
+  orderId: string
+}): Promise<DetailedOrder> => {
+  const { publicKey, signature } = await sign()
+  const address = useAddressStore().get!
+
+  const order: DetailedOrder = await fetch(
+    `https://api.ordbook.io/book/brc20/order/${orderId}?buyerAddress=${address}`,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Signature': signature,
+        'X-Public-Key': publicKey,
+      },
+    }
+  )
+    .then((res) => res.json())
+    .then(({ data: order }) => order)
+
+  return order
 }
 
 export type Ticker = {
@@ -237,8 +263,6 @@ export const pushAskOrder = async ({
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Signature': signature,
-      'X-Public-Key': publicKey,
     },
     body: JSON.stringify({
       psbtRaw,

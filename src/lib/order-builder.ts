@@ -14,6 +14,7 @@ import {
   SimpleUtxoFromMempool,
   getBidCandidateInfo,
   getBrc20s,
+  getOneOrder,
   getOrders,
   getUtxos2,
 } from '@/queries'
@@ -31,7 +32,7 @@ export async function buildAskLimit({
   const address = useAddressStore().get!
 
   // 获取地址
-  const tick = 'orxc'
+  const tick = 'rdex'
 
   // Step 1: Get the ordinal utxo as input
   // if testnet, we use a cardinal utxo as a fake one
@@ -61,7 +62,7 @@ export async function buildAskLimit({
     ordinalUtxo = cardinalUtxo
   } else {
     let transferable = await getBrc20s({
-      tick: 'orxc',
+      tick: 'rdex',
       address,
     }).then((brc20s) => {
       // choose a real ordinal with the right amount, not the white amount (Heil Uncle Roger!)
@@ -142,7 +143,7 @@ export async function buildBidLimit({
   // Step 1. prepare bid from exchange
   const candidateInfo = await getBidCandidateInfo({
     network: orderNetwork,
-    tick: 'orxc',
+    tick: 'rdex',
     inscriptionId,
     inscriptionNumber,
     coinAmount,
@@ -293,7 +294,6 @@ export async function buildBuyTake({
   feeb,
 }: {
   order: {
-    psbtRaw: string
     coinRatePrice: number
     amount: number
     coinAmount: number
@@ -309,7 +309,12 @@ export async function buildBuyTake({
 
   const isFree = order.freeState === 1
 
-  const sellPsbt = btcjs.Psbt.fromHex(order.psbtRaw, {
+  // get sell psbt from order detail api
+  const sellPsbtRaw = await getOneOrder({
+    orderId: order.orderId,
+  }).then((order) => order.psbtRaw)
+
+  const sellPsbt = btcjs.Psbt.fromHex(sellPsbtRaw, {
     network: btcjs.networks[btcNetwork],
   })
 
@@ -452,7 +457,7 @@ export async function buildBuyTake({
     serviceFee,
     totalSpent,
     fromSymbol: 'BTC',
-    toSymbol: 'ORXC',
+    toSymbol: 'rdex',
     fromValue: sellerOutput.value,
     toValue: order.coinAmount,
     isFree,
@@ -498,7 +503,7 @@ export async function buildSellTake({
     ordinalUtxo = cardinalUtxo
   } else {
     let transferable = await getBrc20s({
-      tick: 'orxc',
+      tick: 'rdex',
       address,
     }).then((brc20s) => {
       // choose a real ordinal with the right amount, not the white amount (Heil Uncle Roger!)
@@ -558,7 +563,7 @@ export async function buildSellTake({
     networkFee: 0,
     serviceFee: 0,
     totalSpent: 0,
-    fromSymbol: 'ORXC',
+    fromSymbol: 'rdex',
     toSymbol: 'BTC',
     fromValue: amount,
     toValue: total,

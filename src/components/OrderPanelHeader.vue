@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import btcLogo from '@/assets/btc.svg?url'
-import orxcLogo from '@/assets/orxc.png?url'
+import rdexLogo from '@/assets/rdex.png?url'
 import whitelist from '@/lib/whitelist'
 import { useAddressStore } from '@/store'
 import { computed } from 'vue'
@@ -25,11 +25,11 @@ const inWhitelist = computed(() => {
     <!-- title -->
     <div class="col-span-2 flex items-center justify-center gap-2">
       <div class="flex">
-        <img :src="orxcLogo" class="h-8" />
+        <img :src="rdexLogo" class="h-8" />
         <img :src="btcLogo" class="-ml-2 h-8" />
       </div>
 
-      <span class="font-bold">ORXC-BTC</span>
+      <span class="font-bold">RDEX-BTC</span>
     </div>
 
     <!-- limit exchange button -->
