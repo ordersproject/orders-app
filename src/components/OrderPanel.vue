@@ -32,6 +32,7 @@ import btcIcon from '@/assets/btc.svg?url'
 import orxcIcon from '@/assets/orxc.png?url'
 import {
   calculateFee,
+  calculatePsbtFee,
   cn,
   prettyBalance,
   prettyBtcDisplay,
@@ -171,12 +172,7 @@ const buyFees = computed(() => {
   return calculateFee(selectedFeebPlan.value.feeRate, 4, 6) * ordersCount
 })
 const sellFees = computed(() => {
-  if (!selectedSellCoinAmount.value) return 0
-  if (!selectedFeebPlan.value) return 0
-
-  const ordersCount = selectedSellOrders.value.length
-
-  return calculateFee(selectedFeebPlan.value.feeRate, 4, 6) * ordersCount // TODO
+  return 0
 })
 
 const prettyBuyFees = computed(() => {
@@ -184,14 +180,14 @@ const prettyBuyFees = computed(() => {
 
   const feeInBtc = buyFees.value / 1e8
 
-  return `≈${feeInBtc.toFixed(8)} BTC`
+  return `≈ ${feeInBtc.toFixed(8)} BTC`
 })
 const prettySellFees = computed(() => {
   if (!sellFees.value) return '0'
 
   const feeInBtc = sellFees.value / 1e8
 
-  return `≈${feeInBtc.toFixed(8)} BTC`
+  return `≈ ${feeInBtc.toFixed(8)} BTC`
 })
 
 const useBuyPrice = ref(0)

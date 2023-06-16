@@ -6,7 +6,7 @@ import {
   useNetworkStore,
 } from '@/store'
 import { getUtxos2 } from '@/queries'
-import { calculateFee, getTxHex, prettyAddress } from '@/lib/helpers'
+import { calculatePsbtFee, getTxHex } from '@/lib/helpers'
 import { DUMMY_UTXO_VALUE, EXTREME_FEEB, MIN_FEEB } from '@/lib/constants'
 import { ElMessage } from 'element-plus'
 const utils = {
@@ -93,11 +93,8 @@ const utils = {
       dummiesPsbt.addOutput({ address: address, value: DUMMY_UTXO_VALUE })
 
       const feeb = networkStore.network === 'testnet' ? EXTREME_FEEB : MIN_FEEB
-      const fee = calculateFee(
-        feeb, // minimum feeb
-        1,
-        2 // already taken care of the exchange output bytes calculation
-      )
+      const fee = calculatePsbtFee(feeb, dummiesPsbt)
+
       const changeValue = paymentUtxo.satoshis - DUMMY_UTXO_VALUE * 2 - fee
 
       dummiesPsbt.addOutput({ address: address, value: changeValue })

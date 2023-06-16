@@ -4,7 +4,7 @@ import {
   useDummiesStore,
   useNetworkStore,
 } from '@/store'
-import { calculateFee, getTxHex } from './helpers'
+import { calculatePsbtFee, getTxHex } from './helpers'
 import {
   DUMMY_UTXO_VALUE,
   SERVICE_LIVENET_ADDRESS,
@@ -16,8 +16,6 @@ import {
   getBrc20s,
   getUtxos2,
 } from '@/queries'
-import utils from '@/utils/index'
-import { debugBidLimit } from './debugger'
 
 export async function buildAskLimit({
   total,
@@ -30,8 +28,6 @@ export async function buildAskLimit({
   const networkStore = useNetworkStore()
   const btcjs = useBtcJsStore().get!
   const address = useAddressStore().get!
-  const network = networkStore.network
-  const btcNetwork = networkStore.btcNetwork
 
   // 获取地址
   const tick = 'orxc'
@@ -261,11 +257,7 @@ export async function buildBidLimit({
 
   // Step 9: add change output
   const feeb = btcNetwork === 'bitcoin' ? 10 : 1
-  const fee = calculateFee(
-    feeb,
-    bid.txInputs.length + 1,
-    bid.txOutputs.length // already taken care of the exchange output bytes calculation
-  )
+  const fee = calculatePsbtFee(feeb, bid)
 
   const totalOutput = bid.txOutputs.reduce(
     (partialSum, a) => partialSum + a.value,
@@ -424,11 +416,7 @@ export async function buildBuyTake({
   totalInput += paymentInput.witnessUtxo.value
 
   // Step 9: add change output
-  const fee = calculateFee(
-    feeb,
-    buyPsbt.txInputs.length,
-    buyPsbt.txOutputs.length // already taken care of the exchange output bytes calculation
-  )
+  const fee = calculatePsbtFee(feeb, buyPsbt)
 
   const totalOutput = buyPsbt.txOutputs.reduce(
     (partialSum, a) => partialSum + a.value,

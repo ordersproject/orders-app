@@ -1,4 +1,4 @@
-import { useNetworkStore } from '@/store'
+import { useAddressStore, useNetworkStore } from '@/store'
 import { type Psbt } from 'bitcoinjs-lib'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -14,18 +14,24 @@ export function calculateFee(feeRate: number, vinLen: number, voutLen: number) {
 
   const txSize = baseTxSize + vinLen * inSize + (voutLen + 1) * outSize
 
-  const fee = txSize * feeRate
+  const fee = Math.round((txSize * feeRate) / 2)
+
   return fee
 }
 
 export function calculatePsbtFee(feeRate: number, psbt: Psbt) {
-  let txSize = psbt.extractTransaction(true).toBuffer().length
-  psbt.data.inputs.forEach((v) => {
-    if (v.finalScriptWitness) {
-      txSize -= v.finalScriptWitness.length * 0.75
-    }
+  // clone a new psbt to mock the finalization
+  const clonedPsbt = psbt.clone()
+  const address = useAddressStore().get!
+
+  // mock the change output
+  clonedPsbt.addOutput({
+    address,
+    value: 546,
   })
-  const fee = Math.ceil(txSize * feeRate)
+  const virtualSize = clonedPsbt.data.globalMap.unsignedTx.tx.virtualSize()
+  const fee = virtualSize * feeRate
+
   return fee
 }
 
