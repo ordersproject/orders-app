@@ -354,6 +354,7 @@ async function submitOrder() {
     // 2. push
     switch (builtInfo.value!.type) {
       case 'buy':
+      case 'free claim':
         await pushBuyTake({
           psbtRaw: signed,
           network: networkStore.ordersNetwork,
