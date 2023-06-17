@@ -387,7 +387,15 @@ export const pushBidOrder = async ({
         buyerInValue: using,
         orderId,
       }),
-    }).then((res) => res.json())
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.code === 1) {
+          throw new Error(res.message)
+        }
+
+        return res.data
+      })
 
     return createRes
   } catch (e) {
