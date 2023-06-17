@@ -28,7 +28,7 @@ const { data: marketPrice } = useQuery({
 
 <template>
   <div class="flex flex-col gap-y-4">
-    <div class="h-full overflow-y-scroll">
+    <div class="orders-container h-full overflow-y-scroll pr-1">
       <table class="w-full" v-if="askOrders.length">
         <thead>
           <tr>
@@ -67,7 +67,7 @@ const { data: marketPrice } = useQuery({
       </el-tooltip>
     </div>
 
-    <div class="h-full overflow-y-scroll">
+    <div class="orders-container h-full overflow-y-scroll pr-1">
       <table class="w-full" v-if="bidOrders.length">
         <thead class="invisible">
           <tr>
@@ -99,5 +99,21 @@ const { data: marketPrice } = useQuery({
 <style scoped>
 .th {
   @apply py-2 text-left text-sm font-normal text-zinc-500;
+}
+
+.orders-container::-webkit-scrollbar {
+  @apply h-2 w-2;
+}
+
+.orders-container::-webkit-scrollbar-track {
+  @apply rounded-full bg-transparent;
+}
+
+.orders-container::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-zinc-700;
+}
+
+.orders-container::-webkit-scrollbar-thumb:hover {
+  @apply bg-zinc-600;
 }
 </style>
