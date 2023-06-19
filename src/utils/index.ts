@@ -1,3 +1,5 @@
+import { ElMessage } from 'element-plus'
+
 import {
   useAddressStore,
   useDummiesStore,
@@ -5,10 +7,9 @@ import {
   DummyUtxo,
   useNetworkStore,
 } from '@/store'
-import { getUtxos2 } from '@/queries/orders-api'
+import { getUtxos2 } from '@/queries/proxy'
 import { calculatePsbtFee, getTxHex } from '@/lib/helpers'
 import { DUMMY_UTXO_VALUE, EXTREME_FEEB, MIN_FEEB } from '@/lib/constants'
-import { ElMessage } from 'element-plus'
 const utils = {
   checkAndSelectDummies: async ({
     checkOnly = false,
