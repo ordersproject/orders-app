@@ -15,11 +15,6 @@ const props = defineProps<{
   orderType: 'ask' | 'bid'
 }>()
 
-const prettyTotalAmount = computed(() => {
-  // 将字符串化为带小数点的数字
-  return (Number(props.order.amount) / 1e8).toFixed(8)
-})
-
 const isMyOrder = computed(() => {
   if (props.orderType === 'ask') {
     return props.order.sellerAddress === address

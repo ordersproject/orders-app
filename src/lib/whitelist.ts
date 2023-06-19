@@ -18,4 +18,9 @@ export default [
   'bc1ptqark44ulu9vtelyzjgj3j4pyc6jg2q4mztkxssawyd0avjvs8wswjh06p',
   'bc1qpmeunu455a0997rl7xyyfc0f6083lchh34yhvy',
   'bc1q903mxanxvnnvu4efx53apgzq8hrp0z9eyyp8ut',
+  'bc1qaweegl6243up0ct0skk0xd0rk7lcn9vxj3qdvf',
+  'bc1qq6pmagnt2zvh84akxcm7462yzvrr76j0lxc7fk',
+  'bc1qzek4fgp0yttm6367jrav9w3stu0ygqprp6sfms',
+  'bc1q0ygcmz9ad6k9fe9q8u4k4uvxdmsjg5l66hzke9',
+  'bc1qlqjpjtfud8j700psy5ca4xhm4cguwj5uwvf9xz',
 ]
