@@ -1,7 +1,7 @@
 import sign from './lib/sign'
 import { useAddressStore, useNetworkStore } from './store'
 import { ElMessage } from 'element-plus'
-import fetch from '@/lib/fetch'
+import fetch, { ordersApiFetch } from '@/lib/fetch'
 
 export const getOrdiBalance = async (
   address: string,
@@ -27,16 +27,14 @@ export const getBidCandidates = async (
   network: 'livenet' | 'testnet',
   tick: string
 ): Promise<BidCandidate[]> => {
-  const candidates: BidCandidate[] = await fetch(
-    `https://api.ordbook.io/book/brc20/order/bid/pre?net=${network}&tick=${tick}`,
+  const candidates: BidCandidate[] = await ordersApiFetch(
+    `order/bid/pre?net=${network}&tick=${tick}`,
     {
       headers: {
         'Content-Type': 'application/json',
       },
     }
-  )
-    .then((res) => res.json())
-    .then(({ data: { availableList } }) => availableList)
+  ).then(({ availableList }) => availableList)
 
   return candidates || []
 }
@@ -61,16 +59,14 @@ export const getBidCandidateInfo = async ({
   psbtRaw: string
   orderId: string
 }> => {
-  const candidateInfo = await fetch(
-    `https://api.ordbook.io/book/brc20/order/bid?net=${network}&tick=${tick}&inscriptionId=${inscriptionId}&inscriptionNumber=${inscriptionNumber}&coinAmount=${coinAmount}&total=${total}`,
+  const candidateInfo = await ordersApiFetch(
+    `order/bid?net=${network}&tick=${tick}&inscriptionId=${inscriptionId}&inscriptionNumber=${inscriptionNumber}&coinAmount=${coinAmount}&total=${total}`,
     {
       headers: {
         'Content-Type': 'application/json',
       },
     }
   )
-    .then((res) => res.json())
-    .then(({ data: candidateInfo }) => candidateInfo)
 
   return candidateInfo
 }
@@ -103,16 +99,14 @@ export const getOrders = async ({
 }) => {
   const orderType = type === 'ask' ? 1 : 2
   const sortType = sort === 'asc' ? 1 : -1
-  const orders: Order[] = await fetch(
-    `https://api.ordbook.io/book/brc20/orders?net=${network}&orderType=${orderType}&orderState=1&sortKey=coinRatePrice&sortType=${sortType}&tick=${tick}`,
+  const orders: Order[] = await ordersApiFetch(
+    `orders?net=${network}&orderType=${orderType}&orderState=1&sortKey=coinRatePrice&sortType=${sortType}&tick=${tick}`,
     {
       headers: {
         'Content-Type': 'application/json',
       },
     }
-  )
-    .then((res) => res.json())
-    .then(({ data: { results } }) => results)
+  ).then(({ results }) => results)
 
   return orders || []
 }
@@ -126,8 +120,8 @@ export const getOneOrder = async ({
   const { publicKey, signature } = await sign()
   const address = useAddressStore().get!
 
-  const order: DetailedOrder = await fetch(
-    `https://api.ordbook.io/book/brc20/order/${orderId}?buyerAddress=${address}`,
+  const order: DetailedOrder = await ordersApiFetch(
+    `order/${orderId}?buyerAddress=${address}`,
     {
       headers: {
         'Content-Type': 'application/json',
@@ -136,14 +130,6 @@ export const getOneOrder = async ({
       },
     }
   )
-    .then((res) => res.json())
-    .then((res) => {
-      if (res.code === 1) {
-        throw new Error(res.message)
-      }
-
-      return res.data
-    })
 
   return order
 }
@@ -158,16 +144,15 @@ export type Ticker = {
 export const getMarketPrice = async ({ tick }: { tick: string }) => {
   // const network = useNetworkStore().network
   const network = 'livenet' // TODO
-  const marketPrice: number = await fetch(
-    `https://api.ordbook.io/book/brc20/tickers?tick=${tick}&net=${network}`,
+  const marketPrice: number = await ordersApiFetch(
+    `tickers?tick=${tick}&net=${network}`,
     {
       headers: {
         'Content-Type': 'application/json',
       },
     }
   )
-    .then((res) => res.json())
-    .then(({ data: { results: tickers } }) => tickers)
+    .then(({ results: tickers }) => tickers)
     .then((tickers: Ticker[]) => {
       if (tickers.length === 0) return 0
 
@@ -193,16 +178,11 @@ export const getBrc20s = async ({
   tick: string
   address: string
 }) => {
-  const brc20s: Brc20[] = await fetch(
-    `https://api.ordbook.io/book/brc20/address/${address}/${tick}`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
-  )
-    .then((res) => res.json())
-    .then(({ data: { transferBalanceList } }) => transferBalanceList)
+  const brc20s: Brc20[] = await ordersApiFetch(`address/${address}/${tick}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }).then(({ transferBalanceList }) => transferBalanceList)
   console.log({ brc20s })
 
   return brc20s || []
@@ -223,9 +203,7 @@ export const pushSellTake = async ({
   value: number
   amount: string
 }) => {
-  const sellEndpoint = `https://api.ordbook.io/book/brc20/order/bid/do`
-  console.log({ value })
-  const sellRes = await fetch(sellEndpoint, {
+  const sellRes = await ordersApiFetch(`order/bid/do`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -239,12 +217,6 @@ export const pushSellTake = async ({
       amount,
     }),
   })
-    .then((res) => res.json())
-    .then((res) => {
-      if (res.code === 1) {
-        throw new Error(res.message)
-      }
-    })
 
   return sellRes
 }
@@ -264,8 +236,7 @@ export const pushAskOrder = async ({
 }) => {
   const { publicKey, signature } = await sign()
 
-  const createEndpoint = `https://api.ordbook.io/book/brc20/order/ask/push`
-  const createRes = await fetch(createEndpoint, {
+  const createRes = await ordersApiFetch(`order/ask/push`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -281,7 +252,7 @@ export const pushAskOrder = async ({
       tick,
       coinAmount: amount,
     }),
-  }).then((res) => res.json())
+  })
 
   return createRes
 }
@@ -304,8 +275,7 @@ export const pushBuyTake = async ({
   // if pushed successfully, update the Dummies
   if (pushTxId) {
     // notify update psbt status
-    const updateEndpoint = `https://api.ordbook.io/book/brc20/order/update`
-    const updateRes = await fetch(updateEndpoint, {
+    const updateRes = await ordersApiFetch(`order/update`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -328,8 +298,7 @@ export const cancelOrder = async ({ orderId }: { orderId: string }) => {
   const network = useNetworkStore().network
   const { publicKey, signature } = await sign()
 
-  const updateEndpoint = `https://api.ordbook.io/book/brc20/order/update`
-  await fetch(updateEndpoint, {
+  await ordersApiFetch(`order/update`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -368,8 +337,7 @@ export const pushBidOrder = async ({
 }) => {
   try {
     const { publicKey, signature } = await sign()
-    const createEndpoint = `https://api.ordbook.io/book/brc20/order/bid/push`
-    const createRes = await fetch(createEndpoint, {
+    const createRes = await ordersApiFetch(`order/bid/push`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -388,14 +356,6 @@ export const pushBidOrder = async ({
         orderId,
       }),
     })
-      .then((res) => res.json())
-      .then((res) => {
-        if (res.code === 1) {
-          throw new Error(res.message)
-        }
-
-        return res.data
-      })
 
     return createRes
   } catch (e) {
@@ -420,18 +380,16 @@ export const getUtxos2 = async (address: string) => {
     headers: {
       'Content-Type': 'application/json',
     },
-  })
-    .then((res) => res.json())
-    .then((utxos) => {
-      return utxos.map((utxo: any) => {
-        return {
-          txId: utxo.txid,
-          satoshis: utxo.value,
-          outputIndex: utxo.vout,
-          addressType: utxo.addressType || 2,
-        }
-      })
+  }).then((utxos) => {
+    return utxos.map((utxo: any) => {
+      return {
+        txId: utxo.txid,
+        satoshis: utxo.value,
+        outputIndex: utxo.vout,
+        addressType: utxo.addressType || 2,
+      }
     })
+  })
 
   return paymentUtxos
 }
@@ -444,9 +402,7 @@ export const getUtxosFromYouKnowWhere = async (address: string) => {
     headers: {
       'Content-Type': 'application/json',
     },
-  })
-    .then((res) => res.json())
-    .then(({ result }) => result)
+  }).then(({ result }) => result)
 
   return paymentUtxos
 }
@@ -466,9 +422,7 @@ export const getFeebPlans = async ({
     headers: {
       'Content-Type': 'application/json',
     },
-  })
-    .then((res) => res.json())
-    .then(({ result: { list } }) => list)
+  }).then(({ result: { list } }) => list)
 
   return feebPlans
 }

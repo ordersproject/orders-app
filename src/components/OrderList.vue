@@ -68,9 +68,9 @@ const { data: marketPrice } = useQuery({
     </div>
 
     <div class="orders-container h-full overflow-y-scroll pr-1">
-      <table class="w-full" v-if="bidOrders.length">
+      <table class="-mt-8 w-full" v-if="bidOrders.length">
         <thead class="invisible">
-          <tr>
+          <tr class="">
             <th class="th">Price (BTC)</th>
             <th class="th">Amount (RDEX)</th>
             <th class="th">Total (BTC)</th>
@@ -98,7 +98,7 @@ const { data: marketPrice } = useQuery({
 
 <style scoped>
 .th {
-  @apply py-2 text-left text-sm font-normal text-zinc-500;
+  @apply pb-2 pt-0 text-left text-sm font-normal text-zinc-500;
 }
 
 .orders-container::-webkit-scrollbar {

@@ -31,7 +31,7 @@ export function calculatePsbtFee(feeRate: number, psbt: Psbt) {
   })
   const unsignedTx: any = clonedPsbt.data.globalMap.unsignedTx
   const virtualSize = unsignedTx.tx.virtualSize()
-  const fee = virtualSize * feeRate
+  const fee = Math.max(virtualSize * feeRate, 546)
 
   return fee
 }
@@ -45,6 +45,7 @@ export const prettyAddress = (address: string, len = 6) => {
 
 export const prettyBalance = (balance: number | string) => {
   if (balance === 0 || balance === '0') return '0'
+  if (!balance) return '-'
 
   return (Number(balance) / 1e8).toFixed(8)
 }

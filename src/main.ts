@@ -6,7 +6,7 @@ import Home from './pages/Home.vue'
 import Dev from './pages/Dev.vue'
 import * as VueRouter from 'vue-router'
 import 'element-plus/theme-chalk/dark/css-vars.css'
-import { VueQueryPlugin } from '@tanstack/vue-query'
+import { VueQueryPlugin, type VueQueryPluginOptions } from '@tanstack/vue-query'
 
 const routes = [
   { path: '/', component: Home },
@@ -19,12 +19,26 @@ const router = VueRouter.createRouter({
 
 const pinia = createPinia()
 
+const vueQueryPluginOptions: VueQueryPluginOptions = {
+  queryClientConfig: {
+    defaultOptions: {
+      queries: {
+        staleTime: 1000 * 10, // 10 seconds
+      },
+    },
+  },
+}
+
 // wait until bitcoin is loaded then mount the app
 const launchInterval = setInterval(() => {
   if (window.bitcoin) {
     const app = createApp(App)
     // @ts-ignore
-    app.use(router).use(pinia).use(VueQueryPlugin).mount('#app')
+    app
+      .use(router)
+      .use(pinia)
+      .use(VueQueryPlugin, vueQueryPluginOptions)
+      .mount('#app')
     clearInterval(launchInterval)
   }
 }, 50)

@@ -378,7 +378,7 @@ async function submitOrder() {
           address: addressStore.get!,
           tick: 'rdex',
           feeb: builtInfo.value.feeb,
-          fee: builtInfo.value.fee,
+          fee: builtInfo.value.networkFee,
           total: builtInfo.value.total,
           using: builtInfo.value.using,
           orderId: builtInfo.value.orderId,

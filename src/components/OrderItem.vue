@@ -6,6 +6,7 @@ import { XCircleIcon } from 'lucide-vue-next'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { cancelOrder } from '@/queries'
 import { ElMessage } from 'element-plus'
+import { prettyBalance } from '@/lib/helpers'
 
 const address = useAddressStore().address
 
@@ -13,11 +14,6 @@ const props = defineProps<{
   order: Order
   orderType: 'ask' | 'bid'
 }>()
-
-const prettyPrice = computed(() => {
-  // 将字符串化为带小数点的数字
-  return (Number(props.order.coinRatePrice) / 1e8).toFixed(8)
-})
 
 const prettyTotalAmount = computed(() => {
   // 将字符串化为带小数点的数字
@@ -61,9 +57,9 @@ async function onCancel() {
         'text-green-500': orderType === 'bid',
       }"
     >
-      <span v-if="isFreeOrder" class=""> 0 </span>
+      <span v-if="isFreeOrder" class="">0.00000000</span>
       <span v-else>
-        {{ prettyPrice }}
+        {{ prettyBalance(order.coinRatePrice) }}
       </span>
     </td>
     <td class="td">{{ order.coinAmount }}</td>
@@ -74,7 +70,7 @@ async function onCancel() {
       >
         FREE
       </span>
-      <span v-else>{{ prettyTotalAmount }}</span>
+      <span v-else>{{ prettyBalance(order.amount) }}</span>
     </td>
     <td class="td">
       <div class="flex h-full w-full items-center justify-center">

@@ -119,6 +119,14 @@ export async function buildAskLimit({
     type: 'ask',
     value: ordinalValue,
     amount,
+    totalPrice: 0,
+    networkFee: 0,
+    serviceFee: 0,
+    totalSpent: 0,
+    fromSymbol: 'RDEX',
+    toSymbol: 'BTC',
+    fromValue: amount,
+    toValue: total,
   }
 }
 
@@ -272,6 +280,7 @@ export async function buildBidLimit({
   // const changeValue = totalInput - totalOutput - fee
 
   console.log({ changeValue, totalInput, totalOutput, fee, spent })
+  const totalSpent = total + serviceFee + fee - ordValue
 
   bid.addOutput({
     address,
@@ -283,9 +292,16 @@ export async function buildBidLimit({
     orderId: candidateInfo.orderId,
     type: 'bid',
     feeb,
-    fee,
+    networkFee: fee,
     total,
     using,
+    fromSymbol: 'BTC',
+    toSymbol: 'RDEX',
+    fromValue: total,
+    toValue: coinAmount,
+    serviceFee,
+    totalPrice: total,
+    totalSpent,
   }
 }
 
