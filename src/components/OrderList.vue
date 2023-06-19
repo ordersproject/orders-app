@@ -47,7 +47,13 @@ const { data: marketPrice } = useQuery({
             :key="order.orderId"
             :order="order"
             :order-type="'ask'"
-            @click="$emit('useBuyPrice', Number(order.coinRatePrice) / 1e8)"
+            @click="
+              $emit(
+                'useBuyPrice',
+                Number(order.coinRatePrice) / 1e8,
+                order.orderId
+              )
+            "
           />
         </tbody>
       </table>
@@ -86,7 +92,13 @@ const { data: marketPrice } = useQuery({
             :key="order.orderId"
             :order="order"
             :order-type="'bid'"
-            @click="$emit('useSellPrice', Number(order.coinRatePrice) / 1e8)"
+            @click="
+              $emit(
+                'useSellPrice',
+                Number(order.coinRatePrice) / 1e8,
+                order.orderId
+              )
+            "
           />
         </tbody>
       </table>

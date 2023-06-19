@@ -133,7 +133,10 @@ const candidateBuyOrders = computed(() => {
 
   return askOrders.value
     .filter((item) => {
-      return Number(item.coinRatePrice) / 1e8 === useBuyPrice.value
+      return (
+        Number(item.coinRatePrice) / 1e8 === useBuyPrice.value &&
+        item.orderId === useBuyOrderId.value
+      )
     })
     .slice(0, 1)
 })
@@ -143,7 +146,10 @@ const candidateSellOrders = computed(() => {
 
   return bidOrders.value
     .filter((item) => {
-      return Number(item.coinRatePrice) / 1e8 === useSellPrice.value
+      return (
+        Number(item.coinRatePrice) / 1e8 === useSellPrice.value &&
+        item.orderId === useSellOrderId.value
+      )
     })
     .slice(0, 1)
 })
@@ -199,33 +205,34 @@ const prettySellFees = computed(() => {
 
 const useBuyPrice = ref(0)
 const useSellPrice = ref(0)
+const useBuyOrderId = ref()
+const useSellOrderId = ref()
 
-function setUseBuyPrice(price: number) {
+function setUseBuyPrice(price: number, orderId: string) {
   takeModeTab.value = 0
   useBuyPrice.value = price
+  useBuyOrderId.value = orderId
 }
-function setUseSellPrice(price: number) {
+function setUseSellPrice(price: number, orderId: string) {
   takeModeTab.value = 1
   useSellPrice.value = price
+  useSellOrderId.value = orderId
 }
 
-// watch use price change, update selected orders
-watch(useBuyPrice, (price) => {
-  if (price === 0 || !askOrders.value) {
+// watch use BuyOrderId change, update selected orders
+watch(useBuyOrderId, (buyOrderId) => {
+  console.log(buyOrderId)
+  if (!buyOrderId || !askOrders.value) {
     selectedBuyOrders.value = []
   } else {
-    selectedBuyOrders.value = candidateBuyOrders.value.filter((item) => {
-      return Number(item.coinRatePrice) / 1e8 === price
-    })
+    selectedBuyOrders.value = candidateBuyOrders.value
   }
 })
-watch(useSellPrice, (price) => {
-  if (price === 0 || !bidOrders.value) {
+watch(useSellOrderId, (sellOrderId) => {
+  if (!sellOrderId || !bidOrders.value) {
     selectedSellOrders.value = []
   } else {
-    selectedSellOrders.value = candidateSellOrders.value.filter((item) => {
-      return Number(item.coinRatePrice) / 1e8 === price
-    })
+    selectedSellOrders.value = candidateSellOrders.value
   }
 })
 
@@ -540,8 +547,8 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
         :askOrders="askOrders"
         :bidOrders="bidOrders"
         class="flex-1 self-stretch"
-        @use-buy-price="(price: number) => setUseBuyPrice(price)"
-        @use-sell-price="(price: number) => setUseSellPrice(price)"
+        @use-buy-price="(price: number, orderId: string) => setUseBuyPrice(price, orderId)"
+        @use-sell-price="(price: number, orderId: string) => setUseSellPrice(price, orderId)"
       />
 
       <!-- operate panel -->
