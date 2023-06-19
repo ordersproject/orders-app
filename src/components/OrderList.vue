@@ -1,9 +1,11 @@
 <script lang="ts" setup>
 import { useQuery } from '@tanstack/vue-query'
-import OrderItem from './OrderItem.vue'
-import { getMarketPrice, type Order } from '@/queries'
+
+import { getMarketPrice, type Order } from '@/queries/orders-api'
 import { useNetworkStore } from '@/store'
 import { cn } from '@/lib/helpers'
+
+import OrderItem from './OrderItem.vue'
 
 const networkStore = useNetworkStore()
 

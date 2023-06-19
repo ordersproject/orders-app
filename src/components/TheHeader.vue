@@ -2,17 +2,20 @@
 import { computed, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useQuery } from '@tanstack/vue-query'
-import { ShieldAlertIcon, CheckCircle2 } from 'lucide-vue-next'
+import { ShieldAlertIcon, CheckCircle2, LoaderIcon } from 'lucide-vue-next'
 
 import logo from '@/assets/logo-new.png?url'
 import unisatIcon from '@/assets/unisat-icon.png?url'
 import { prettyAddress, prettyCoinDisplay } from '@/lib/helpers'
-import { useAddressStore, useDummiesStore, useNetworkStore } from '@/store'
-import { type Network } from '@/store'
-import { getAddress, getBalance } from '@/queries'
+import {
+  useAddressStore,
+  useDummiesStore,
+  useNetworkStore,
+  type Network,
+} from '@/store'
+import { getAddress, getBalance } from '@/queries/unisat'
 import utils from '@/utils'
 import { VERSION } from '@/lib/constants'
-import { LoaderIcon } from 'lucide-vue-next'
 
 const addressStore = useAddressStore()
 const networkStore = useNetworkStore()
@@ -163,7 +166,9 @@ function copyAddress() {
         </div>
 
         <div class="px-4 text-sm text-zinc-300">
-          <span v-if="balance !== undefined">{{ prettyCoinDisplay(balance, 'BTC') }}</span>
+          <span v-if="balance !== undefined">{{
+            prettyCoinDisplay(balance, 'BTC')
+          }}</span>
           <span v-else>
             <LoaderIcon class="h-5 animate-spin" />
           </span>

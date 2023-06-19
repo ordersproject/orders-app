@@ -17,7 +17,7 @@ import {
   getOneOrder,
   getOrders,
   getUtxos2,
-} from '@/queries'
+} from '@/queries/orders-api'
 
 export async function buildAskLimit({
   total,

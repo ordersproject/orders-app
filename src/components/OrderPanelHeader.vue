@@ -1,9 +1,10 @@
 <script lang="ts" setup>
+import { computed } from 'vue'
+
 import btcLogo from '@/assets/btc.svg?url'
 import rdexLogo from '@/assets/rdex.png?url'
 import whitelist from '@/lib/whitelist'
 import { useAddressStore } from '@/store'
-import { computed } from 'vue'
 
 defineProps(['isLimitExchangeMode'])
 defineEmits(['update:isLimitExchangeMode'])

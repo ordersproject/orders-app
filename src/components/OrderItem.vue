@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
-import type { Order } from '@/queries'
-import { useAddressStore } from '@/store'
 import { XCircleIcon } from 'lucide-vue-next'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
-import { cancelOrder } from '@/queries'
 import { ElMessage } from 'element-plus'
+
+import { useAddressStore } from '@/store'
+import { cancelOrder, type Order } from '@/queries/orders-api'
 import { prettyBalance } from '@/lib/helpers'
 
 const address = useAddressStore().address
