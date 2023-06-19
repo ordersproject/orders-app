@@ -11,13 +11,11 @@ import {
   SERVICE_TESTNET_ADDRESS,
 } from './constants'
 import {
-  SimpleUtxoFromMempool,
   getBidCandidateInfo,
   getBrc20s,
   getOneOrder,
-  getOrders,
-  getUtxos2,
-} from '@/queries'
+} from '@/queries/orders-api'
+import { getUtxos2, type SimpleUtxoFromMempool } from '@/queries/proxy'
 
 export async function buildAskLimit({
   total,
@@ -26,7 +24,6 @@ export async function buildAskLimit({
   total: number
   amount: number
 }) {
-  console.log({ total, amount })
   const networkStore = useNetworkStore()
   const btcjs = useBtcJsStore().get!
   const address = useAddressStore().get!
@@ -53,7 +50,6 @@ export async function buildAskLimit({
 
       return smallOne
     })
-    console.log({ cardinalUtxo })
 
     if (!cardinalUtxo) {
       throw new Error('no utxo')
@@ -144,7 +140,6 @@ export async function buildBidLimit({
   const networkStore = useNetworkStore()
   const orderNetwork = networkStore.network
   const btcNetwork = networkStore.btcNetwork
-  console.log({ coinAmount, total })
   const btcjs = window.bitcoin
   const address = useAddressStore().get!
 
@@ -161,7 +156,6 @@ export async function buildBidLimit({
   const exchange = btcjs.Psbt.fromHex(candidateInfo.psbtRaw, {
     network: btcjs.networks[btcNetwork],
   })
-  console.log({ exchange })
 
   const bid = new btcjs.Psbt({ network: btcjs.networks[btcNetwork] })
   let totalInput = 0
@@ -238,7 +232,6 @@ export async function buildBidLimit({
     })
     return utxo
   })
-  console.log({ paymentUtxo })
 
   if (!paymentUtxo) {
     throw new Error('no utxo')
@@ -333,8 +326,6 @@ export async function buildBuyTake({
   const sellPsbt = btcjs.Psbt.fromHex(sellPsbtRaw, {
     network: btcjs.networks[btcNetwork],
   })
-
-  console.log({ sellPsbt })
 
   const buyPsbt = new btcjs.Psbt({
     network: btcjs.networks[btcNetwork],
@@ -510,7 +501,6 @@ export async function buildSellTake({
 
       return smallOne
     })
-    console.log({ cardinalUtxo })
 
     if (!cardinalUtxo) {
       throw new Error('no utxo')

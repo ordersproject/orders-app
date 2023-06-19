@@ -1,7 +1,8 @@
-import { useAddressStore, useNetworkStore } from '@/store'
 import { type Psbt } from 'bitcoinjs-lib'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+
+import { useAddressStore, useNetworkStore } from '@/store'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

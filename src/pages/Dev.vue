@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-import { getTxHex } from '@/lib/helpers'
-import { getUtxos2 } from '@/queries'
-import { useAddressStore, useBtcJsStore } from '@/store'
 import { onMounted, ref } from 'vue'
+
+import { getTxHex } from '@/lib/helpers'
+import { getUtxos2 } from '@/queries/proxy'
+import { useAddressStore, useBtcJsStore } from '@/store'
 
 const btcJsStore = useBtcJsStore()
 

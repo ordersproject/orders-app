@@ -24,7 +24,7 @@ import {
   RefreshCcwIcon,
   XIcon,
 } from 'lucide-vue-next'
-import { Loader } from 'lucide-vue-next'
+import { Loader, BookPlusIcon, ArrowDownIcon } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import { useQuery } from '@tanstack/vue-query'
 
@@ -32,7 +32,6 @@ import btcIcon from '@/assets/btc.svg?url'
 import rdexIcon from '@/assets/rdex.png?url'
 import {
   calculateFee,
-  calculatePsbtFee,
   cn,
   prettyBalance,
   prettyBtcDisplay,
@@ -47,20 +46,18 @@ import {
 import {
   getOrdiBalance,
   getBidCandidates,
-  BidCandidate,
   pushBidOrder,
   pushAskOrder,
   pushBuyTake,
   pushSellTake,
-  getFeebPlans,
   getOrders,
-  Order,
-  FeebPlan,
   getBrc20s,
-  Brc20,
   getMarketPrice,
-} from '@/queries'
-import OrderList from './OrderList.vue'
+  type Order,
+  type Brc20,
+  type BidCandidate,
+} from '@/queries/orders-api'
+import { getFeebPlans, type FeebPlan } from '@/queries/proxy'
 import {
   useAddressStore,
   useBtcJsStore,
@@ -69,9 +66,9 @@ import {
 } from '@/store'
 import { buildBuyTake } from '@/lib/order-builder'
 import utils from '@/utils'
+
 import OrderPanelHeader from './OrderPanelHeader.vue'
-import { BookPlusIcon } from 'lucide-vue-next'
-import { ArrowDownIcon } from 'lucide-vue-next'
+import OrderList from './OrderList.vue'
 
 const unisat = window.unisat
 
