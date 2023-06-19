@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 type BitcoinJs = typeof import('bitcoinjs-lib')
-import { useLocalStorage } from '@vueuse/core'
-import type { RemovableRef } from '@vueuse/core'
-import { SimpleUtxoFromMempool } from './queries/orders-api'
+import { useLocalStorage, type RemovableRef } from '@vueuse/core'
+
+import { type SimpleUtxoFromMempool } from './queries/proxy'
 
 export const useAddressStore = defineStore('address', {
   state: () => {
