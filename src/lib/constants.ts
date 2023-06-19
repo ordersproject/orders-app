@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 export const VERSION = '0.2.3 (beta)'
+=======
+export const VERSION = '0.2.2 (beta)'
+>>>>>>> 43a40937e6f0f4524ebb7b194876bb68a18074c0
 export const CHARGE_SERVICE_FEES = false
 
 export const DUMMY_UTXO_VALUE = 600

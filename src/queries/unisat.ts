@@ -38,6 +38,5 @@ export const getBalance = async () => {
       (info: { confirmed: number; unconfirmed: number; total: number }) =>
         info.total
     )
-
   return balance
 }
