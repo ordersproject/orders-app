@@ -270,6 +270,9 @@ export async function buildBidLimit({
   const spent = total + fee + serviceFee + DUMMY_UTXO_VALUE * 2
   const using = paymentInput.witnessUtxo.value
   const changeValue = using - spent
+  if (changeValue < 0) {
+    throw new Error('Insufficient balance')
+  }
   // const changeValue = totalInput - totalOutput - fee
 
   console.log({ changeValue, totalInput, totalOutput, fee, spent })
@@ -446,6 +449,10 @@ export async function buildBuyTake({
     0
   )
   const changeValue = totalInput - totalOutput - fee
+  if (changeValue < 0) {
+    throw new Error('Insufficient balance')
+  }
+
   const totalSpent = sellerOutput.value + serviceFee + fee - ordValue
 
   console.log({ changeValue, totalInput, totalOutput, fee })

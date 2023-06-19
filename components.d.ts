@@ -10,6 +10,7 @@ export {}
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
+    OrderConfirmationModal: typeof import('./src/components/OrderConfirmationModal.vue')['default']
     OrderItem: typeof import('./src/components/OrderItem.vue')['default']
     OrderList: typeof import('./src/components/OrderList.vue')['default']
     OrderPanel: typeof import('./src/components/OrderPanel.vue')['default']

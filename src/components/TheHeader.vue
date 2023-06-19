@@ -16,6 +16,7 @@ import {
 import { getAddress, getBalance } from '@/queries/unisat'
 import utils from '@/utils'
 import { VERSION } from '@/lib/constants'
+import whitelist from '@/lib/whitelist'
 
 const addressStore = useAddressStore()
 const networkStore = useNetworkStore()
@@ -29,6 +30,27 @@ onMounted(async () => {
 
   // getNetwork
   const network: Network = await window.unisat.getNetwork()
+  const address = addressStore.get
+
+  // if not in whitelist, switch to mainnet
+  if (network === 'testnet' && address && !whitelist.includes(address)) {
+    const switchRes = await window.unisat
+      .switchNetwork('livenet')
+      .catch(() => false)
+    if (!switchRes) {
+      ElMessage({
+        message: 'Testnet is not available, please switch to livenet.',
+        type: 'error',
+        onClose: () => {
+          // redirect to a blank page
+          window.location.href = 'about:blank'
+        },
+      })
+    }
+
+    networkStore.set('livenet')
+    return
+  }
   networkStore.set(network)
 })
 
@@ -136,7 +158,7 @@ function copyAddress() {
         :content="`Click to switch to ${
           networkStore.network === 'testnet' ? 'livenet' : 'testnet'
         } `"
-        v-if="addressStore.get"
+        v-if="addressStore.get && whitelist.includes(addressStore.get)"
       >
         <button
           class="h-10 cursor-pointer items-center rounded-lg bg-black/90 px-4 text-sm text-zinc-300 transition hover:text-orange-300"

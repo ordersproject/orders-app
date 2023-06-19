@@ -1,0 +1,322 @@
+<script lang="ts" setup>
+import { onMounted, ref, toRaw } from 'vue'
+import {
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+  DialogDescription,
+} from '@headlessui/vue'
+import { RefreshCcwIcon } from 'lucide-vue-next'
+import { Loader, ArrowDownIcon } from 'lucide-vue-next'
+import { ElMessage } from 'element-plus'
+
+import btcIcon from '@/assets/btc.svg?url'
+import rdexIcon from '@/assets/rdex.png?url'
+import { prettyBtcDisplay, prettyCoinDisplay } from '@/lib/helpers'
+import {
+  pushBidOrder,
+  pushAskOrder,
+  pushBuyTake,
+  pushSellTake,
+} from '@/queries/orders-api'
+import { useAddressStore, useNetworkStore } from '@/store'
+
+const unisat = window.unisat
+
+const addressStore = useAddressStore()
+const networkStore = useNetworkStore()
+
+// modal control
+const props = defineProps([
+  'isOpen',
+  'isBuilding',
+  'builtInfo',
+  'isLimitExchangeMode',
+  'buildProcessTip',
+])
+const emit = defineEmits([
+  'update:isOpen',
+  'update:isBuilding',
+  'update:builtInfo',
+  'update:isLimitExchangeMode',
+])
+function clearBuiltInfo() {
+  emit('update:builtInfo', undefined)
+}
+
+const balance = ref(0)
+async function updateBalance() {
+  if (!unisat) return
+
+  const balanceRes = await unisat.getBalance()
+  if (balanceRes && balanceRes.total) {
+    balance.value = balanceRes.total
+  }
+}
+onMounted(async () => {
+  // update balance
+  await updateBalance()
+})
+
+function getIconFromSymbol(symbol: string) {
+  if (symbol === 'BTC') {
+    return btcIcon
+  } else if (symbol === 'RDEX') {
+    return rdexIcon
+  }
+
+  return ''
+}
+
+function discardOrder() {
+  emit('update:isOpen', false)
+  clearBuiltInfo()
+}
+
+async function submitOrder() {
+  const builtInfo = toRaw(props.builtInfo)
+  try {
+    // 1. sign
+    const signed = await unisat.signPsbt(builtInfo.order.toHex())
+    console.log({ signed })
+
+    let pushed: any
+    // 2. push
+    switch (builtInfo!.type) {
+      case 'buy':
+      case 'free claim':
+        await pushBuyTake({
+          psbtRaw: signed,
+          network: networkStore.ordersNetwork,
+          orderId: builtInfo.orderId,
+        })
+        break
+      case 'sell':
+        pushed = await pushSellTake({
+          psbtRaw: signed,
+          network: networkStore.ordersNetwork,
+          orderId: builtInfo.orderId,
+          address: addressStore.get!,
+          value: builtInfo.value,
+          amount: builtInfo.amount,
+        })
+        break
+      case 'bid':
+        pushed = await pushBidOrder({
+          psbtRaw: signed,
+          network: networkStore.ordersNetwork,
+          address: addressStore.get!,
+          tick: 'rdex',
+          feeb: builtInfo.feeb,
+          fee: builtInfo.networkFee,
+          total: builtInfo.total,
+          using: builtInfo.using,
+          orderId: builtInfo.orderId,
+        })
+        break
+      case 'ask':
+        await pushAskOrder({
+          psbtRaw: signed,
+          network: networkStore.ordersNetwork,
+          address: addressStore.get!,
+          tick: 'rdex',
+          amount: builtInfo.amount,
+        })
+        break
+    }
+
+    console.log({ pushed })
+  } catch (err: any) {
+    ElMessage.error(err.message)
+    emit('update:isOpen', false)
+    clearBuiltInfo()
+    emit('update:isLimitExchangeMode', false)
+    return
+  }
+
+  // 4. close modal
+
+  // Show success message
+  emit('update:isOpen', false)
+  clearBuiltInfo()
+  emit('update:isLimitExchangeMode', false)
+
+  ElMessage({
+    message: `${builtInfo.type} order completed!`,
+    type: 'success',
+    onClose: () => {
+      // reload
+      window.location.reload()
+    },
+  })
+}
+</script>
+
+<template>
+  <Dialog :open="isOpen" @close="$emit('update:isOpen', false)">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur"></div>
+
+    <div class="fixed inset-0 overflow-y-auto text-zinc-300">
+      <div class="flex min-h-full items-center justify-center p-4 text-center">
+        <DialogPanel
+          class="w-full max-w-lg transform overflow-hidden rounded-2xl bg-zinc-800 p-6 align-middle shadow-lg shadow-orange-200/10 transition-all"
+        >
+          <DialogTitle class="text-lg">Confirmation</DialogTitle>
+
+          <DialogDescription as="div" class="mt-8 text-sm">
+            <div
+              class="mt-4 flex items-center justify-center gap-2 text-zinc-300"
+              v-if="isBuilding"
+            >
+              <Loader class="h-4 w-4 animate-spin-slow" />
+              <span>{{ buildProcessTip }}</span>
+            </div>
+
+            <div class="" v-else-if="builtInfo">
+              <div class="grid grid-cols-2 items-center">
+                <div class="flex items-center gap-4">
+                  <span class="text-zinc-500">Order Type</span>
+                  <span class="font-bold uppercase text-orange-300">
+                    {{ builtInfo.type }}
+                  </span>
+                </div>
+
+                <div class="space-y-2">
+                  <div class="flex items-center gap-4">
+                    <img
+                      :src="getIconFromSymbol(builtInfo.fromSymbol)"
+                      alt=""
+                      class="h-8 w-8"
+                    />
+                    <span
+                      v-if="builtInfo.isFree"
+                      class="font-bold text-green-500"
+                    >
+                      0
+                    </span>
+                    <span v-else>
+                      {{
+                        prettyCoinDisplay(
+                          builtInfo.fromValue,
+                          builtInfo.fromSymbol
+                        )
+                      }}
+                    </span>
+                  </div>
+
+                  <div class="ml-1">
+                    <ArrowDownIcon class="h-6 w-6 text-zinc-300" />
+                  </div>
+
+                  <div class="flex items-center gap-4">
+                    <img
+                      :src="getIconFromSymbol(builtInfo.toSymbol)"
+                      alt=""
+                      class="h-8 w-8"
+                    />
+                    <span>
+                      {{
+                        prettyCoinDisplay(builtInfo.toValue, builtInfo.toSymbol)
+                      }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-8 grid grid-cols-2 gap-4">
+                <div class="text-left text-zinc-500">Total Price</div>
+                <div class="col-span-1 text-right">
+                  <div
+                    class="flex items-center justify-end gap-2"
+                    v-if="builtInfo.isFree"
+                  >
+                    <!-- <span class="text-zinc-500 line-through">
+                        {{ prettyBtcDisplay(builtInfo.totalPrice) }}
+                      </span> -->
+                    <span
+                      class="rounded bg-green-700/30 px-1 py-0.5 text-xs font-bold text-green-500"
+                      >FREE</span
+                    >
+                  </div>
+                  <span v-else>
+                    {{ prettyBtcDisplay(builtInfo.totalPrice) }}
+                  </span>
+                </div>
+
+                <div class="text-left text-zinc-500">Network Fee</div>
+                <div class="col-span-1 text-right">
+                  {{ prettyBtcDisplay(builtInfo.networkFee) }}
+                </div>
+
+                <div class="text-left text-zinc-500">Service Fee</div>
+                <div class="col-span-1 text-right">
+                  <div
+                    class="flex items-center justify-end gap-2"
+                    v-if="builtInfo.isFree"
+                  >
+                    <span class="text-zinc-500 line-through">
+                      {{ prettyBtcDisplay(2000) }}
+                    </span>
+                    <span
+                      class="rounded bg-green-700/30 px-1 py-0.5 text-xs font-bold text-green-500"
+                      >FREE</span
+                    >
+                  </div>
+                  <span v-else>
+                    {{ prettyBtcDisplay(builtInfo.serviceFee) }}
+                  </span>
+                </div>
+
+                <template v-if="builtInfo.isFree">
+                  <div class="text-left text-zinc-500">Inscribe Fee</div>
+                  <div class="col-span-1 text-right">
+                    {{ prettyBtcDisplay(4000) }}
+                  </div>
+                </template>
+
+                <div class="col-span-2">
+                  <div class="my-4 w-16 border-t border-zinc-700"></div>
+                </div>
+
+                <div class="text-left text-zinc-300">You Will Spend</div>
+                <div class="col-span-1 text-right">
+                  {{ prettyBtcDisplay(builtInfo.totalSpent) }}
+                </div>
+
+                <div class="text-left text-zinc-300">Available Balance</div>
+                <div class="col-span-1 flex items-center justify-end gap-2">
+                  <button @click="updateBalance">
+                    <RefreshCcwIcon
+                      class="h-3 w-3 text-zinc-300 transition hover:text-orange-300"
+                      aria-hidden="true"
+                    />
+                  </button>
+
+                  <span>{{ prettyBtcDisplay(balance) }}</span>
+                </div>
+              </div>
+            </div>
+          </DialogDescription>
+
+          <div
+            class="mt-12 flex items-center justify-center gap-4"
+            v-if="builtInfo"
+          >
+            <button
+              @click="discardOrder"
+              class="w-24 rounded border border-zinc-700 py-2 text-zinc-500"
+            >
+              Cancel
+            </button>
+            <button
+              @click="submitOrder"
+              class="w-24 rounded border border-zinc-500 py-2"
+            >
+              Confirm
+            </button>
+          </div>
+        </DialogPanel>
+      </div>
+    </div>
+  </Dialog>
+</template>
