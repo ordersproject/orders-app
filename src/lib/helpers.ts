@@ -34,11 +34,11 @@ export function calculatePsbtFee(feeRate: number, psbt: Psbt) {
   const virtualSize = unsignedTx.tx.virtualSize()
   const fee = Math.max(virtualSize * feeRate, 546)
 
-  return fee
-}
+  // if current feeRate is less than 15, bump up the fee
+  const bumpBy = feeRate <= 15 ? 1.4 : 1.2
 
-export const toXOnly = (pubKey: any) =>
-  pubKey.length === 32 ? pubKey : pubKey.subarray(1, 33)
+  return Math.round(fee * bumpBy)
+}
 
 export const prettyAddress = (address: string, len = 6) => {
   return `${address.slice(0, len)}...${address.slice(-len)}`

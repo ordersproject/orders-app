@@ -20,7 +20,7 @@ import {
   ChevronsUpDownIcon,
   RefreshCcwIcon,
   XIcon,
-  BookPlusIcon
+  BookPlusIcon,
 } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import { useQuery } from '@tanstack/vue-query'
@@ -1111,11 +1111,28 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   </ListboxOptions>
                 </Listbox>
               </div>
+              <!-- brc-20 availability -->
+              <!-- <div
+                class="z-[-1] -mt-1 overflow-hidden rounded-lg bg-zinc-950 text-xs text-zinc-500"
+              >
+                <div class="px-6 py-2">
+                  <h4 class="text-sm">RDEX Balance</h4>
+
+                  <div class="mt-4">
+                    <div class="">Available: 2000</div>
+                    <div class="">Transferable: 2000</div>
+                  </div>
+                </div>
+              </div> -->
 
               <!-- sell -->
               <div class="mt-12">
                 <!-- feeb select -->
-                <RadioGroup v-model="selectedFeebPlan" v-if="feebPlans">
+                <RadioGroup
+                  v-model="selectedFeebPlan"
+                  v-if="feebPlans"
+                  class="mt-4"
+                >
                   <RadioGroupLabel class="text-xs text-zinc-500">
                     Select Fee Rate
                   </RadioGroupLabel>
