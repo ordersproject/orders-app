@@ -265,31 +265,32 @@ export const pushBuyTake = async ({
   psbtRaw: string
   orderId: string
 }) => {
-  const pushTxId = await window.unisat.pushPsbt(psbtRaw)
+  // const pushTxId = await window.unisat.pushPsbt(psbtRaw)
   const address = useAddressStore().address!
-  console.log({ pushTxId })
 
   const { publicKey, signature } = await sign()
 
   // if pushed successfully, update the Dummies
-  if (pushTxId) {
-    // notify update psbt status
-    const updateRes = await ordersApiFetch(`order/update`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Signature': signature,
-        'X-Public-Key': publicKey,
-      },
-      body: JSON.stringify({
-        net: network,
-        address,
-        orderId,
-        orderState: 2,
-        psbtRaw,
-      }),
-    })
-  }
+  // notify update psbt status
+  const updateRes = await ordersApiFetch(`order/update`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+    body: JSON.stringify({
+      net: network,
+      address,
+      orderId,
+      orderState: 2,
+      psbtRaw,
+      broadcastIndex: 1,
+    }),
+  })
+
+  console.log({ updateRes })
+  return updateRes
 }
 
 export const cancelOrder = async ({ orderId }: { orderId: string }) => {

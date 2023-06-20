@@ -4,7 +4,8 @@ import {
   useDummiesStore,
   useNetworkStore,
 } from '@/store'
-import { calculatePsbtFee, getTxHex } from './helpers'
+import { calculatePsbtFee } from './helpers'
+import { getTxHex } from '@/queries/proxy'
 import {
   DUMMY_UTXO_VALUE,
   SERVICE_LIVENET_ADDRESS,

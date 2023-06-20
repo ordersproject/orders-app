@@ -25,3 +25,13 @@ export async function ordersApiFetch(url: string, options?: RequestInit) {
 
   return jsoned.data
 }
+
+export async function originalFetch(url: string, options?: RequestInit) {
+  const response = await fetch(url, options)
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch ${url}: ${response.status} ${response.statusText}`
+    )
+  }
+  return response
+}

@@ -1,5 +1,5 @@
 import { useNetworkStore } from '../store'
-import fetch from '@/lib/fetch'
+import fetch, { originalFetch } from '@/lib/fetch'
 
 export type SimpleUtxoFromMempool = {
   txId: string
@@ -13,7 +13,7 @@ export const getUtxos2 = async (address: string) => {
     return getUtxosFromYouKnowWhere(address)
   }
 
-  const url = `https://ordex.riverrun.online/api/utxos2?address=${address}&network=${network}`
+  const url = `https://api2.orders.exchange/api/utxos2?address=${address}&network=${network}`
   const paymentUtxos: SimpleUtxoFromMempool[] = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',
@@ -35,7 +35,7 @@ export const getUtxos2 = async (address: string) => {
 export const getUtxosFromYouKnowWhere = async (address: string) => {
   const network = useNetworkStore().network
 
-  const url = `https://ordex.riverrun.online/api/utxos?address=${address}&network=${network}`
+  const url = `https://api2.orders.exchange/api/utxos?address=${address}&network=${network}`
   const paymentUtxos: SimpleUtxoFromMempool[] = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',
@@ -55,7 +55,7 @@ export const getFeebPlans = async ({
 }: {
   network: 'livenet' | 'testnet'
 }): Promise<FeebPlan[]> => {
-  const url = `https://ordex.riverrun.online/api/feeb-plans?network=${network}`
+  const url = `https://api2.orders.exchange/api/feeb-plans?network=${network}`
   const feebPlans = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',
@@ -63,4 +63,18 @@ export const getFeebPlans = async ({
   }).then(({ result: { list } }) => list)
 
   return feebPlans
+}
+
+export const getTxHex = async (txId: string) => {
+  const network = useNetworkStore().network
+
+  const url = `https://api2.orders.exchange/api/tx-hex?id=${txId}&network=${network}`
+
+  const txHex: string = await originalFetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }).then((res) => res.text())
+
+  return txHex
 }

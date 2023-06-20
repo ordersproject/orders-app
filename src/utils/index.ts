@@ -7,8 +7,8 @@ import {
   DummyUtxo,
   useNetworkStore,
 } from '@/store'
-import { getUtxos2 } from '@/queries/proxy'
-import { calculatePsbtFee, getTxHex } from '@/lib/helpers'
+import { getUtxos2, getTxHex } from '@/queries/proxy'
+import { calculatePsbtFee } from '@/lib/helpers'
 import { DUMMY_UTXO_VALUE, EXTREME_FEEB, MIN_FEEB } from '@/lib/constants'
 const utils = {
   checkAndSelectDummies: async ({

@@ -34,8 +34,8 @@ export function calculatePsbtFee(feeRate: number, psbt: Psbt) {
   const virtualSize = unsignedTx.tx.virtualSize()
   const fee = Math.max(virtualSize * feeRate, 546)
 
-  // if current feeRate is less than 15, bump up the fee
-  const bumpBy = feeRate <= 15 ? 1.4 : 1.2
+  // bump up the fee
+  const bumpBy = 1.2
 
   return Math.round(fee * bumpBy)
 }
@@ -71,32 +71,4 @@ export type SimpleUtxo = {
   satoshis: number
   outputIndex: number
   addressType: any
-}
-export const getUtxos = async (address: string) => {
-  const network = useNetworkStore().network
-
-  const url = `https://ordex.riverrun.online/api/utxos?address=${address}&network=${network}`
-  const paymentUtxos: SimpleUtxo[] = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-    .then((res) => res.json())
-    .then(({ result }) => result)
-
-  return paymentUtxos
-}
-
-export const getTxHex = async (txId: string) => {
-  const network = useNetworkStore().network
-
-  const url = `https://ordex.riverrun.online/api/tx-hex?id=${txId}&network=${network}`
-
-  const txHex: string = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  }).then((res) => res.text())
-
-  return txHex
 }

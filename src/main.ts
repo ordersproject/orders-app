@@ -19,26 +19,22 @@ const router = VueRouter.createRouter({
 
 const pinia = createPinia()
 
-const vueQueryPluginOptions: VueQueryPluginOptions = {
-  queryClientConfig: {
-    defaultOptions: {
-      queries: {
-        staleTime: 1000 * 10, // 10 seconds
-      },
-    },
-  },
-}
+// const vueQueryPluginOptions: VueQueryPluginOptions = {
+//   queryClientConfig: {
+//     defaultOptions: {
+//       queries: {
+//         staleTime: 1000 * 10, // 10 seconds
+//       },
+//     },
+//   },
+// }
 
 // wait until bitcoin is loaded then mount the app
 const launchInterval = setInterval(() => {
   if (window.bitcoin) {
     const app = createApp(App)
     // @ts-ignore
-    app
-      .use(router)
-      .use(pinia)
-      .use(VueQueryPlugin, vueQueryPluginOptions)
-      .mount('#app')
+    app.use(router).use(pinia).use(VueQueryPlugin).mount('#app')
     clearInterval(launchInterval)
   }
 }, 50)

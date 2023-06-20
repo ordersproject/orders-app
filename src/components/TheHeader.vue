@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, onMounted, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useQuery } from '@tanstack/vue-query'
 import { ShieldAlertIcon, CheckCircle2, LoaderIcon } from 'lucide-vue-next'
@@ -28,6 +28,17 @@ onMounted(async () => {
     ElMessage.warning('Unisat not available')
   }
 
+  const unisat = window.unisat
+  unisat?.on('accountsChanged', (accounts: string[]) => {
+    ElMessage.warning({
+      message: 'Unisat account changed. Refreshing page...',
+      type: 'warning',
+      onClose: () => {
+        window.location.reload()
+      },
+    })
+  })
+
   // getNetwork
   const network: Network = await window.unisat.getNetwork()
   const address = addressStore.get
@@ -52,6 +63,10 @@ onMounted(async () => {
     return
   }
   networkStore.set(network)
+})
+onBeforeUnmount(() => {
+  // remove event listener
+  window.unisat?.removeListener('accountsChanged', () => {})
 })
 
 // connect / address related

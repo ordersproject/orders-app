@@ -85,7 +85,7 @@ async function submitOrder() {
     switch (builtInfo!.type) {
       case 'buy':
       case 'free claim':
-        await pushBuyTake({
+        pushed = await pushBuyTake({
           psbtRaw: signed,
           network: networkStore.ordersNetwork,
           orderId: builtInfo.orderId,
@@ -115,7 +115,7 @@ async function submitOrder() {
         })
         break
       case 'ask':
-        await pushAskOrder({
+        pushed = await pushAskOrder({
           psbtRaw: signed,
           network: networkStore.ordersNetwork,
           address: addressStore.get!,
@@ -127,7 +127,15 @@ async function submitOrder() {
 
     console.log({ pushed })
   } catch (err: any) {
-    ElMessage.error(err.message)
+    // if error message contains missingorspent / mempool-conflict, show a more user-friendly message
+    if (
+      err.message.includes('missingorspent') ||
+      err.message.includes('mempool-conflict')
+    ) {
+      ElMessage.error('The order was taken. Please try another one.')
+    } else {
+      ElMessage.error(err.message)
+    }
     emit('update:isOpen', false)
     clearBuiltInfo()
     emit('update:isLimitExchangeMode', false)
