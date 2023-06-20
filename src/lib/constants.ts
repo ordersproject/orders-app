@@ -1,4 +1,4 @@
-export const VERSION = '0.3.1 (beta)'
+export const VERSION = '0.3.2 (beta)'
 export const CHARGE_SERVICE_FEES = false
 
 export const DUMMY_UTXO_VALUE = 600

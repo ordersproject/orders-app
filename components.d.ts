@@ -18,5 +18,6 @@ declare module '@vue/runtime-core' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     TheHeader: typeof import('./src/components/TheHeader.vue')['default']
+    UnisatModal: typeof import('./src/components/UnisatModal.vue')['default']
   }
 }

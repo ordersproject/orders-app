@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useQuery } from '@tanstack/vue-query'
 import { ShieldAlertIcon, CheckCircle2, LoaderIcon } from 'lucide-vue-next'
@@ -18,51 +18,53 @@ import utils from '@/utils'
 import { VERSION } from '@/lib/constants'
 import whitelist from '@/lib/whitelist'
 
+import UnisatModal from './UnisatModal.vue'
+
 const addressStore = useAddressStore()
 const networkStore = useNetworkStore()
 const dummiesStore = useDummiesStore()
 
 onMounted(async () => {
   // check if unisat is available
-  if (!window.unisat) {
-    ElMessage.warning('Unisat not available')
-  }
+  // if (!window.unisat) {
+  //   ElMessage.warning('Unisat not available')
+  // }
 
-  const unisat = window.unisat
-  unisat?.on('accountsChanged', (accounts: string[]) => {
-    ElMessage.warning({
-      message: 'Unisat account changed. Refreshing page...',
-      type: 'warning',
-      onClose: () => {
-        window.location.reload()
-      },
-    })
-  })
-
-  // getNetwork
-  const network: Network = await window.unisat.getNetwork()
-  const address = addressStore.get
-
-  // if not in whitelist, switch to mainnet
-  if (network === 'testnet' && address && !whitelist.includes(address)) {
-    const switchRes = await window.unisat
-      .switchNetwork('livenet')
-      .catch(() => false)
-    if (!switchRes) {
-      ElMessage({
-        message: 'Testnet is not available, please switch to livenet.',
-        type: 'error',
+  if (window.unisat) {
+    const unisat = window.unisat
+    unisat.on('accountsChanged', (accounts: string[]) => {
+      ElMessage.warning({
+        message: 'Unisat account changed. Refreshing page...',
+        type: 'warning',
         onClose: () => {
-          // redirect to a blank page
-          window.location.href = 'about:blank'
+          window.location.reload()
         },
       })
-    }
+    })
 
-    networkStore.set('livenet')
-    return
+    // getNetwork
+    const network: Network = await unisat.getNetwork()
+    const address = addressStore.get
+
+    // if not in whitelist, switch to mainnet
+    if (network === 'testnet' && address && !whitelist.includes(address)) {
+      const switchRes = await unisat.switchNetwork('livenet').catch(() => false)
+      if (!switchRes) {
+        ElMessage({
+          message: 'Testnet is not available, please switch to livenet.',
+          type: 'error',
+          onClose: () => {
+            // redirect to a blank page
+            window.location.href = 'about:blank'
+          },
+        })
+      }
+
+      networkStore.set('livenet')
+      return
+    }
+    networkStore.set(network)
   }
-  networkStore.set(network)
 })
 onBeforeUnmount(() => {
   // remove event listener
@@ -72,9 +74,10 @@ onBeforeUnmount(() => {
 // connect / address related
 async function connectWallet() {
   if (!window.unisat) {
-    ElMessage.warning('Unisat not available')
+    unisatModalOpen.value = true
     return
   }
+
   const connectRes = await window.unisat.requestAccounts()
   if (connectRes && connectRes.length) {
     // if it's a legacy address(1... or m..., n...), throw error
@@ -152,9 +155,13 @@ function copyAddress() {
   navigator.clipboard.writeText(addressStore.get)
   ElMessage.success('Address copied to clipboard')
 }
+
+const unisatModalOpen = ref(false)
 </script>
 
 <template>
+  <UnisatModal v-model:open="unisatModalOpen" />
+
   <header class="flex items-center justify-between px-6 py-4">
     <h1 class="flex items-center gap-2">
       <el-tooltip

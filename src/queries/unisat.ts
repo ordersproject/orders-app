@@ -3,6 +3,7 @@ import { ElMessage } from 'element-plus'
 
 export const getAddress = async () => {
   if (!window.unisat) {
+    return ''
     ElMessage.warning('Unisat not available')
     throw new Error('Unisat not available')
   }
@@ -22,6 +23,7 @@ export const getAddress = async () => {
     return addresses[0]
   }
 
+  return ''
   ElMessage.warning('Login to Unisat first.')
   throw new Error('Login to Unisat first.')
 }
