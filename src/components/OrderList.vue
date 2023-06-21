@@ -31,9 +31,10 @@ const { data: marketPrice } = useQuery({
 <template>
   <div class="flex flex-col gap-y-4">
     <div class="orders-container h-full overflow-y-scroll pr-1">
-      <table class="w-full" v-if="askOrders.length">
+      <table class="w-full">
         <thead>
           <tr>
+            <th class="th"></th>
             <th class="th">Price (BTC)</th>
             <th class="th">Amount (RDEX)</th>
             <th class="th">Total (BTC)</th>
@@ -41,7 +42,7 @@ const { data: marketPrice } = useQuery({
           </tr>
         </thead>
 
-        <tbody>
+        <tbody v-if="askOrders.length">
           <OrderItem
             v-for="order in askOrders"
             :key="order.orderId"
@@ -57,8 +58,10 @@ const { data: marketPrice } = useQuery({
           />
         </tbody>
       </table>
-
-      <div class="flex h-full items-center justify-center" v-else>
+      <div
+        class="flex h-3/4 w-full items-center justify-center"
+        v-if="!askOrders.length"
+      >
         <span class="text-zinc-500">No ask orders</span>
       </div>
     </div>
@@ -79,6 +82,7 @@ const { data: marketPrice } = useQuery({
       <table class="-mt-8 w-full" v-if="bidOrders.length">
         <thead class="invisible">
           <tr class="">
+            <th class="th"></th>
             <th class="th">Price (BTC)</th>
             <th class="th">Amount (RDEX)</th>
             <th class="th">Total (BTC)</th>

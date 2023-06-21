@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
-import { XCircleIcon } from 'lucide-vue-next'
+import { XCircleIcon, BadgeCheckIcon } from 'lucide-vue-next'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { ElMessage } from 'element-plus'
 
@@ -45,6 +45,16 @@ async function onCancel() {
 
 <template>
   <tr class="cursor-pointer">
+    <td class="td">
+      <el-tooltip
+        content="This order is official and free to take."
+        placement="right"
+        effect="light"
+        v-if="isFreeOrder"
+      >
+        <BadgeCheckIcon class="box-content h-4 w-4 pr-2 text-orange-300" />
+      </el-tooltip>
+    </td>
     <td
       class="td"
       :class="{
@@ -59,12 +69,14 @@ async function onCancel() {
     </td>
     <td class="td">{{ order.coinAmount }}</td>
     <td class="td">
-      <span
-        v-if="isFreeOrder"
-        class="rounded bg-green-700/30 px-2 py-1 text-xs font-bold text-green-500"
-      >
-        FREE
-      </span>
+      <template v-if="isFreeOrder">
+        <span
+          class="rounded bg-green-700/30 px-2 py-1 text-xs font-bold text-green-500"
+        >
+          FREE
+        </span>
+      </template>
+
       <span v-else>{{ prettyBalance(order.amount) }}</span>
     </td>
     <td class="td">
