@@ -45,7 +45,7 @@ const inWhitelist = computed(() => {
         @click="$emit('update:isLimitExchangeMode', !isLimitExchangeMode)"
         v-if="inWhitelist"
       >
-        Limit Exchange
+        Create Order
       </button>
     </div>
   </div>

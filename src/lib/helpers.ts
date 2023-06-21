@@ -35,7 +35,7 @@ export function calculatePsbtFee(feeRate: number, psbt: Psbt) {
   const fee = Math.max(virtualSize * feeRate, 546)
 
   // bump up the fee
-  const bumpBy = 1.2
+  const bumpBy = 1.4
 
   return Math.round(fee * bumpBy)
 }

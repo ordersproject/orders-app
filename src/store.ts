@@ -86,14 +86,6 @@ export const useDummiesStore = defineStore('dummies', {
   },
 })
 
-export const useFutureUtxosStore = defineStore('futureUtxos', {
-  state: () => {
-    return {
-      utxos: [] as any[],
-    }
-  },
-})
-
 export const useCredentialsStore = defineStore('credentials', {
   state: () => {
     return {
@@ -133,6 +125,34 @@ export const useCredentialsStore = defineStore('credentials', {
       if (this.credentials.find((s) => s.address === address)) return
 
       this.credentials.push({ publicKey, signature, address })
+    },
+  },
+})
+
+export const useCooldownerStore = defineStore('cooldowner', {
+  state: () => {
+    return {
+      instance: useLocalStorage('cooldowner', {}) as RemovableRef<{
+        observing: {
+          txId: string
+          outputIndex: number
+        }
+      }>,
+    }
+  },
+
+  actions: {
+    start({
+      observing,
+    }: {
+      observing: {
+        txId: string
+        outputIndex: number
+      }
+    }) {
+      if (this.instance) return
+
+      this.instance = { observing }
     },
   },
 })

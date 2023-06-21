@@ -19,12 +19,13 @@ import {
   pushBuyTake,
   pushSellTake,
 } from '@/queries/orders-api'
-import { useAddressStore, useNetworkStore } from '@/store'
+import { useAddressStore, useCooldownerStore, useNetworkStore } from '@/store'
 
 const unisat = window.unisat
 
 const addressStore = useAddressStore()
 const networkStore = useNetworkStore()
+const cooldowner = useCooldownerStore()
 
 // modal control
 const props = defineProps([
@@ -80,19 +81,19 @@ async function submitOrder() {
     const signed = await unisat.signPsbt(builtInfo.order.toHex())
     console.log({ signed })
 
-    let pushed: any
+    let pushRes: any
     // 2. push
     switch (builtInfo!.type) {
       case 'buy':
       case 'free claim':
-        pushed = await pushBuyTake({
+        pushRes = await pushBuyTake({
           psbtRaw: signed,
           network: networkStore.ordersNetwork,
           orderId: builtInfo.orderId,
         })
         break
       case 'sell':
-        pushed = await pushSellTake({
+        pushRes = await pushSellTake({
           psbtRaw: signed,
           network: networkStore.ordersNetwork,
           orderId: builtInfo.orderId,
@@ -102,7 +103,7 @@ async function submitOrder() {
         })
         break
       case 'bid':
-        pushed = await pushBidOrder({
+        pushRes = await pushBidOrder({
           psbtRaw: signed,
           network: networkStore.ordersNetwork,
           address: addressStore.get!,
@@ -115,7 +116,7 @@ async function submitOrder() {
         })
         break
       case 'ask':
-        pushed = await pushAskOrder({
+        pushRes = await pushAskOrder({
           psbtRaw: signed,
           network: networkStore.ordersNetwork,
           address: addressStore.get!,
@@ -124,8 +125,6 @@ async function submitOrder() {
         })
         break
     }
-
-    console.log({ pushed })
   } catch (err: any) {
     // if error message contains missingorspent / mempool-conflict, show a more user-friendly message
     if (
@@ -142,7 +141,10 @@ async function submitOrder() {
     return
   }
 
-  // 4. close modal
+  // Start cooldowner: observe certain input utxo (payment or brc20), see if its consumption is witnessed by the network
+  // cooldowner.start({
+  //   observing: builtInfo.observing,
+  // })
 
   // Show success message
   emit('update:isOpen', false)

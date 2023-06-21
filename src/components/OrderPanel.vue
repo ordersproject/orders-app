@@ -459,7 +459,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
         >
           <div class="relative">
             <h3 class="font-sm text-center font-bold text-orange-300">
-              Create Limit Exchange Order
+              Create Limit Order
             </h3>
 
             <!-- close button -->

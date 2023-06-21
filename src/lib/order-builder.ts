@@ -126,6 +126,10 @@ export async function buildAskLimit({
     toSymbol: 'BTC',
     fromValue: amount,
     toValue: total,
+    observing: {
+      txId: ordinalUtxo.txId,
+      outputIndex: ordinalUtxo.outputIndex,
+    },
   }
 }
 
@@ -262,7 +266,7 @@ export async function buildBidLimit({
   totalInput += paymentInput.witnessUtxo.value
 
   // Step 9: add change output
-  const feeb = btcNetwork === 'bitcoin' ? 10 : 1
+  const feeb = btcNetwork === 'bitcoin' ? 12 : 1
   const fee = calculatePsbtFee(feeb, bid)
 
   const totalOutput = bid.txOutputs.reduce(
