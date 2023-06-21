@@ -22,7 +22,6 @@ const utils = {
     const networkStore = useNetworkStore()
     if (!address) return
     const candidates = await getUtxos2(address).then((utxos) => {
-      console.log({ utxos })
       // only take two dummy utxos
       return utxos
         .filter((utxo) => utxo.satoshis === DUMMY_UTXO_VALUE)

@@ -165,26 +165,35 @@ export const getMarketPrice = async ({ tick }: { tick: string }) => {
   return marketPrice / 1e8
 }
 
-export type Brc20 = {
+export type Brc20Transferable = {
   inscriptionId: string
   inscriptionNumber: string
   amount: string
 }
-export const getBrc20s = async ({
+export type Brc20Info = {
+  availableBalance: string
+  balance: string
+  limit: string
+  transferBalance: string
+  transferBalanceList: Brc20Transferable[]
+}
+export const getBrc20Info = async ({
   tick,
   address,
 }: {
   tick: string
   address: string
 }) => {
-  const brc20s: Brc20[] = await ordersApiFetch(`address/${address}/${tick}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  }).then(({ transferBalanceList }) => transferBalanceList)
-  console.log({ brc20s })
+  const brc20Info: Brc20Info = await ordersApiFetch(
+    `address/${address}/${tick}`,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  )
 
-  return brc20s || []
+  return brc20Info || {}
 }
 
 export const pushSellTake = async ({

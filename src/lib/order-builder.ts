@@ -13,7 +13,7 @@ import {
 } from './constants'
 import {
   getBidCandidateInfo,
-  getBrc20s,
+  getBrc20Info,
   getOneOrder,
 } from '@/queries/orders-api'
 import { getUtxos2, type SimpleUtxoFromMempool } from '@/queries/proxy'
@@ -58,12 +58,14 @@ export async function buildAskLimit({
 
     ordinalUtxo = cardinalUtxo
   } else {
-    let transferable = await getBrc20s({
+    let transferable = await getBrc20Info({
       tick: 'rdex',
       address,
-    }).then((brc20s) => {
+    }).then((brc20Info) => {
       // choose a real ordinal with the right amount, not the white amount (Heil Uncle Roger!)
-      return brc20s.find((brc20) => Number(brc20.amount) === amount)
+      return brc20Info.transferBalanceList.find(
+        (brc20) => Number(brc20.amount) === amount
+      )
     })
     if (!transferable) {
       throw new Error('No suitable BRC20 tokens')
@@ -516,12 +518,14 @@ export async function buildSellTake({
 
     ordinalUtxo = cardinalUtxo
   } else {
-    let transferable = await getBrc20s({
+    let transferable = await getBrc20Info({
       tick: 'rdex',
       address,
-    }).then((brc20s) => {
+    }).then((brc20Info) => {
       // choose a real ordinal with the right amount, not the white amount (Heil Uncle Roger!)
-      return brc20s.find((brc20) => Number(brc20.amount) === amount)
+      return brc20Info.transferBalanceList.find(
+        (brc20) => Number(brc20.amount) === amount
+      )
     })
     if (!transferable) {
       throw new Error('No suitable BRC20 tokens')

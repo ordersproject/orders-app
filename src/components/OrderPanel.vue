@@ -43,10 +43,10 @@ import {
   getOrdiBalance,
   getBidCandidates,
   getOrders,
-  getBrc20s,
+  getBrc20Info,
   getMarketPrice,
   type Order,
-  type Brc20,
+  type Brc20Transferable,
   type BidCandidate,
 } from '@/queries/orders-api'
 import { getFeebPlans, type FeebPlan } from '@/queries/proxy'
@@ -386,16 +386,16 @@ const { data: ordiBalance } = useQuery({
   ],
   queryFn: () => getOrdiBalance(addressStore.get!, networkStore.network),
 })
-const { data: myBrc20Candidates } = useQuery({
+const { data: myBrc20Info } = useQuery({
   queryKey: [
-    'myBrc20Candidates',
+    'myBrc20Info',
     {
       address: addressStore.get,
       network: networkStore.network,
     },
   ],
   queryFn: () =>
-    getBrc20s({
+    getBrc20Info({
       address: addressStore.get!,
       tick: 'rdex',
     }),
@@ -404,7 +404,7 @@ const { data: myBrc20Candidates } = useQuery({
     () => networkStore.network !== 'testnet' && !!addressStore.get
   ),
 })
-const selectedAskCandidate: Ref<Brc20 | undefined> = ref()
+const selectedAskCandidate: Ref<Brc20Transferable | undefined> = ref()
 
 const { data: btcBalance } = useQuery({
   queryKey: [
@@ -729,7 +729,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                         class="absolute z-10 mt-4 max-h-60 w-full translate-x-2 overflow-auto rounded-md border border-zinc-500 bg-zinc-900 p-2 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
                       >
                         <ListboxOption
-                          v-for="askCandidate in myBrc20Candidates"
+                          v-for="askCandidate in myBrc20Info?.transferBalanceList"
                           v-slot="{ active, selected }"
                           as="template"
                           :key="askCandidate.inscriptionId"
