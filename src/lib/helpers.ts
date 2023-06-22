@@ -2,7 +2,8 @@ import { type Psbt } from 'bitcoinjs-lib'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
-import { useAddressStore, useNetworkStore } from '@/store'
+import { useAddressStore } from '@/store'
+import { FEEB_MULTIPLIER } from './constants'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -35,9 +36,7 @@ export function calculatePsbtFee(feeRate: number, psbt: Psbt) {
   const fee = Math.max(virtualSize * feeRate, 546)
 
   // bump up the fee
-  const bumpBy = 1.4
-
-  return Math.round(fee * bumpBy)
+  return Math.round(fee * FEEB_MULTIPLIER)
 }
 
 export const prettyAddress = (address: string, len = 6) => {

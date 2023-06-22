@@ -58,10 +58,12 @@ import {
 } from '@/store'
 import { buildBuyTake } from '@/lib/order-builder'
 import utils from '@/utils'
+import whitelist from '@/lib/whitelist'
 
 import OrderPanelHeader from './OrderPanelHeader.vue'
 import OrderList from './OrderList.vue'
 import OrderConfirmationModal from './OrderConfirmationModal.vue'
+import { HelpCircleIcon } from 'lucide-vue-next'
 
 const unisat = window.unisat
 
@@ -69,6 +71,10 @@ const btcJsStore = useBtcJsStore()
 const addressStore = useAddressStore()
 const dummiesStore = useDummiesStore()
 const networkStore = useNetworkStore()
+
+const inWhitelist = computed(() => {
+  return addressStore.get && whitelist.includes(addressStore.get)
+})
 
 const { data: askOrders } = useQuery({
   queryKey: ['askOrders', { network: networkStore.network, tick: 'rdex' }],
@@ -482,12 +488,16 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
               v-slot="{ selectedIndex }"
             >
               <Tab
-                class="w-28 rounded py-2"
                 :class="
-                  selectedIndex === 0
-                    ? 'bg-green-500 text-white'
-                    : 'bg-zinc-700 text-zinc-300'
+                  cn(
+                    'w-28 rounded py-2',
+                    selectedIndex === 0
+                      ? 'bg-green-500 text-white'
+                      : 'bg-zinc-700 text-zinc-300',
+                    { 'cursor-not-allowed': !inWhitelist }
+                  )
                 "
+                :disabled="!inWhitelist"
               >
                 Bid
               </Tab>
@@ -784,6 +794,18 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   >
                     {{ `Balance: ${ordiBalance} RDEX` }}
                   </div>
+                </div>
+
+                <!-- how to -->
+                <div
+                  class="mt-4 text-right text-xs text-zinc-400 underline underline-offset-2 transition hover:text-orange-300"
+                >
+                  <a
+                    href="https://canary-sailor-7ad.notion.site/How-to-place-an-ASK-order-faedef7a12134b57a40962b06d75c024"
+                    target="_blank"
+                  >
+                    How to place an ASK order?
+                  </a>
                 </div>
 
                 <!-- buy -->

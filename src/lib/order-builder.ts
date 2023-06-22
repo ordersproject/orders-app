@@ -482,6 +482,10 @@ export async function buildBuyTake({
     fromValue: sellerOutput.value,
     toValue: order.coinAmount,
     isFree,
+    observing: {
+      txId: paymentUtxo.txId,
+      outputIndex: paymentUtxo.outputIndex,
+    },
   }
 }
 
@@ -589,5 +593,9 @@ export async function buildSellTake({
     toSymbol: 'BTC',
     fromValue: amount,
     toValue: total,
+    observing: {
+      txId: ordinalUtxo.txId,
+      outputIndex: ordinalUtxo.outputIndex,
+    },
   }
 }

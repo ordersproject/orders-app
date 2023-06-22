@@ -12,7 +12,8 @@ defineEmits(['update:isLimitExchangeMode'])
 const addressStore = useAddressStore()
 
 const inWhitelist = computed(() => {
-  return addressStore.get && whitelist.includes(addressStore.get)
+  return addressStore.get
+  // return addressStore.get && whitelist.includes(addressStore.get)
 })
 </script>
 
