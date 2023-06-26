@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useQuery } from '@tanstack/vue-query'
 import { ShieldAlertIcon, CheckCircle2 } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
 
 import logo from '@/assets/logo-new.png?url'
 import unisatIcon from '@/assets/unisat-icon.png?url'
@@ -24,6 +25,7 @@ import AssetsDisplay from './AssetsDisplay.vue'
 const addressStore = useAddressStore()
 const networkStore = useNetworkStore()
 const dummiesStore = useDummiesStore()
+const router = useRouter()
 
 onMounted(async () => {
   // check if unisat is available
@@ -136,13 +138,17 @@ function copyAddress() {
 }
 
 const unisatModalOpen = ref(false)
+
+const toHomepage = () => {
+  router.push('/')
+}
 </script>
 
 <template>
   <UnisatModal v-model:open="unisatModalOpen" />
 
   <header class="flex items-center justify-between px-6 py-4">
-    <h1 class="flex items-center gap-2">
+    <h1 class="flex items-center gap-2 cursor-pointer" @click="toHomepage">
       <el-tooltip
         effect="light"
         placement="right"
