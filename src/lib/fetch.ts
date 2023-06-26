@@ -10,8 +10,22 @@ async function fetchWrapper(url: string, options?: RequestInit): Promise<any> {
 
 export default fetchWrapper
 
-export async function ordersApiFetch(url: string, options?: RequestInit) {
+export async function ordersApiFetch(
+  url: string,
+  options?: { headers?: HeadersInit } & RequestInit
+) {
   const ordersApiUrl = `https://api.ordbook.io/book/brc20/${url}`
+  if (!options)
+    options = {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+
+  if (options.headers && 'Content-Type' in options.headers) {
+  } else {
+    options.headers = { ...options.headers, 'Content-Type': 'application/json' }
+  }
 
   const jsoned: {
     code: number

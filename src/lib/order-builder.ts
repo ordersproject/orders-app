@@ -5,33 +5,37 @@ import {
   useNetworkStore,
 } from '@/store'
 import { calculatePsbtFee } from './helpers'
-import { getTxHex } from '@/queries/proxy'
 import {
   DUMMY_UTXO_VALUE,
   SERVICE_LIVENET_ADDRESS,
   SERVICE_TESTNET_ADDRESS,
-} from './constants'
+} from '@/data/constants'
 import {
   getBidCandidateInfo,
-  getBrc20Info,
+  getOneBrc20,
   getOneOrder,
 } from '@/queries/orders-api'
-import { getUtxos2, type SimpleUtxoFromMempool } from '@/queries/proxy'
+import {
+  getUtxos2,
+  type SimpleUtxoFromMempool,
+  getTxHex,
+} from '@/queries/proxy'
+import { selectPair, type TradingPair } from '@/data/trading-pairs'
 
 export async function buildAskLimit({
   total,
   amount,
+  selectedPair,
 }: {
   total: number
   amount: number
+  selectedPair: TradingPair
 }) {
   const networkStore = useNetworkStore()
   const btcjs = useBtcJsStore().get!
   const address = useAddressStore().get!
 
   // 获取地址
-  const tick = 'rdex'
-
   // Step 1: Get the ordinal utxo as input
   // if testnet, we use a cardinal utxo as a fake one
   let ordinalUtxo: SimpleUtxoFromMempool
@@ -58,8 +62,8 @@ export async function buildAskLimit({
 
     ordinalUtxo = cardinalUtxo
   } else {
-    let transferable = await getBrc20Info({
-      tick: 'rdex',
+    let transferable = await getOneBrc20({
+      tick: selectedPair.fromSymbol,
       address,
     }).then((brc20Info) => {
       // choose a real ordinal with the right amount, not the white amount (Heil Uncle Roger!)
@@ -122,8 +126,8 @@ export async function buildAskLimit({
     networkFee: 0,
     serviceFee: 0,
     totalSpent: 0,
-    fromSymbol: 'RDEX',
-    toSymbol: 'BTC',
+    fromSymbol: selectedPair.fromSymbol,
+    toSymbol: selectedPair.toSymbol,
     fromValue: amount,
     toValue: total,
     observing: {
@@ -138,11 +142,13 @@ export async function buildBidLimit({
   coinAmount,
   inscriptionId,
   inscriptionNumber,
+  selectedPair,
 }: {
   total: number
   coinAmount: number
   inscriptionId: string
   inscriptionNumber: string
+  selectedPair: TradingPair
 }) {
   const networkStore = useNetworkStore()
   const orderNetwork = networkStore.network
@@ -153,7 +159,7 @@ export async function buildBidLimit({
   // Step 1. prepare bid from exchange
   const candidateInfo = await getBidCandidateInfo({
     network: orderNetwork,
-    tick: 'rdex',
+    tick: selectedPair.fromSymbol,
     inscriptionId,
     inscriptionNumber,
     coinAmount,
@@ -282,7 +288,6 @@ export async function buildBidLimit({
   }
   // const changeValue = totalInput - totalOutput - fee
 
-  console.log({ changeValue, totalInput, totalOutput, fee, spent })
   const totalSpent = total + serviceFee + fee - ordValue
 
   bid.addOutput({
@@ -298,8 +303,8 @@ export async function buildBidLimit({
     networkFee: fee,
     total,
     using,
-    fromSymbol: 'BTC',
-    toSymbol: 'RDEX',
+    fromSymbol: selectedPair.toSymbol, // reversed
+    toSymbol: selectedPair.fromSymbol,
     fromValue: total,
     toValue: coinAmount,
     serviceFee,
@@ -311,6 +316,7 @@ export async function buildBidLimit({
 export async function buildBuyTake({
   order,
   feeb,
+  selectedPair,
 }: {
   order: {
     coinRatePrice: number
@@ -320,6 +326,7 @@ export async function buildBuyTake({
     freeState?: number
   }
   feeb: number
+  selectedPair: TradingPair
 }) {
   const address = useAddressStore().get!
   const btcjs = useBtcJsStore().get!
@@ -462,8 +469,6 @@ export async function buildBuyTake({
 
   const totalSpent = sellerOutput.value + serviceFee + fee - ordValue
 
-  console.log({ changeValue, totalInput, totalOutput, fee })
-
   buyPsbt.addOutput({
     address,
     value: changeValue,
@@ -477,8 +482,8 @@ export async function buildBuyTake({
     networkFee: fee,
     serviceFee,
     totalSpent,
-    fromSymbol: 'BTC',
-    toSymbol: 'RDEX',
+    fromSymbol: selectedPair.toSymbol,
+    toSymbol: selectedPair.fromSymbol,
     fromValue: sellerOutput.value,
     toValue: order.coinAmount,
     isFree,
@@ -492,9 +497,11 @@ export async function buildBuyTake({
 export async function buildSellTake({
   total,
   amount,
+  selectedPair,
 }: {
   total: number
   amount: number
+  selectedPair: TradingPair
 }) {
   const networkStore = useNetworkStore()
   const address = useAddressStore().get!
@@ -526,8 +533,8 @@ export async function buildSellTake({
 
     ordinalUtxo = cardinalUtxo
   } else {
-    let transferable = await getBrc20Info({
-      tick: 'rdex',
+    let transferable = await getOneBrc20({
+      tick: selectedPair.fromSymbol,
       address,
     }).then((brc20Info) => {
       // choose a real ordinal with the right amount, not the white amount (Heil Uncle Roger!)
@@ -589,8 +596,8 @@ export async function buildSellTake({
     networkFee: 0,
     serviceFee: 0,
     totalSpent: 0,
-    fromSymbol: 'RDEX',
-    toSymbol: 'BTC',
+    fromSymbol: selectedPair.fromSymbol,
+    toSymbol: selectedPair.toSymbol,
     fromValue: amount,
     toValue: total,
     observing: {

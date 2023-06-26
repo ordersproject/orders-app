@@ -9,7 +9,7 @@ import 'element-plus/theme-chalk/dark/css-vars.css'
 import { VueQueryPlugin, type VueQueryPluginOptions } from '@tanstack/vue-query'
 
 const routes = [
-  { path: '/', component: Home },
+  { path: '/orders/:pair?', component: Home, alias: '/' },
   { path: '/dev', component: Dev },
 ]
 const router = VueRouter.createRouter({

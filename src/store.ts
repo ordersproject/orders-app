@@ -3,6 +3,7 @@ type BitcoinJs = typeof import('bitcoinjs-lib')
 import { useLocalStorage, type RemovableRef } from '@vueuse/core'
 
 import { type SimpleUtxoFromMempool } from './queries/proxy'
+import { type TradingPair } from './data/trading-pairs'
 
 export const useAddressStore = defineStore('address', {
   state: () => {
@@ -156,3 +157,17 @@ export const useCooldownerStore = defineStore('cooldowner', {
     },
   },
 })
+
+// export const usePairStore = defineStore('pair', {
+//   state: () => {
+//     return {
+//       id: useLocalStorage('currentPairId', 1) as RemovableRef<number>,
+//     }
+//   },
+
+//   actions: {
+//     set(id: number) {
+//       this.id = id
+//     },
+//   },
+// })

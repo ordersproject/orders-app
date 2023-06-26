@@ -1,10 +1,9 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
 
-import btcLogo from '@/assets/btc.svg?url'
-import rdexLogo from '@/assets/rdex.png?url'
-import whitelist from '@/lib/whitelist'
 import { useAddressStore } from '@/store'
+
+import PairSelect from './PairSelect.vue'
 
 defineProps(['isLimitExchangeMode'])
 defineEmits(['update:isLimitExchangeMode'])
@@ -13,25 +12,16 @@ const addressStore = useAddressStore()
 
 const inWhitelist = computed(() => {
   return addressStore.get
-  // return addressStore.get && whitelist.includes(addressStore.get)
 })
 </script>
 
 <template>
   <div
-    class="grid grid-cols-6 items-center justify-between border-b border-zinc-300 px-4 py-2"
+    class="flex items-center justify-between border-b border-zinc-300 px-4 py-2"
   >
-    <!-- empty placeholder -->
-    <div class="col-span-2"></div>
-
-    <!-- title -->
+    <!-- pair select -->
     <div class="col-span-2 flex items-center justify-center gap-2">
-      <div class="flex">
-        <img :src="rdexLogo" class="h-8" />
-        <img :src="btcLogo" class="-ml-2 h-8" />
-      </div>
-
-      <span class="font-bold">RDEX-BTC</span>
+      <PairSelect />
     </div>
 
     <!-- limit exchange button -->

@@ -15,7 +15,7 @@ import {
 } from '@/store'
 import { getAddress } from '@/queries/unisat'
 import utils from '@/utils'
-import { VERSION } from '@/lib/constants'
+import { VERSION } from '@/data/constants'
 import whitelist from '@/lib/whitelist'
 
 import UnisatModal from './UnisatModal.vue'
@@ -221,3 +221,4 @@ const unisatModalOpen = ref(false)
     </div>
   </header>
 </template>
+@/data/constants

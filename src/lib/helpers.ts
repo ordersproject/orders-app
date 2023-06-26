@@ -3,7 +3,7 @@ import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
 import { useAddressStore } from '@/store'
-import { FEEB_MULTIPLIER } from './constants'
+import { FEEB_MULTIPLIER } from '../data/constants'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -55,9 +55,9 @@ export const prettyBtcDisplay = (balance: number | string) => {
 }
 
 export const prettyCoinDisplay = (balance: number | string, symbol: string) => {
-  if (symbol === 'BTC') return prettyBtcDisplay(balance)
+  if (symbol.toUpperCase() === 'BTC') return prettyBtcDisplay(balance)
 
-  return `${balance} ${symbol}`
+  return `${balance} ${symbol.toUpperCase()}`
 }
 
 export const sleep = (ms: number) => {

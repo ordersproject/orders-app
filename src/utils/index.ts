@@ -9,7 +9,7 @@ import {
 } from '@/store'
 import { getUtxos2, getTxHex } from '@/queries/proxy'
 import { calculatePsbtFee } from '@/lib/helpers'
-import { DUMMY_UTXO_VALUE, EXTREME_FEEB, MIN_FEEB } from '@/lib/constants'
+import { DUMMY_UTXO_VALUE, EXTREME_FEEB, MIN_FEEB } from '@/data/constants'
 const utils = {
   checkAndSelectDummies: async ({
     checkOnly = false,

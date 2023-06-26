@@ -1,15 +1,17 @@
 <script lang="ts" setup>
 import { useQuery } from '@tanstack/vue-query'
+import { computed, inject } from 'vue'
 
 import { getMarketPrice, type Order } from '@/queries/orders-api'
 import { useNetworkStore } from '@/store'
 import { cn } from '@/lib/helpers'
+import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
 
 import OrderItem from './OrderItem.vue'
 
 const networkStore = useNetworkStore()
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     askOrders?: Order[]
     bidOrders?: Order[]
@@ -19,12 +21,24 @@ withDefaults(
     bidOrders: () => [],
   }
 )
+const rearrangedAskOrders = computed(() => {
+  // extract all free orders and put them at the bottom
+  const freeOrders = props.askOrders.filter((order) => order.freeState === 1)
+  const nonFreeOrders = props.askOrders.filter((order) => order.freeState !== 1)
+
+  return [...nonFreeOrders, ...freeOrders]
+})
 
 defineEmits(['useBuyPrice', 'useSellPrice'])
 
+const selectedPair = inject(selectedPairKey, defaultPair)
+
 const { data: marketPrice } = useQuery({
-  queryKey: ['marketPrice', { network: networkStore.network, tick: 'rdex' }],
-  queryFn: () => getMarketPrice({ tick: 'rdex' }),
+  queryKey: [
+    'marketPrice',
+    { network: networkStore.network, tick: selectedPair.fromSymbol },
+  ],
+  queryFn: () => getMarketPrice({ tick: selectedPair.fromSymbol }),
 })
 </script>
 
@@ -36,7 +50,9 @@ const { data: marketPrice } = useQuery({
           <tr>
             <th class="th"></th>
             <th class="th">Price (BTC)</th>
-            <th class="th">Amount (RDEX)</th>
+            <th class="th">
+              Amount ({{ selectedPair.fromSymbol.toUpperCase() }})
+            </th>
             <th class="th">Total (BTC)</th>
             <th class="th"></th>
           </tr>
@@ -44,7 +60,7 @@ const { data: marketPrice } = useQuery({
 
         <tbody v-if="askOrders.length">
           <OrderItem
-            v-for="order in askOrders"
+            v-for="order in rearrangedAskOrders"
             :key="order.orderId"
             :order="order"
             :order-type="'ask'"
@@ -84,7 +100,9 @@ const { data: marketPrice } = useQuery({
           <tr class="">
             <th class="th"></th>
             <th class="th">Price (BTC)</th>
-            <th class="th">Amount (RDEX)</th>
+            <th class="th">
+              Amount ({{ selectedPair.fromSymbol.toUpperCase() }})
+            </th>
             <th class="th">Total (BTC)</th>
             <th class="th"></th>
           </tr>

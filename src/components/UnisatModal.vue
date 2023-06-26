@@ -7,11 +7,14 @@ import {
   TransitionRoot,
 } from '@headlessui/vue'
 import { FrownIcon } from 'lucide-vue-next'
+import { ref } from 'vue'
 
 defineProps<{
   open?: boolean
 }>()
 const emit = defineEmits(['update:open'])
+
+const goButtonRef = ref<HTMLElement | null>(null)
 
 function close() {
   emit('update:open', false)
@@ -28,7 +31,12 @@ function goToUnisat() {
 
 <template>
   <TransitionRoot as="template" :show="open">
-    <Dialog as="div" class="relative z-10" @close="close">
+    <Dialog
+      as="div"
+      class="relative z-10"
+      @close="close"
+      :initial-focus="goButtonRef"
+    >
       <TransitionChild
         as="template"
         enter="ease-out duration-300"
@@ -87,6 +95,7 @@ function goToUnisat() {
                   type="button"
                   class="inline-flex w-full justify-center rounded-md bg-orange-300 px-3 py-2 text-sm font-semibold text-orange-950 shadow-sm transition-colors hover:bg-orange-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-300"
                   @click="goToUnisat"
+                  ref="goButtonRef"
                 >
                   Go to Unisat
                 </button>

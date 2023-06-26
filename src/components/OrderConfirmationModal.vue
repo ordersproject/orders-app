@@ -1,17 +1,14 @@
 <script lang="ts" setup>
-import { onMounted, ref, toRaw } from 'vue'
+import { inject, onMounted, ref, toRaw } from 'vue'
 import {
   Dialog,
   DialogPanel,
   DialogTitle,
   DialogDescription,
 } from '@headlessui/vue'
-import { RefreshCcwIcon } from 'lucide-vue-next'
-import { Loader, ArrowDownIcon } from 'lucide-vue-next'
+import { Loader, ArrowDownIcon, RefreshCcwIcon } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 
-import btcIcon from '@/assets/btc.svg?url'
-import rdexIcon from '@/assets/rdex.png?url'
 import { prettyBtcDisplay, prettyCoinDisplay } from '@/lib/helpers'
 import {
   pushBidOrder,
@@ -20,12 +17,21 @@ import {
   pushSellTake,
 } from '@/queries/orders-api'
 import { useAddressStore, useCooldownerStore, useNetworkStore } from '@/store'
+import { DEBUG } from '@/data/constants'
+import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
+
+import btcIcon from '@/assets/btc.svg?url'
+import ordiIcon from '@/assets/ordi.svg?url'
+import rdexIcon from '@/assets/rdex.png?url'
 
 const unisat = window.unisat
 
 const addressStore = useAddressStore()
 const networkStore = useNetworkStore()
 const cooldowner = useCooldownerStore()
+
+const confirmButtonRef = ref<HTMLElement | null>(null)
+const cancelButtonRef = ref<HTMLElement | null>(null)
 
 // modal control
 const props = defineProps([
@@ -45,6 +51,8 @@ function clearBuiltInfo() {
   emit('update:builtInfo', undefined)
 }
 
+const selectedPair = inject(selectedPairKey, defaultPair)
+
 const balance = ref(0)
 async function updateBalance() {
   if (!unisat) return
@@ -60,10 +68,13 @@ onMounted(async () => {
 })
 
 function getIconFromSymbol(symbol: string) {
-  if (symbol === 'BTC') {
-    return btcIcon
-  } else if (symbol === 'RDEX') {
-    return rdexIcon
+  switch (symbol) {
+    case 'btc':
+      return btcIcon
+    case 'ordi':
+      return ordiIcon
+    case 'rdex':
+      return rdexIcon
   }
 
   return ''
@@ -107,7 +118,7 @@ async function submitOrder() {
           psbtRaw: signed,
           network: networkStore.ordersNetwork,
           address: addressStore.get!,
-          tick: 'rdex',
+          tick: selectedPair.fromSymbol,
           feeb: builtInfo.feeb,
           fee: builtInfo.networkFee,
           total: builtInfo.total,
@@ -120,7 +131,7 @@ async function submitOrder() {
           psbtRaw: signed,
           network: networkStore.ordersNetwork,
           address: addressStore.get!,
-          tick: 'rdex',
+          tick: selectedPair.fromSymbol,
           amount: builtInfo.amount,
         })
         break
@@ -156,14 +167,20 @@ async function submitOrder() {
     type: 'success',
     onClose: () => {
       // reload
-      window.location.reload()
+      if (!DEBUG) {
+        window.location.reload()
+      }
     },
   })
 }
 </script>
 
 <template>
-  <Dialog :open="isOpen" @close="$emit('update:isOpen', false)">
+  <Dialog
+    :open="isOpen"
+    @close="$emit('update:isOpen', false)"
+    :initial-focus="cancelButtonRef"
+  >
     <div class="fixed inset-0 bg-black/50 backdrop-blur"></div>
 
     <div class="fixed inset-0 overflow-y-auto text-zinc-300">
@@ -308,19 +325,19 @@ async function submitOrder() {
             </div>
           </DialogDescription>
 
-          <div
-            class="mt-12 flex items-center justify-center gap-4"
-            v-if="builtInfo"
-          >
+          <div class="mt-12 flex items-center justify-center gap-4">
             <button
               @click="discardOrder"
               class="w-24 rounded border border-zinc-700 py-2 text-zinc-500"
+              ref="cancelButtonRef"
             >
               Cancel
             </button>
             <button
               @click="submitOrder"
               class="w-24 rounded border border-zinc-500 py-2"
+              ref="confirmButtonRef"
+              v-if="builtInfo"
             >
               Confirm
             </button>
@@ -330,3 +347,4 @@ async function submitOrder() {
     </div>
   </Dialog>
 </template>
+@/data/constants

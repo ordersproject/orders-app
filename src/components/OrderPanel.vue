@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Ref, computed, onMounted, ref, watch } from 'vue'
+import { Ref, computed, onMounted, provide, ref, watch } from 'vue'
 import {
   TabGroup,
   TabList,
@@ -26,7 +26,6 @@ import { ElMessage } from 'element-plus'
 import { useQuery } from '@tanstack/vue-query'
 
 import btcIcon from '@/assets/btc.svg?url'
-import rdexIcon from '@/assets/rdex.png?url'
 import {
   calculateFee,
   cn,
@@ -43,7 +42,7 @@ import {
   getOrdiBalance,
   getBidCandidates,
   getOrders,
-  getBrc20Info,
+  getOneBrc20,
   getMarketPrice,
   type Order,
   type Brc20Transferable,
@@ -63,7 +62,7 @@ import whitelist from '@/lib/whitelist'
 import OrderPanelHeader from './OrderPanelHeader.vue'
 import OrderList from './OrderList.vue'
 import OrderConfirmationModal from './OrderConfirmationModal.vue'
-import { HelpCircleIcon } from 'lucide-vue-next'
+import { selectPair, selectedPairKey } from '@/data/trading-pairs'
 
 const unisat = window.unisat
 
@@ -75,26 +74,34 @@ const networkStore = useNetworkStore()
 const inWhitelist = computed(() => {
   return addressStore.get && whitelist.includes(addressStore.get)
 })
+const selectedPair = selectPair()
+provide(selectedPairKey, selectedPair)
 
 const { data: askOrders } = useQuery({
-  queryKey: ['askOrders', { network: networkStore.network, tick: 'rdex' }],
+  queryKey: [
+    'askOrders',
+    { network: networkStore.network, tick: selectedPair.fromSymbol },
+  ],
   queryFn: () =>
     getOrders({
       type: 'ask',
       network: networkStore.network,
       sort: 'desc',
-      tick: 'rdex',
+      tick: selectedPair.fromSymbol,
     }),
   placeholderData: [],
 })
 const { data: bidOrders } = useQuery({
-  queryKey: ['bidOrders', { network: networkStore.network, tick: 'rdex' }],
+  queryKey: [
+    'bidOrders',
+    { network: networkStore.network, tick: selectedPair.fromSymbol },
+  ],
   queryFn: () =>
     getOrders({
       type: 'bid',
       network: networkStore.network,
       sort: 'desc',
-      tick: 'rdex',
+      tick: selectedPair.fromSymbol,
     }),
   placeholderData: [],
 })
@@ -271,6 +278,7 @@ async function buildOrder() {
           coinAmount: Number(selectedBidCandidate.value.coinAmount),
           inscriptionId: selectedBidCandidate.value.inscriptionId,
           inscriptionNumber: selectedBidCandidate.value.inscriptionNumber,
+          selectedPair,
         })
       } else {
         buildRes = await buildAskLimit({
@@ -278,6 +286,7 @@ async function buildOrder() {
             askExchangePrice.value * askLimitBrcAmount.value * 1e8
           ),
           amount: askLimitBrcAmount.value,
+          selectedPair,
         })
       }
     } else {
@@ -288,6 +297,7 @@ async function buildOrder() {
         buildRes = await buildBuyTake({
           order: selectedBuyOrders.value[0],
           feeb: selectedFeebPlan.value?.feeRate || 1,
+          selectedPair,
         })
       } else if (takeModeTab.value === 1) {
         // sell
@@ -300,6 +310,7 @@ async function buildOrder() {
         const sellTake = await buildSellTake({
           total,
           amount: selectedSellCoinAmount.value,
+          selectedPair,
         }).catch(async (err) => {
           await sleep(500)
 
@@ -333,7 +344,7 @@ async function buildOrder() {
 }
 
 async function goInscribe() {
-  await window.unisat.inscribeTransfer('rdex')
+  await window.unisat.inscribeTransfer(selectedPair.fromSymbol)
 }
 
 // confirm modal
@@ -348,8 +359,11 @@ const builtInfo = ref()
 const isLimitExchangeMode = ref(false)
 const limitExchangeType: Ref<'bid' | 'ask'> = ref('bid')
 const { data: marketPrice } = useQuery({
-  queryKey: ['marketPrice', { network: networkStore.network, tick: 'rdex' }],
-  queryFn: () => getMarketPrice({ tick: 'rdex' }),
+  queryKey: [
+    'marketPrice',
+    { network: networkStore.network, tick: selectedPair.fromSymbol },
+  ],
+  queryFn: () => getMarketPrice({ tick: selectedPair.fromSymbol }),
 })
 
 const bidExchangePrice = ref(0)
@@ -401,9 +415,9 @@ const { data: myBrc20Info } = useQuery({
     },
   ],
   queryFn: () =>
-    getBrc20Info({
+    getOneBrc20({
       address: addressStore.get!,
-      tick: 'rdex',
+      tick: selectedPair.fromSymbol,
     }),
 
   enabled: computed(
@@ -439,7 +453,8 @@ const { data: bidCandidates } = useQuery({
       network: networkStore.network,
     },
   ],
-  queryFn: () => getBidCandidates(networkStore.network, 'rdex'),
+  queryFn: () =>
+    getBidCandidates(networkStore.network, selectedPair.fromSymbol),
 })
 const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
 </script>
@@ -557,7 +572,11 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                 <div class="mt-4 rounded-md border border-zinc-500 p-2">
                   <div class="flex items-center justify-between">
                     <div class="flex items-center">
-                      <img :src="rdexIcon" alt="btc icon" class="h-6 w-6" />
+                      <img
+                        :src="selectedPair.fromIcon"
+                        alt="btc icon"
+                        class="h-6 w-6"
+                      />
                       <span class="ml-2 text-zinc-500">Amount</span>
                     </div>
 
@@ -576,7 +595,9 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                         <span
                           class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                         >
-                          <span>RDEX</span>
+                          <span class="uppercase">{{
+                            selectedPair.fromSymbol
+                          }}</span>
                           <ChevronsUpDownIcon
                             class="h-5 w-5"
                             aria-hidden="true"
@@ -690,7 +711,11 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                 <div class="mt-4 rounded-md border border-zinc-500 p-2">
                   <div class="flex items-center justify-between">
                     <div class="flex items-center">
-                      <img :src="rdexIcon" alt="btc icon" class="h-6 w-6" />
+                      <img
+                        :src="selectedPair.fromIcon"
+                        alt="btc icon"
+                        class="h-6 w-6"
+                      />
                       <span class="ml-2 text-zinc-500">Amount</span>
                     </div>
 
@@ -701,13 +726,13 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                       <input
                         type="text"
                         class="w-full rounded bg-zinc-700 py-2 pl-2 pr-16 text-right placeholder-zinc-500 outline-none"
-                        placeholder="Ordi"
+                        :placeholder="selectedPair.fromSymbol"
                         v-model.number="askExchangeOrdiAmount"
                       />
                       <span
-                        class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
+                        class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400 uppercase"
                       >
-                        rdex
+                        {{ selectedPair.fromSymbol }}
                       </span>
                     </div>
 
@@ -727,7 +752,9 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                         <span
                           class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                         >
-                          <span>RDEX</span>
+                          <span class="uppercase">
+                            {{ selectedPair.fromSymbol }}
+                          </span>
                           <ChevronsUpDownIcon
                             class="h-5 w-5"
                             aria-hidden="true"
@@ -790,9 +817,11 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                     class="cursor-pointer pt-2 text-right text-xs text-zinc-500"
                     v-if="networkStore.network === 'testnet'"
                     @click="askExchangeOrdiAmount = ordiBalance || 0"
-                    title="Sell all RDEX"
+                    :title="`Sell all ${selectedPair.fromSymbol.toUpperCase()}`"
                   >
-                    {{ `Balance: ${ordiBalance} RDEX` }}
+                    {{
+                      `Balance: ${ordiBalance} ${selectedPair.fromSymbol.toUpperCase()}`
+                    }}
                   </div>
                 </div>
 
@@ -900,7 +929,11 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                 class="mt-4 flex items-center justify-between rounded-md border border-zinc-500 p-2"
               >
                 <div class="flex items-center">
-                  <img :src="rdexIcon" alt="btc icon" class="h-6 w-6" />
+                  <img
+                    :src="selectedPair.fromIcon"
+                    alt="btc icon"
+                    class="h-6 w-6"
+                  />
                   <span class="ml-2 text-zinc-500">Amount</span>
                 </div>
 
@@ -920,7 +953,9 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                     <span
                       class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                     >
-                      <span>RDEX</span>
+                      <span class="uppercase">{{
+                        selectedPair.fromSymbol
+                      }}</span>
                       <ChevronsUpDownIcon class="h-5 w-5" aria-hidden="true" />
                     </span>
                   </ListboxButton>
@@ -1023,7 +1058,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   @click="buildOrder"
                   :disabled="!selectedBuyOrders.length"
                 >
-                  Buy RDEX
+                  Buy {{ selectedPair.fromSymbol.toUpperCase() }}
                 </button>
 
                 <div
@@ -1077,7 +1112,11 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                 class="mt-4 flex items-center justify-between rounded-md border border-zinc-500 p-2"
               >
                 <div class="flex items-center">
-                  <img :src="rdexIcon" alt="btc icon" class="h-6 w-6" />
+                  <img
+                    :src="selectedPair.fromIcon"
+                    alt="btc icon"
+                    class="h-6 w-6"
+                  />
                   <span class="ml-2 text-zinc-500">Amount</span>
                 </div>
 
@@ -1097,7 +1136,9 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                     <span
                       class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                     >
-                      <span>RDEX</span>
+                      <span class="uppercase">{{
+                        selectedPair.fromSymbol
+                      }}</span>
                       <ChevronsUpDownIcon class="h-5 w-5" aria-hidden="true" />
                     </span>
                   </ListboxButton>
@@ -1138,7 +1179,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                 class="z-[-1] -mt-1 overflow-hidden rounded-lg bg-zinc-950 text-xs text-zinc-500"
               >
                 <div class="px-6 py-2">
-                  <h4 class="text-sm">RDEX Balance</h4>
+                  <h4 class="text-sm">Balance</h4>
 
                   <div class="mt-4">
                     <div class="">Available: 2000</div>
@@ -1217,7 +1258,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   @click="buildOrder"
                   :disabled="!selectedSellOrders.length"
                 >
-                  Sell RDEX
+                  Sell {{ selectedPair.fromSymbol.toUpperCase() }}
                 </button>
 
                 <div

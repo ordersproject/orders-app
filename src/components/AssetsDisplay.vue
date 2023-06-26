@@ -1,20 +1,22 @@
 <script lang="ts" setup>
-import { useQuery } from '@tanstack/vue-query'
+import { useQueries, useQuery } from '@tanstack/vue-query'
 import { ElMessage } from 'element-plus'
 import { computed, watch } from 'vue'
 import { LoaderIcon, ChevronsUpDownIcon } from 'lucide-vue-next'
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 
 import { cn, prettyCoinDisplay } from '@/lib/helpers'
 import { useAddressStore, useNetworkStore } from '@/store'
 import { getBalance } from '@/queries/unisat'
-
-import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
-import { getBrc20Info } from '@/queries/orders-api'
+import { getBrc20s, getOneBrc20 } from '@/queries/orders-api'
+import tradingPairs, { selectPair } from '@/data/trading-pairs'
 
 const networkStore = useNetworkStore()
 const addressStore = useAddressStore()
 const address = computed(() => addressStore.get)
 const enabled = computed(() => !!addressStore.get)
+
+const selectedPair = selectPair()
 
 const { data: balance } = useQuery({
   queryKey: [
@@ -38,19 +40,15 @@ watch(
   }
 )
 
-const { data: myBrc20Info } = useQuery({
+const { data: myBrc20s } = useQuery({
   queryKey: [
-    'myBrc20Info',
+    'myBrc20s',
     {
       address: addressStore.get!,
       network: networkStore.network,
     },
   ],
-  queryFn: () =>
-    getBrc20Info({
-      address: addressStore.get!,
-      tick: 'rdex',
-    }),
+  queryFn: () => getBrc20s({ address: addressStore.get! }),
 
   enabled: computed(
     () => networkStore.network !== 'testnet' && !!addressStore.get
@@ -92,7 +90,7 @@ const { data: myBrc20Info } = useQuery({
             <MenuItem v-slot="{ active }">
               <div
                 :class="
-                  cn('block px-4 py-4 transition-all', active && 'bg-zinc-950')
+                  cn('block px-6 py-4 transition-all', active && 'bg-zinc-950')
                 "
               >
                 <div class="text-orange-300">BTC</div>
@@ -102,19 +100,24 @@ const { data: myBrc20Info } = useQuery({
               </div>
             </MenuItem>
 
-            <MenuItem v-slot="{ active }" v-if="myBrc20Info">
+            <MenuItem
+              v-slot="{ active }"
+              v-if="myBrc20s && myBrc20s.length"
+              v-for="brc20 in myBrc20s"
+              :key="brc20.token"
+            >
               <div
                 :class="
-                  cn('block px-4 py-4 transition-all', active && 'bg-zinc-950')
+                  cn('block px-6 py-4 transition-all', active && 'bg-zinc-950')
                 "
               >
-                <div class="text-orange-300">RDEX</div>
+                <div class="text-orange-300 uppercase">{{ brc20.token }}</div>
                 <div class="mt-2 space-y-1 text-xs">
                   <div class="flex items-center justify-between">
                     <span class="text-zinc-500">Available</span>
                     <span>
                       {{
-                        prettyCoinDisplay(myBrc20Info.availableBalance, 'RDEX')
+                        prettyCoinDisplay(brc20.availableBalance, brc20.token)
                       }}
                     </span>
                   </div>
@@ -122,7 +125,7 @@ const { data: myBrc20Info } = useQuery({
                     <span class="text-zinc-500">Transferable</span>
                     <span>
                       {{
-                        prettyCoinDisplay(myBrc20Info.transferBalance, 'RDEX')
+                        prettyCoinDisplay(brc20.transferBalance, brc20.token)
                       }}
                     </span>
                   </div>

@@ -27,12 +27,7 @@ export const getBidCandidates = async (
   tick: string
 ): Promise<BidCandidate[]> => {
   const candidates: BidCandidate[] = await ordersApiFetch(
-    `order/bid/pre?net=${network}&tick=${tick}`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
+    `order/bid/pre?net=${network}&tick=${tick}`
   ).then(({ availableList }) => availableList)
 
   return candidates || []
@@ -59,12 +54,7 @@ export const getBidCandidateInfo = async ({
   orderId: string
 }> => {
   const candidateInfo = await ordersApiFetch(
-    `order/bid?net=${network}&tick=${tick}&inscriptionId=${inscriptionId}&inscriptionNumber=${inscriptionNumber}&coinAmount=${coinAmount}&total=${total}`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
+    `order/bid?net=${network}&tick=${tick}&inscriptionId=${inscriptionId}&inscriptionNumber=${inscriptionNumber}&coinAmount=${coinAmount}&total=${total}`
   )
 
   return candidateInfo
@@ -99,12 +89,7 @@ export const getOrders = async ({
   const orderType = type === 'ask' ? 1 : 2
   const sortType = sort === 'asc' ? 1 : -1
   const orders: Order[] = await ordersApiFetch(
-    `orders?net=${network}&orderType=${orderType}&orderState=1&sortKey=coinRatePrice&sortType=${sortType}&tick=${tick}`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
+    `orders?net=${network}&orderType=${orderType}&orderState=1&sortKey=coinRatePrice&sortType=${sortType}&tick=${tick}`
   ).then(({ results }) => results)
 
   return orders || []
@@ -123,7 +108,6 @@ export const getOneOrder = async ({
     `order/${orderId}?buyerAddress=${address}`,
     {
       headers: {
-        'Content-Type': 'application/json',
         'X-Signature': signature,
         'X-Public-Key': publicKey,
       },
@@ -144,12 +128,7 @@ export const getMarketPrice = async ({ tick }: { tick: string }) => {
   // const network = useNetworkStore().network
   const network = 'livenet' // TODO
   const marketPrice: number = await ordersApiFetch(
-    `tickers?tick=${tick}&net=${network}`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
+    `tickers?tick=${tick}&net=${network}`
   )
     .then(({ results: tickers }) => tickers)
     .then((tickers: Ticker[]) => {
@@ -170,30 +149,48 @@ export type Brc20Transferable = {
   inscriptionNumber: string
   amount: string
 }
-export type Brc20Info = {
+export type Brc20 = {
   availableBalance: string
   balance: string
   limit: string
   transferBalance: string
   transferBalanceList: Brc20Transferable[]
 }
-export const getBrc20Info = async ({
+export const getOneBrc20 = async ({
   tick,
   address,
 }: {
   tick: string
   address: string
 }) => {
-  const brc20Info: Brc20Info = await ordersApiFetch(
-    `address/${address}/${tick}`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
+  const brc20: Brc20 = await ordersApiFetch(`address/${address}/${tick}`)
+
+  return brc20 || {}
+}
+
+export type Brx20Brief = {
+  balance: string
+  token: string
+  availableBalance: string
+  tokenType: 'BRC20'
+  transferBalance: string
+}
+export const getBrc20s = async ({
+  address,
+  tick,
+}: {
+  address: string
+  tick?: string
+}) => {
+  const network = 'livenet'
+  let path = `address/${address}/balance/info?net=${network}`
+  if (tick) path += `&tick=${tick}`
+
+  const brc20s = await ordersApiFetch(path).then(
+    ({ balanceList }: { balanceList: Brx20Brief[] }) => balanceList
   )
 
-  return brc20Info || {}
+  return brc20s || []
 }
 
 export const pushSellTake = async ({
@@ -213,9 +210,6 @@ export const pushSellTake = async ({
 }) => {
   const sellRes = await ordersApiFetch(`order/bid/do`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({
       net: network,
       psbtRaw,
@@ -247,7 +241,6 @@ export const pushAskOrder = async ({
   const createRes = await ordersApiFetch(`order/ask/push`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
       'X-Signature': signature,
       'X-Public-Key': publicKey,
     },
@@ -284,7 +277,6 @@ export const pushBuyTake = async ({
   const updateRes = await ordersApiFetch(`order/update`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
       'X-Signature': signature,
       'X-Public-Key': publicKey,
     },
@@ -310,7 +302,6 @@ export const cancelOrder = async ({ orderId }: { orderId: string }) => {
   await ordersApiFetch(`order/update`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
       'X-Signature': signature,
       'X-Public-Key': publicKey,
     },
@@ -349,7 +340,6 @@ export const pushBidOrder = async ({
     const createRes = await ordersApiFetch(`order/bid/push`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         'X-Signature': signature,
         'X-Public-Key': publicKey,
       },
