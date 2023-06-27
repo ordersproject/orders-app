@@ -609,6 +609,13 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                         class="absolute z-10 mt-4 max-h-60 w-full translate-x-2 overflow-auto rounded-md border border-zinc-500 bg-zinc-900 p-2 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
                       >
                         <ListboxOption
+                          v-if="!bidCandidates?.length"
+                          :disabled="true"
+                          class="text-right text-zinc-500 text-sm py-2"
+                        >
+                          No liquidity currently.
+                        </ListboxOption>
+                        <ListboxOption
                           v-for="bidCandidate in bidCandidates"
                           v-slot="{ active, selected }"
                           as="template"

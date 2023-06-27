@@ -11,6 +11,8 @@ declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     AssetsDisplay: typeof import('./src/components/AssetsDisplay.vue')['default']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
+    NotAvailableCover: typeof import('./src/components/NotAvailableCover.vue')['default']
+    NotAvailableOverlay: typeof import('./src/components/NotAvailableOverlay.vue')['default']
     OrderConfirmationModal: typeof import('./src/components/OrderConfirmationModal.vue')['default']
     OrderItem: typeof import('./src/components/OrderItem.vue')['default']
     OrderList: typeof import('./src/components/OrderList.vue')['default']

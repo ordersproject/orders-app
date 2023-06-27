@@ -30,6 +30,10 @@ export default defineConfig({
       '@': '/src',
     },
   },
+  server: {
+    open: true,
+    host: true,
+  },
   build: {
     rollupOptions: {
       external: ['bitcoin', 'bitcoin.js'],
