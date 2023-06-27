@@ -7,6 +7,7 @@ import {
 import { calculatePsbtFee } from './helpers'
 import {
   DUMMY_UTXO_VALUE,
+  DUST_UTXO_VALUE,
   SERVICE_LIVENET_ADDRESS,
   SERVICE_TESTNET_ADDRESS,
 } from '@/data/constants'
@@ -456,7 +457,7 @@ export async function buildBuyTake({
   totalInput += paymentInput.witnessUtxo.value
 
   // Step 9: add change output
-  const fee = calculatePsbtFee(feeb, buyPsbt)
+  let fee = calculatePsbtFee(feeb, buyPsbt)
 
   const totalOutput = buyPsbt.txOutputs.reduce(
     (partialSum, a) => partialSum + a.value,
@@ -466,13 +467,16 @@ export async function buildBuyTake({
   if (changeValue < 0) {
     throw new Error('Insufficient balance')
   }
-
+  // if change is too small, we discard it instead of sending it back to the seller
+  if (changeValue >= DUST_UTXO_VALUE) {
+    buyPsbt.addOutput({
+      address,
+      value: changeValue,
+    })
+  } else {
+    fee += changeValue
+  }
   const totalSpent = sellerOutput.value + serviceFee + fee - ordValue
-
-  buyPsbt.addOutput({
-    address,
-    value: changeValue,
-  })
 
   return {
     order: buyPsbt,
