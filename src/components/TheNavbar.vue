@@ -17,6 +17,7 @@ const links = [
   {
     name: 'Trade',
     path: '/',
+    new: false,
   },
   // {
   //   name: 'Whitelist',
