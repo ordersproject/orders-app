@@ -9,7 +9,9 @@ import changelog from '@/data/changelog'
     <div class="mt-8 divide-y divide-zinc-700">
       <div class="py-12 first:pt-0 last:pb-0" v-for="log in changelog">
         <div class="flex items-center">
-          <h2 class="text-lg font-bold text-orange-300">{{ log.version }}</h2>
+          <h2 class="text-lg font-bold text-orange-300">
+            {{ log.version + ' ' + log.emoji }}
+          </h2>
           <span class="ml-auto text-sm text-zinc-500">{{ log.date }}</span>
         </div>
         <ul class="list-disc list-inside mt-2 text-sm">
