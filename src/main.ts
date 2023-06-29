@@ -8,11 +8,14 @@ import './style.css'
 import App from './App.vue'
 import Home from './pages/Home.vue'
 import Whitelist from './pages/Whitelist.vue'
+import Changelog from './pages/Changelog.vue'
 import Dev from './pages/Dev.vue'
 
 const routes = [
   { path: '/orders/:pair?', component: Home, alias: '/' },
   { path: '/whitelist', component: Whitelist },
+  { path: '/changelog', component: Changelog },
+
   { path: '/dev', component: Dev },
 ]
 const router = VueRouter.createRouter({

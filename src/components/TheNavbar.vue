@@ -46,22 +46,10 @@ function isLinkActive(path: string) {
 </script>
 
 <template>
-  <div class="flex items-center gap-2">
-    <!-- <NavbarMenu /> -->
-    <el-tooltip
-      effect="light"
-      placement="right"
-      :content="`Version ${VERSION}`"
-    >
-      <img
-        class="h-9 cursor-pointer"
-        :src="logo"
-        alt="Logo"
-        @click="toHomepage"
-      />
-    </el-tooltip>
+  <div class="flex items-center">
+    <NavbarMenu />
 
-    <nav class="ml-8 flex items-center gap-x-2">
+    <nav class="ml-6 flex items-center gap-x-2">
       <component
         :class="
           cn(
