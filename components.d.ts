@@ -10,9 +10,12 @@ export {}
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     AssetsDisplay: typeof import('./src/components/AssetsDisplay.vue')['default']
+    Claiming: typeof import('./src/components/overlays/Claiming.vue')['default']
+    ClaimingOverlay: typeof import('./src/components/overlays/ClaimingOverlay.vue')['default']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
+    NotAvailable: typeof import('./src/components/overlays/NotAvailable.vue')['default']
     NotAvailableCover: typeof import('./src/components/NotAvailableCover.vue')['default']
-    NotAvailableOverlay: typeof import('./src/components/NotAvailableOverlay.vue')['default']
+    NotAvailableOverlay: typeof import('./src/components/overlays/NotAvailableOverlay.vue')['default']
     OrderConfirmationModal: typeof import('./src/components/OrderConfirmationModal.vue')['default']
     OrderItem: typeof import('./src/components/OrderItem.vue')['default']
     OrderList: typeof import('./src/components/OrderList.vue')['default']
@@ -22,6 +25,7 @@ declare module '@vue/runtime-core' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     TheHeader: typeof import('./src/components/TheHeader.vue')['default']
+    TheNavbar: typeof import('./src/components/TheNavbar.vue')['default']
     UnisatModal: typeof import('./src/components/UnisatModal.vue')['default']
   }
 }

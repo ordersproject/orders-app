@@ -361,3 +361,51 @@ export const pushBidOrder = async ({
     throw e
   }
 }
+
+// Whitelist claim rewards
+export const getOneClaim = async ({
+  tick = 'rdex',
+  address,
+}: {
+  tick?: 'rdex'
+  address: string
+}): Promise<{
+  coinAmount: number
+  fee: number
+  orderId: string
+  psbtRaw: string
+  net: 'livenet' | 'testnet'
+  tick: 'rdex'
+}> => {
+  const network = 'livenet'
+  return await ordersApiFetch(
+    `claim/order?tick=${tick}&address=${address}&net=${network}`
+  )
+}
+
+export const updateClaim = async ({
+  address,
+  orderId,
+  psbtRaw,
+}: {
+  address: string
+  orderId: string
+  psbtRaw: string
+}) => {
+  const network = 'livenet'
+  const { publicKey, signature } = await sign()
+
+  await ordersApiFetch(`claim/order/update`, {
+    method: 'POST',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+    body: JSON.stringify({
+      net: network,
+      address,
+      orderId,
+      psbtRaw,
+    }),
+  })
+}

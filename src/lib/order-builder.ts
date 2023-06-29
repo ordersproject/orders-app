@@ -610,3 +610,147 @@ export async function buildSellTake({
     },
   }
 }
+
+// Claim whitelist reward, similar to buildBuyTake
+export async function buildClaimTake({
+  claimPsbtRaw,
+}: {
+  claimPsbtRaw: string
+}) {
+  const address = useAddressStore().get!
+  const btcjs = useBtcJsStore().get!
+  const btcNetwork = useNetworkStore().btcNetwork
+  const dummiesStore = useDummiesStore()
+
+  // check if dummies is ready
+  if (!dummiesStore.has) {
+    console.log({ d: dummiesStore.get })
+    throw new Error(
+      'Your account does not have 2 dummy UTXOs to proceed the transaction. Please click the top-right shield button to do the preparation.'
+    )
+  }
+
+  const claimPsbt = btcjs.Psbt.fromHex(claimPsbtRaw, {
+    network: btcjs.networks[btcNetwork],
+  })
+
+  const takePsbt = new btcjs.Psbt({
+    network: btcjs.networks[btcNetwork],
+  })
+  let totalInput = 0
+
+  // Step 1: add 2 dummy inputs
+  const dummyUtxos = dummiesStore.get!
+  for (const dummyUtxo of dummyUtxos) {
+    const dummyTx = btcjs.Transaction.fromHex(dummyUtxo.txHex)
+    const dummyInput = {
+      hash: dummyUtxo.txId,
+      index: dummyUtxo.outputIndex,
+      witnessUtxo: dummyTx.outs[dummyUtxo.outputIndex],
+      sighashType: btcjs.Transaction.SIGHASH_ALL,
+    }
+    takePsbt.addInput(dummyInput)
+    totalInput += dummyUtxo.satoshis
+  }
+
+  // Step 2: add placeholder 0-indexed output
+  takePsbt.addOutput({
+    address,
+    value: DUMMY_UTXO_VALUE * 2,
+  })
+
+  // Step 3: add ordinal output
+  const ordValue = claimPsbt.data.inputs[0].witnessUtxo!.value
+  const ordOutput = {
+    address,
+    value: ordValue,
+  }
+  takePsbt.addOutput(ordOutput)
+
+  // Step 4: sellerInput, in
+  const sellerInput = {
+    hash: claimPsbt.txInputs[0].hash,
+    index: claimPsbt.txInputs[0].index,
+    witnessUtxo: claimPsbt.data.inputs[0].witnessUtxo,
+    finalScriptWitness: claimPsbt.data.inputs[0].finalScriptWitness,
+  }
+
+  takePsbt.addInput(sellerInput)
+  totalInput += sellerInput.witnessUtxo!.value
+
+  // Step 5: sellerOutput, in
+  const sellerOutput = claimPsbt.txOutputs[0]
+  takePsbt.addOutput(sellerOutput)
+
+  // Step 6: service fee: skip
+
+  // Step 7: add 2 dummies output for future use
+  takePsbt.addOutput({
+    address,
+    value: DUMMY_UTXO_VALUE,
+  })
+  takePsbt.addOutput({
+    address,
+    value: DUMMY_UTXO_VALUE,
+  })
+
+  // Step 8: add payment input
+  const paymentUtxo = await getUtxos2(address).then((result) => {
+    // choose the largest utxo
+    const utxo = result.reduce((prev, curr) => {
+      if (prev.satoshis > curr.satoshis) {
+        return prev
+      } else {
+        return curr
+      }
+    })
+    return utxo
+  })
+
+  if (!paymentUtxo) {
+    throw new Error('no utxo')
+  }
+
+  // query rawTx of the utxo
+  const rawTx = await getTxHex(paymentUtxo.txId)
+  // decode rawTx
+  const tx = btcjs.Transaction.fromHex(rawTx)
+
+  // construct input
+  const paymentInput = {
+    hash: paymentUtxo.txId,
+    index: paymentUtxo.outputIndex,
+    witnessUtxo: tx.outs[paymentUtxo.outputIndex],
+    sighashType: btcjs.Transaction.SIGHASH_ALL,
+  }
+
+  takePsbt.addInput(paymentInput)
+  totalInput += paymentInput.witnessUtxo.value
+
+  // Step 9: add change output
+  let fee = calculatePsbtFee(15, takePsbt)
+
+  const totalOutput = takePsbt.txOutputs.reduce(
+    (partialSum, a) => partialSum + a.value,
+    0
+  )
+  const changeValue = totalInput - totalOutput - fee
+  if (changeValue < 0) {
+    throw new Error('Insufficient balance')
+  }
+  // if change is too small, we discard it instead of sending it back to the seller
+  if (changeValue >= DUST_UTXO_VALUE) {
+    takePsbt.addOutput({
+      address,
+      value: changeValue,
+    })
+  } else {
+    fee += changeValue
+  }
+
+  console.log({ takePsbt })
+
+  return {
+    order: takePsbt,
+  }
+}

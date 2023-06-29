@@ -49,12 +49,7 @@ import {
   type BidCandidate,
 } from '@/queries/orders-api'
 import { getFeebPlans, type FeebPlan } from '@/queries/proxy'
-import {
-  useAddressStore,
-  useBtcJsStore,
-  useDummiesStore,
-  useNetworkStore,
-} from '@/store'
+import { useAddressStore, useDummiesStore, useNetworkStore } from '@/store'
 import { buildBuyTake } from '@/lib/order-builder'
 import utils from '@/utils'
 import whitelist from '@/lib/whitelist'
@@ -66,7 +61,6 @@ import { selectPair, selectedPairKey } from '@/data/trading-pairs'
 
 const unisat = window.unisat
 
-const btcJsStore = useBtcJsStore()
 const addressStore = useAddressStore()
 const dummiesStore = useDummiesStore()
 const networkStore = useNetworkStore()
@@ -116,11 +110,6 @@ async function updateBalance() {
   }
 }
 onMounted(async () => {
-  const btcjs = window.bitcoin
-  const secp256k1 = await import('tiny-secp256k1')
-  btcjs.initEccLib(secp256k1)
-  btcJsStore.set(btcjs)
-
   // update balance
   await updateBalance()
 })
