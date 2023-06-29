@@ -65,7 +65,7 @@ watch(
         return
       }
 
-      throw err
+      ElMessage.error(err.message)
     })
 
     if (claim) {
