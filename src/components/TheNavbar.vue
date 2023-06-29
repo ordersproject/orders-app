@@ -17,13 +17,12 @@ const links = [
   {
     name: 'Trade',
     path: '/',
-    new: false,
   },
-  // {
-  //   name: 'Whitelist',
-  //   path: '/whitelist',
-  //   new: true,
-  // },
+  {
+    name: 'Whitelist',
+    path: '/whitelist',
+    new: true,
+  },
   {
     name: 'Pool',
     path: '/pool',
