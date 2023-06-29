@@ -13,6 +13,8 @@ declare module '@vue/runtime-core' {
     Claiming: typeof import('./src/components/overlays/Claiming.vue')['default']
     ClaimingOverlay: typeof import('./src/components/overlays/ClaimingOverlay.vue')['default']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
+    HeaderMenu: typeof import('./src/components/HeaderMenu.vue')['default']
+    NavbarMenu: typeof import('./src/components/NavbarMenu.vue')['default']
     NotAvailable: typeof import('./src/components/overlays/NotAvailable.vue')['default']
     NotAvailableCover: typeof import('./src/components/NotAvailableCover.vue')['default']
     NotAvailableOverlay: typeof import('./src/components/overlays/NotAvailableOverlay.vue')['default']

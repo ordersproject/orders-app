@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import logo from '@/assets/logo-new.png?url'
 import { VERSION } from '@/data/constants'
 import { cn } from '@/lib/helpers'
+import NavbarMenu from './NavbarMenu.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -17,11 +18,11 @@ const links = [
     name: 'Trade',
     path: '/',
   },
-  {
-    name: 'Whitelist',
-    path: '/whitelist',
-    new: true,
-  },
+  // {
+  //   name: 'Whitelist',
+  //   path: '/whitelist',
+  //   new: true,
+  // },
   {
     name: 'Pool',
     path: '/pool',
@@ -46,6 +47,7 @@ function isLinkActive(path: string) {
 
 <template>
   <div class="flex items-center gap-2">
+    <!-- <NavbarMenu /> -->
     <el-tooltip
       effect="light"
       placement="right"
