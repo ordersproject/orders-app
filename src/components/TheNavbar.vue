@@ -56,7 +56,7 @@ function isLinkActive(path: string) {
             'px-4 py-2 text-sm font-medium rounded-md transition-all',
             isLinkActive(link.path) ? 'text-orange-300' : 'text-zinc-300',
             link.comingSoon
-              ? 'text-zinc-500'
+              ? 'text-zinc-500 cursor-default'
               : 'hover:bg-black hover:text-orange-300'
           )
         "
