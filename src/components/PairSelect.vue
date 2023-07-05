@@ -42,8 +42,8 @@ const choosePair = (pairId: number) => {
         class="inline-flex w-full justify-center items-center gap-x-1.5 rounded-md bg-black px-3 py-2 text-sm font-semibold text-orange-300 shadow-sm hover:bg-opacity-80 transition-all"
       >
         <div class="flex">
-          <img :src="selectedPair.fromIcon" class="h-6" />
-          <img :src="selectedPair.toIcon" class="-ml-2 h-6" />
+          <img :src="selectedPair.fromIcon" class="h-6 rounded-full" />
+          <img :src="selectedPair.toIcon" class="-ml-2 h-6 rounded-full" />
         </div>
 
         <span class="font-bold uppercase"
@@ -83,8 +83,8 @@ const choosePair = (pairId: number) => {
               "
             >
               <div class="flex">
-                <img :src="pair.fromIcon" class="h-6" />
-                <img :src="pair.toIcon" class="-ml-2 h-6" />
+                <img :src="pair.fromIcon" class="h-6 rounded-full" />
+                <img :src="pair.toIcon" class="-ml-2 h-6 rounded-full" />
               </div>
 
               <span

@@ -1,6 +1,7 @@
 import btcLogo from '@/assets/btc.svg?url'
 import rdexLogo from '@/assets/rdex.png?url'
 import ordiLogo from '@/assets/ordi.svg?url'
+import oxbtLogo from '@/assets/oxbt.png?url'
 import { useRoute } from 'vue-router'
 import { InjectionKey } from 'vue'
 
@@ -17,6 +18,20 @@ const tradingPairs = [
     fromSymbol: 'ordi',
     toSymbol: 'btc',
     fromIcon: ordiLogo,
+    toIcon: btcLogo,
+  },
+  {
+    id: 3,
+    fromSymbol: 'oxbt',
+    toSymbol: 'btc',
+    fromIcon: oxbtLogo,
+    toIcon: btcLogo,
+  },
+  {
+    id: 4,
+    fromSymbol: 'sats',
+    toSymbol: 'btc',
+    fromIcon: btcLogo,
     toIcon: btcLogo,
   },
 ]
