@@ -1,5 +1,11 @@
 const changelog = [
   {
+    version: '0.6.0',
+    emoji: '🏊‍♂️',
+    date: '2023-06-30',
+    changes: ['First draft of pool feature'],
+  },
+  {
     version: '0.5.3',
     emoji: '🤨',
     date: '2023-06-29',

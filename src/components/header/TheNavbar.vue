@@ -1,19 +1,18 @@
 <script lang="ts" setup>
 import { useRoute, useRouter } from 'vue-router'
 
-import logo from '@/assets/logo-new.png?url'
-import { VERSION } from '@/data/constants'
 import { cn } from '@/lib/helpers'
+
 import NavbarMenu from './NavbarMenu.vue'
 
-const router = useRouter()
 const route = useRoute()
 
-const toHomepage = () => {
-  router.push('/')
-}
-
-const links = [
+const links: {
+  name: string
+  path: string
+  new?: boolean
+  comingSoon?: boolean
+}[] = [
   {
     name: 'Trade',
     path: '/',
@@ -26,7 +25,7 @@ const links = [
   {
     name: 'Pool',
     path: '/pool',
-    comingSoon: true,
+    new: true,
   },
 ]
 

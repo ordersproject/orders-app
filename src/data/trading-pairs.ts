@@ -27,11 +27,12 @@ export type TradingPair = (typeof tradingPairs)[0]
 
 export const defaultPair = tradingPairs[0]
 
-export const selectPair = () => {
+export const selectPair = (pairRaw?: string) => {
   const route = useRoute()
   const params = route.params
-  const pairRaw = (params.pair as string) || 'rdex-btc'
-  const pairSymbols = pairRaw.split('-')
+  const pairSymbols = (pairRaw || (params.pair as string) || 'rdex-btc').split(
+    '-'
+  )
 
   return (
     tradingPairs.find(
@@ -42,3 +43,4 @@ export const selectPair = () => {
 }
 
 export const selectedPairKey = Symbol() as InjectionKey<TradingPair>
+export const selectedPoolPairKey = Symbol() as InjectionKey<TradingPair>

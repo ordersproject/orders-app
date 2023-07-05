@@ -7,7 +7,7 @@ import { useNetworkStore } from '@/store'
 import { cn } from '@/lib/helpers'
 import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
 
-import OrderItem from './OrderItem.vue'
+import OrderItem from './Item.vue'
 
 const networkStore = useNetworkStore()
 

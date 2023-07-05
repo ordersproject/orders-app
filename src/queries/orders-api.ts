@@ -409,3 +409,37 @@ export const updateClaim = async ({
     }),
   })
 }
+
+// Pool
+type PoolPair = {
+  fromPoolSize: string
+  toPoolSize: string
+  myPoolBalance: string
+  totalPoolSupply: string
+}
+export const getOnePoolPair = async ({
+  from,
+  to,
+  address,
+}: {
+  from: string
+  to: string
+  address: string
+}): Promise<PoolPair> => {
+  // mock
+  if (from === 'rdex') {
+    return {
+      fromPoolSize: '46000',
+      toPoolSize: '1829172619',
+      myPoolBalance: '6000',
+      totalPoolSupply: '38000',
+    }
+  }
+
+  return {
+    fromPoolSize: '172000',
+    toPoolSize: '1829372619',
+    myPoolBalance: '5000',
+    totalPoolSupply: '164000',
+  }
+}

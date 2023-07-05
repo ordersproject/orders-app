@@ -54,9 +54,9 @@ import { buildBuyTake } from '@/lib/order-builder'
 import utils from '@/utils'
 import whitelist from '@/lib/whitelist'
 
-import OrderPanelHeader from './OrderPanelHeader.vue'
-import OrderList from './OrderList.vue'
-import OrderConfirmationModal from './OrderConfirmationModal.vue'
+import OrderPanelHeader from './PanelHeader.vue'
+import OrderList from './List.vue'
+import OrderConfirmationModal from './ConfirmationModal.vue'
 import { selectPair, selectedPairKey } from '@/data/trading-pairs'
 
 const unisat = window.unisat

@@ -2,6 +2,7 @@ lockfileVersion: 5.4
 
 specifiers:
   '@headlessui/vue': ^1.7.13
+  '@tailwindcss/forms': ^0.5.3
   '@tanstack/vue-query': ^4.29.11
   '@vitejs/plugin-vue': ^4.1.0
   '@vueuse/core': ^10.1.2
@@ -49,6 +50,7 @@ dependencies:
   vue-router: 4.2.1_vue@3.3.4
 
 devDependencies:
+  '@tailwindcss/forms': 0.5.3_tailwindcss@3.3.2
   '@vitejs/plugin-vue': 4.2.3_vite@4.3.8+vue@3.3.4
   autoprefixer: 10.4.14_postcss@8.4.23
   postcss: 8.4.23
@@ -541,6 +543,15 @@ packages:
   /@sxzz/popperjs-es/2.11.7:
     resolution: {integrity: sha512-Ccy0NlLkzr0Ex2FKvh2X+OyERHXJ88XJ1MXtsI9y9fGexlaXaVTPzBCRBwIxFkORuOb+uBqeu+RqnpgYTEZRUQ==}
     dev: false
+
+  /@tailwindcss/forms/0.5.3_tailwindcss@3.3.2:
+    resolution: {integrity: sha512-y5mb86JUoiUgBjY/o6FJSFZSEttfb3Q5gllE4xoKjAAD+vBrnIhE4dViwUuow3va8mpH4s9jyUbUbrRGoRdc2Q==}
+    peerDependencies:
+      tailwindcss: '>=3.0.0 || >= 3.0.0-alpha.1'
+    dependencies:
+      mini-svg-data-uri: 1.4.4
+      tailwindcss: 3.3.2
+    dev: true
 
   /@tanstack/match-sorter-utils/8.8.4:
     resolution: {integrity: sha512-rKH8LjZiszWEvmi01NR72QWZ8m4xmXre0OOwlRGnjU01Eqz/QnN+cqpty2PJ0efHblq09+KilvyR7lsbzmXVEw==}
@@ -1822,6 +1833,11 @@ packages:
       bn.js: 4.12.0
       brorand: 1.1.0
     dev: false
+
+  /mini-svg-data-uri/1.4.4:
+    resolution: {integrity: sha512-r9deDe9p5FJUPZAk3A59wGH7Ii9YrjjWw0jmw/liSbHl2CHiyXj6FcDXDu2K3TjVAXqiJdaw3xxwlZZr9E6nHg==}
+    hasBin: true
+    dev: true
 
   /minimalistic-assert/1.0.1:
     resolution: {integrity: sha512-UtJcAD4yEaGtjPezWuO9wC4nwUnVH/8/Im3yEHQP4b67cXlD/Qr9hdITCU1xDbSEXg2XKNaP8jsReV7vQd00/A==}

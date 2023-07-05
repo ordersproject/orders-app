@@ -1,20 +1,5 @@
 <script lang="ts" setup>
-import { watch } from 'vue'
-import { useRoute } from 'vue-router'
-
-import OrderPanel from '@/components/OrderPanel.vue'
-
-const route = useRoute()
-
-watch(
-  () => route.params.pair,
-  (toPair, previousPair) => {
-    if (toPair !== previousPair) {
-      // reload
-      window.location.reload()
-    }
-  }
-)
+import OrderPanel from '@/components/orders/Panel.vue'
 </script>
 
 <template>

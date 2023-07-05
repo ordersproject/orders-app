@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 
-import TheHeader from '@/components/TheHeader.vue'
+import TheHeader from '@/components/header/TheHeader.vue'
 import NotAvailableOverlay from '@/components/overlays/NotAvailable.vue'
 import { DEBUG } from './data/constants'
 import { useBtcJsStore } from './store'
@@ -29,7 +29,7 @@ onMounted(async () => {
 
   <template v-else>
     <TheHeader />
-    <router-view></router-view>
+    <router-view :key="$route.fullPath"></router-view>
   </template>
 </template>
 
