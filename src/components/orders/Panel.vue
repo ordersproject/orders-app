@@ -564,7 +564,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                       <img
                         :src="selectedPair.fromIcon"
                         alt="btc icon"
-                        class="h-6 w-6"
+                        class="h-6 w-6 rounded-full"
                       />
                       <span class="ml-2 text-zinc-500">Amount</span>
                     </div>
@@ -710,7 +710,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                       <img
                         :src="selectedPair.fromIcon"
                         alt="btc icon"
-                        class="h-6 w-6"
+                        class="h-6 w-6 rounded-full"
                       />
                       <span class="ml-2 text-zinc-500">Amount</span>
                     </div>
@@ -928,7 +928,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   <img
                     :src="selectedPair.fromIcon"
                     alt="btc icon"
-                    class="h-6 w-6"
+                    class="h-6 w-6 rounded-full"
                   />
                   <span class="ml-2 text-zinc-500">Amount</span>
                 </div>
@@ -1111,7 +1111,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   <img
                     :src="selectedPair.fromIcon"
                     alt="btc icon"
-                    class="h-6 w-6"
+                    class="h-6 w-6 rounded-full"
                   />
                   <span class="ml-2 text-zinc-500">Amount</span>
                 </div>
