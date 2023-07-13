@@ -12,9 +12,8 @@ import {
   useNetworkStore,
   type Network,
 } from '@/store'
-import { getAddress } from '@/queries/unisat'
+import { getAddress, connect } from '@/queries/unisat'
 import utils from '@/utils'
-
 import whitelist from '@/lib/whitelist'
 
 import UnisatModal from './UnisatModal.vue'
@@ -79,20 +78,7 @@ async function connectWallet() {
     return
   }
 
-  const connectRes = await window.unisat.requestAccounts()
-  if (connectRes && connectRes.length) {
-    // if it's a legacy address(1... or m..., n...), throw error
-    if (
-      connectRes[0].startsWith('1') ||
-      connectRes[0].startsWith('m') ||
-      connectRes[0].startsWith('n')
-    ) {
-      ElMessage.error('Please use a SegWit address')
-      return
-    }
-
-    addressStore.set(connectRes[0])
-  }
+  await connect()
 }
 
 const { data: address } = useQuery({

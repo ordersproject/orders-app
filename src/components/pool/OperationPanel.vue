@@ -1,12 +1,29 @@
 <script lang="ts" setup>
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
+import { ref } from 'vue'
+
+import { useAddressStore } from '@/store'
+import { connect } from '@/queries/unisat'
+
+import PanelAdd from './PanelAdd.vue'
+import PanelRemove from './PanelRemove.vue'
+import PanelClaim from './PanelClaim.vue'
 
 const tabLabels = ['Add', 'Remove', 'Claim']
+
+const loggedIn = ref(!!useAddressStore().get)
+
+async function connectWallet() {
+  const address = await connect()
+  if (address) {
+    loggedIn.value = true
+  }
+}
 </script>
 
 <template>
   <div class="border rounded-xl p-8">
-    <TabGroup>
+    <TabGroup v-if="loggedIn">
       <TabList
         class="flex items-center justify-center gap-4"
         v-slot="{ selectedIndex }"
@@ -24,12 +41,29 @@ const tabLabels = ['Add', 'Remove', 'Claim']
         </Tab>
       </TabList>
       <TabPanels>
-        <TabPanel>
+        <TabPanel class="pt-12">
           <PanelAdd />
         </TabPanel>
-        <TabPanel>Content 2</TabPanel>
-        <TabPanel>Content 3</TabPanel>
+        <TabPanel class="pt-12">
+          <PanelRemove />
+        </TabPanel>
+        <TabPanel class="pt-12">
+          <PanelClaim />
+        </TabPanel>
       </TabPanels>
     </TabGroup>
+
+    <div class="flex flex-col items-center justify-center h-full gap-8" v-else>
+      <p class="text-gray-300">
+        Please connect your wallet first to use the pool.
+      </p>
+
+      <button
+        class="py-2 rounded-lg border-2 border-orange-300 px-4 transition hover:border-orange-400 hover:bg-orange-400"
+        @click="connectWallet"
+      >
+        Connect Wallet
+      </button>
+    </div>
   </div>
 </template>

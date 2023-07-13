@@ -82,8 +82,8 @@ const infoMap = computed(() => {
     <div class="mt-8">
       <div class="flex items-center gap-2">
         <div class="flex">
-          <img :src="selectedPair.fromIcon" class="h-6" />
-          <img :src="selectedPair.toIcon" class="-ml-2 h-6" />
+          <img :src="selectedPair.fromIcon" class="h-6 rounded-full" />
+          <img :src="selectedPair.toIcon" class="-ml-2 h-6 rounded-full" />
         </div>
 
         <h3 class="uppercase text-xl">

@@ -24,8 +24,25 @@ export const getAddress = async () => {
   }
 
   return ''
-  ElMessage.warning('Login to Unisat first.')
-  throw new Error('Login to Unisat first.')
+}
+
+export const connect = async () => {
+  const connectRes = await window.unisat.requestAccounts()
+  if (connectRes && connectRes.length) {
+    // if it's a legacy address(1... or m..., n...), throw error
+    if (
+      connectRes[0].startsWith('1') ||
+      connectRes[0].startsWith('m') ||
+      connectRes[0].startsWith('n')
+    ) {
+      ElMessage.error('Please use a SegWit address')
+      return
+    }
+
+    useAddressStore().set(connectRes[0])
+
+    return connectRes[0]
+  }
 }
 
 export const getBalance = async () => {
