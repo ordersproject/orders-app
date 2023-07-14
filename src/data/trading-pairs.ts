@@ -7,6 +7,7 @@ import grumLogo from '@/assets/grum.png?url'
 import vmpxLogo from '@/assets/vmpx.jpg?url'
 import tracLogo from '@/assets/trac.png?url'
 import lgerLogo from '@/assets/lger.jpg?url'
+import saycLogo from '@/assets/sayc.jpg?url'
 
 import { useRoute } from 'vue-router'
 import { InjectionKey } from 'vue'
@@ -68,6 +69,13 @@ const tradingPairs = [
     fromIcon: lgerLogo,
     toIcon: btcLogo,
   },
+  {
+    id: 9,
+    fromSymbol: 'sayc',
+    toSymbol: 'btc',
+    fromIcon: saycLogo,
+    toIcon: btcLogo,
+  },
 ]
 
 export default tradingPairs
@@ -76,11 +84,12 @@ export type TradingPair = (typeof tradingPairs)[0]
 
 export const defaultPair = tradingPairs[0]
 
-export const selectPair = () => {
+export const selectPair = (pairRaw?: string) => {
   const route = useRoute()
   const params = route.params
-  const pairRaw = (params.pair as string) || 'rdex-btc'
-  const pairSymbols = pairRaw.split('-')
+  const pairSymbols = (pairRaw || (params.pair as string) || 'rdex-btc').split(
+    '-'
+  )
 
   return (
     tradingPairs.find(
@@ -91,3 +100,4 @@ export const selectPair = () => {
 }
 
 export const selectedPairKey = Symbol() as InjectionKey<TradingPair>
+export const selectedPoolPairKey = Symbol() as InjectionKey<TradingPair>
