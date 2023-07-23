@@ -12,7 +12,7 @@ declare module '@vue/runtime-core' {
     AssetsDisplay: typeof import('./src/components/header/AssetsDisplay.vue')['default']
     Claiming: typeof import('./src/components/overlays/Claiming.vue')['default']
     ClaimingOverlay: typeof import('./src/components/overlays/ClaimingOverlay.vue')['default']
-    ConfirmationModal: typeof import('./src/components/orders/ConfirmationModal.vue')['default']
+    ConfirmationModal: typeof import('./src/components/ConfirmationModal.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElPopover: typeof import('element-plus/es')['ElPopover']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']

@@ -8,8 +8,8 @@ import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 import { cn, prettyCoinDisplay } from '@/lib/helpers'
 import { useAddressStore, useNetworkStore } from '@/store'
 import { getBalance } from '@/queries/unisat'
-import { getBrc20s, getOneBrc20 } from '@/queries/orders-api'
-import tradingPairs, { selectPair } from '@/data/trading-pairs'
+import { getBrc20s } from '@/queries/orders-api'
+import { selectPair } from '@/data/trading-pairs'
 
 const networkStore = useNetworkStore()
 const addressStore = useAddressStore()

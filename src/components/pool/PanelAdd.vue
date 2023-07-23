@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-import { inject, ref } from 'vue'
+import { Ref, computed, inject, ref } from 'vue'
+import { ElMessage } from 'element-plus'
+import { Buffer } from 'buffer'
 import {
   Listbox,
   ListboxButton,
@@ -11,29 +13,151 @@ import {
   Switch,
 } from '@headlessui/vue'
 import { CheckIcon, ChevronsUpDownIcon, HelpCircleIcon } from 'lucide-vue-next'
+import { useQuery } from '@tanstack/vue-query'
 
 import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
+import {
+  useAddressStore,
+  useBtcJsStore,
+  useCredentialsStore,
+  useNetworkStore,
+} from '@/store'
+import {
+  Brc20Transferable,
+  getMarketPrice,
+  getOneBrc20,
+} from '@/queries/orders-api'
+import { buildAddLiquidity } from '@/lib/order-pool-builder'
+import { sleep } from '@/lib/helpers'
 
-const providesBtc = ref(false)
+import OrderConfirmationModal from './ConfirmationModal.vue'
 
-const people = [
-  { id: 1, name: 'Wade Cooper' },
-  { id: 2, name: 'Arlene Mccoy' },
-  { id: 3, name: 'Devon Webb' },
-  { id: 4, name: 'Tom Cook' },
-  { id: 5, name: 'Tanya Fox' },
-  { id: 6, name: 'Hellen Schmidt' },
-  { id: 7, name: 'Caroline Schultz' },
-  { id: 8, name: 'Mason Heaney' },
-  { id: 9, name: 'Claudie Smitham' },
-  { id: 10, name: 'Emil Schaefer' },
-]
-const selected = ref(people[3])
+const addressStore = useAddressStore()
+const networkStore = useNetworkStore()
+const selectedPair = inject(selectedPoolPairKey, defaultPair)
+
+const { data: myBrc20Info } = useQuery({
+  queryKey: [
+    'myBrc20Info',
+    {
+      address: addressStore.get,
+      network: networkStore.network,
+      tick: selectedPair.fromSymbol,
+    },
+  ],
+  queryFn: () =>
+    getOneBrc20({
+      address: addressStore.get!,
+      tick: selectedPair.fromSymbol,
+    }),
+
+  enabled: computed(
+    () => networkStore.network !== 'testnet' && !!addressStore.get
+  ),
+})
+const selected: Ref<undefined | Brc20Transferable> = ref()
+
+const { data: marketPrice } = useQuery({
+  queryKey: [
+    'marketPrice',
+    { network: networkStore.network, tick: selectedPair.fromSymbol },
+  ],
+  queryFn: () => getMarketPrice({ tick: selectedPair.fromSymbol }),
+})
 
 const multipliers = [1.5, 1.8, 2]
 const selectedMultiplier = ref(multipliers[0])
 
-const selectedPair = inject(selectedPoolPairKey, defaultPair)
+const providesBtc = ref(false)
+
+const reversePrice = computed(() => {
+  if (!selected.value) return 0
+
+  return (
+    Number(selected.value.amount) *
+    (selectedMultiplier.value ? selectedMultiplier.value : 1) *
+    (marketPrice.value ? marketPrice.value : 0)
+  )
+})
+
+const builtInfo = ref<
+  undefined | Awaited<ReturnType<typeof buildAddLiquidity>>
+>()
+const isOpenConfirmationModal = ref(false)
+const isBuilding = ref(false)
+const buildProcessTip = ref('Building Transaction...')
+async function submitAdd() {
+  if (!selected.value) return
+
+  isOpenConfirmationModal.value = true
+  isBuilding.value = true
+
+  const builtRes = await buildAddLiquidity({
+    total: Number(reversePrice.value) * 1e8,
+    amount: Number(selected.value.amount),
+    selectedPair: selectedPair,
+  }).catch(async (e) => {
+    await sleep(500)
+
+    ElMessage.error(e.message)
+    builtInfo.value = undefined
+  })
+
+  isBuilding.value = false
+
+  if (!builtRes) return
+  builtInfo.value = builtRes
+  console.log({ builtRes })
+
+  return
+
+  const btcjs = useBtcJsStore().get!
+  const selfAddress = addressStore.get!
+  const credential = useCredentialsStore().getByAddress(selfAddress)
+  // const selfPubKey = credential?.publicKey ?? raise('no credential')
+  const selfPubKey =
+    '037651f0d9d5f5fd74aa04890168888ce01f26702faba2a5fbd820cbc1c638e7a8'
+
+  // request exchange pubkey
+
+  const exchangePubKey =
+    '037355ad3caeacd0b8e69fd519bf7aac71c3c0227ae446f0c737e4616d7c1ac4f9'
+  const pubkeys = [selfPubKey, exchangePubKey].map((pkHex) => {
+    return Buffer.from(pkHex, 'hex')
+  })
+
+  // generate multisig address
+  const redeem = btcjs.payments.p2ms({
+    m: 2,
+    pubkeys,
+    network: btcjs.networks.bitcoin,
+  })
+  const res = btcjs.payments.p2wsh({
+    redeem,
+    network: btcjs.networks.bitcoin,
+  })
+  console.log({
+    redeemAddress: redeem.address,
+    multisigAddress: res.address,
+    redeem,
+  })
+
+  // type LiquidityOffer = Parameters<typeof addLiquidity>[0]
+  // const liquidityOffer: LiquidityOffer = {
+  //   address: addressStore.get!,
+  //   amount: Number(reversePrice.value),
+  //   coinAmount: selected.value.amount,
+  //   coinPsbtRaw: '',
+  //   net: networkStore.network,
+  //   pair: `${selectedPair.fromSymbol.toUpperCase()}-${selectedPair.toSymbol.toUpperCase()}`,
+  //   tick: selectedPair.fromSymbol,
+  //   poolState: 1,
+  //   poolType: 1,
+  // }
+
+  // await addLiquidity(liquidityOffer)
+  return
+}
 </script>
 
 <template>
@@ -54,7 +178,9 @@ const selectedPair = inject(selectedPoolPairKey, defaultPair)
           <ListboxButton
             class="relative w-full rounded-md bg-zinc-800 py-2 pl-3 pr-10 text-left text-zinc-300 shadow-sm ring-1 ring-inset ring-zinc-700 focus:outline-none focus:ring-2 focus:ring-orange-400 sm:text-sm sm:leading-6"
           >
-            <span class="block truncate">{{ selected.name }}</span>
+            <span class="block truncate">
+              {{ selected ? selected.amount : '-' }}
+            </span>
             <span
               class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
             >
@@ -71,13 +197,14 @@ const selectedPair = inject(selectedPoolPairKey, defaultPair)
             leave-to-class="opacity-0"
           >
             <ListboxOptions
-              class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-zinc-800 py-1 text-base shadow-lg ring-1 ring-zinc-700 ring-opacity-5 focus:outline-none sm:text-sm"
+              class="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-zinc-800 py-1 text-base shadow-lg ring-1 ring-zinc-700 ring-opacity-5 focus:outline-none sm:text-sm"
+              v-if="myBrc20Info?.transferBalanceList.length"
             >
               <ListboxOption
                 as="template"
-                v-for="person in people"
-                :key="person.id"
-                :value="person"
+                v-for="transferable in myBrc20Info?.transferBalanceList"
+                :key="transferable.inscriptionId"
+                :value="transferable"
                 v-slot="{ active, selected }"
               >
                 <li
@@ -91,7 +218,7 @@ const selectedPair = inject(selectedPoolPairKey, defaultPair)
                       selected ? 'font-semibold' : 'font-normal',
                       'block truncate',
                     ]"
-                    >{{ person.name }}</span
+                    >{{ transferable.amount }}</span
                   >
 
                   <span
@@ -175,12 +302,17 @@ const selectedPair = inject(selectedPoolPairKey, defaultPair)
             providesBtc ? 'visible' : 'invisible',
           ]"
         >
-          <div class="items-center gap-4 grid grid-cols-6 grow">
+          <div class="items-center gap-x-4 gap-y-2 grid grid-cols-6 grow">
             <div class="text-zinc-300 col-span-1">BTC</div>
+
             <div
               class="flex items-center justify-between col-span-5 rounded-md border px-4 py-2 border-zinc-700 text-zinc-300 shadow-sm sm:text-sm sm:leading-6 bg-zinc-800"
             >
-              <span>1.25</span>
+              <div class="flex flex-col items-start gap-1">
+                <span class="font-bold text-zinc-100">
+                  {{ reversePrice }}
+                </span>
+              </div>
 
               <Listbox as="div" v-model="selectedMultiplier">
                 <div class="relative w-20">
@@ -246,6 +378,60 @@ const selectedPair = inject(selectedPoolPairKey, defaultPair)
                 </div>
               </Listbox>
             </div>
+
+            <div class="col-span-1"></div>
+            <div
+              class="flex text-zinc-400 gap-2 text-xs col-span-5 pl-2 items-center"
+            >
+              <span>{{ '=' }}</span>
+              <el-popover
+                placement="bottom"
+                trigger="hover"
+                :content="marketPrice ? marketPrice.toFixed(8) + ' BTC' : '-'"
+              >
+                <template #reference>
+                  <span
+                    class="px-2 py-1 bg-black rounded cursor-pointer text-zinc-300 hover:text-orange-300 transition"
+                  >
+                    Market Price
+                  </span>
+                </template>
+              </el-popover>
+
+              <span>*</span>
+
+              <el-popover
+                placement="bottom"
+                trigger="hover"
+                :content="selected ? selected.amount : '-'"
+              >
+                <template #reference>
+                  <span
+                    class="px-2 py-1 bg-black rounded cursor-pointer text-zinc-300 hover:text-orange-300 transition"
+                  >
+                    Quantity
+                  </span>
+                </template>
+              </el-popover>
+
+              <span>*</span>
+
+              <el-popover
+                placement="bottom"
+                trigger="hover"
+                :content="
+                  selectedMultiplier ? selectedMultiplier.toString() + 'x' : '-'
+                "
+              >
+                <template #reference>
+                  <span
+                    class="px-2 py-1 bg-black rounded cursor-pointer text-zinc-300 hover:text-orange-300 transition"
+                  >
+                    Multiplier
+                  </span>
+                </template>
+              </el-popover>
+            </div>
           </div>
         </div>
       </transition>
@@ -253,10 +439,18 @@ const selectedPair = inject(selectedPoolPairKey, defaultPair)
       <div class="flex justify-center">
         <button
           class="mx-auto bg-orange-300 w-full py-3 text-orange-950 rounded-md"
+          @click.prevent="submitAdd"
         >
           Submit
         </button>
       </div>
     </form>
+
+    <OrderConfirmationModal
+      v-model:is-open="isOpenConfirmationModal"
+      v-model:is-building="isBuilding"
+      v-model:built-info="builtInfo"
+      :build-process-tip="buildProcessTip"
+    />
   </div>
 </template>

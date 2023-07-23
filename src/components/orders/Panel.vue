@@ -56,7 +56,7 @@ import whitelist from '@/lib/whitelist'
 
 import OrderPanelHeader from './PanelHeader.vue'
 import OrderList from './List.vue'
-import OrderConfirmationModal from './ConfirmationModal.vue'
+import OrderConfirmationModal from '../ConfirmationModal.vue'
 import { selectPair, selectedPairKey } from '@/data/trading-pairs'
 
 const unisat = window.unisat
@@ -401,6 +401,7 @@ const { data: myBrc20Info } = useQuery({
     {
       address: addressStore.get,
       network: networkStore.network,
+      tick: selectedPair.fromSymbol,
     },
   ],
   queryFn: () =>

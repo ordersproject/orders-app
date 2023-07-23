@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { getMyPoolRewards } from '@/queries/orders-api'
+import { getMyPoolRewards } from '@/queries/pool'
 import { useQuery } from '@tanstack/vue-query'
 import { HelpCircleIcon } from 'lucide-vue-next'
 

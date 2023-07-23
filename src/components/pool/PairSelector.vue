@@ -8,7 +8,7 @@ import {
   selectPair,
   selectedPoolPairKey,
 } from '@/data/trading-pairs'
-import { getOnePoolPair } from '@/queries/orders-api'
+import { getOnePoolPair } from '@/queries/pool'
 import { useAddressStore } from '@/store'
 
 import PoolPairSelect from '@/components/pool/PoolPairSelect.vue'
@@ -64,11 +64,13 @@ const infoMap = computed(() => {
     {
       label: 'Your share of the pool',
       value:
-        (
-          (Number(pairInfo.value.myPoolBalance) /
-            Number(pairInfo.value.totalPoolSupply)) *
-          100
-        ).toFixed(4) + '%',
+        Number(pairInfo.value.totalPoolSupply) === 0
+          ? '-'
+          : (
+              (Number(pairInfo.value.myPoolBalance) /
+                Number(pairInfo.value.totalPoolSupply)) *
+              100
+            ).toFixed(4) + '%',
     },
   ]
 })

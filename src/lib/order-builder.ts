@@ -21,7 +21,7 @@ import {
   type SimpleUtxoFromMempool,
   getTxHex,
 } from '@/queries/proxy'
-import { selectPair, type TradingPair } from '@/data/trading-pairs'
+import { type TradingPair } from '@/data/trading-pairs'
 
 export async function buildAskLimit({
   total,
