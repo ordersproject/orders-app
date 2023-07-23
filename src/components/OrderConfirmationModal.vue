@@ -213,7 +213,7 @@ async function submitOrder() {
                     <img
                       :src="getIconFromSymbol(builtInfo.fromSymbol)"
                       alt=""
-                      class="h-8 w-8"
+                      class="h-8 w-8 rounded-full"
                     />
                     <span
                       v-if="builtInfo.isFree"
@@ -239,7 +239,7 @@ async function submitOrder() {
                     <img
                       :src="getIconFromSymbol(builtInfo.toSymbol)"
                       alt=""
-                      class="h-8 w-8"
+                      class="h-8 w-8 rounded-full"
                     />
                     <span>
                       {{
