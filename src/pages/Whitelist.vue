@@ -42,7 +42,13 @@ const claimableDisplay = computed(() => {
     return '-'
   }
 
-  return balance.toString() + ' RDEX'
+  let display = balance.toString() + ' RDEX'
+
+  if (theClaim.value?.availableCount) {
+    display = display + ' ✖️ ' + theClaim.value.availableCount.toString()
+  }
+
+  return display
 })
 
 // watch the address; if it changes, refetch the claim

@@ -371,6 +371,7 @@ export const getOneClaim = async ({
   address: string
 }): Promise<{
   coinAmount: number
+  availableCount: number
   fee: number
   orderId: string
   psbtRaw: string
