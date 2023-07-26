@@ -216,7 +216,6 @@ function setUseSellPrice(price: number, orderId: string) {
 
 // watch use BuyOrderId change, update selected orders
 watch(useBuyOrderId, (buyOrderId) => {
-  console.log(buyOrderId)
   if (!buyOrderId || !askOrders.value) {
     selectedBuyOrders.value = []
   } else {
@@ -346,7 +345,7 @@ const builtInfo = ref()
 
 // limit exchange mode
 const isLimitExchangeMode = ref(false)
-const limitExchangeType: Ref<'bid' | 'ask'> = ref('bid')
+const limitExchangeType: Ref<'bid' | 'ask'> = ref('ask')
 const { data: marketPrice } = useQuery({
   queryKey: [
     'marketPrice',
