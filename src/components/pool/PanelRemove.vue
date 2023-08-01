@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
+import { getMyPoolOrders, type PoolOrder } from '@/queries/pool'
+import { useAddressStore, useNetworkStore } from '@/store'
 import {
   Listbox,
   ListboxButton,
@@ -7,31 +9,38 @@ import {
   ListboxOption,
   ListboxOptions,
 } from '@headlessui/vue'
+import { useQuery } from '@tanstack/vue-query'
 import { CheckIcon } from 'lucide-vue-next'
 import { ChevronsUpDownIcon } from 'lucide-vue-next'
-import { inject, ref } from 'vue'
+import { Ref, computed, inject, ref } from 'vue'
 
 const selectedPair = inject(selectedPoolPairKey, defaultPair)
+const addressStore = useAddressStore()
+const enabled = computed(() => !!addressStore.get)
 
-const people = [
-  { id: 1, name: 'Wade Cooper' },
-  { id: 2, name: 'Arlene Mccoy' },
-  { id: 3, name: 'Devon Webb' },
-  { id: 4, name: 'Tom Cook' },
-  { id: 5, name: 'Tanya Fox' },
-  { id: 6, name: 'Hellen Schmidt' },
-  { id: 7, name: 'Caroline Schultz' },
-  { id: 8, name: 'Mason Heaney' },
-  { id: 9, name: 'Claudie Smitham' },
-  { id: 10, name: 'Emil Schaefer' },
-]
-const selected = ref(people[3])
+const { isLoading: isLoadingOrders, data: poolOrders } = useQuery({
+  queryKey: [
+    'PoolOrders',
+    {
+      address: addressStore.get as string,
+      tick: selectedPair.fromSymbol,
+    },
+  ],
+  queryFn: () =>
+    getMyPoolOrders({
+      address: addressStore.get as string,
+      tick: selectedPair.fromSymbol,
+    }),
+  enabled,
+})
+
+const selectedOrder: Ref<undefined | PoolOrder> = ref(undefined)
 </script>
 
 <template>
   <div class="max-w-md mx-auto">
     <form action="" class="flex flex-col min-h-[40vh]">
-      <Listbox as="div" v-model="selected" class="grow">
+      <Listbox as="div" v-model="selectedOrder" class="grow">
         <ListboxLabel
           class="block text-base font-medium leading-6 text-zinc-300"
         >
@@ -42,7 +51,9 @@ const selected = ref(people[3])
           <ListboxButton
             class="relative w-full rounded-md bg-zinc-800 py-2 pl-3 pr-10 text-left text-zinc-300 shadow-sm ring-1 ring-inset ring-zinc-700 focus:outline-none focus:ring-2 focus:ring-orange-400 sm:text-sm sm:leading-6"
           >
-            <span class="block truncate">{{ selected.name }}</span>
+            <span class="block truncate">
+              {{ selectedOrder ? selectedOrder.orderId : '-' }}
+            </span>
             <span
               class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
             >
@@ -59,14 +70,22 @@ const selected = ref(people[3])
             leave-to-class="opacity-0"
           >
             <ListboxOptions
-              class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-zinc-800 py-1 text-base shadow-lg ring-1 ring-zinc-700 ring-opacity-5 focus:outline-none sm:text-sm"
+              class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-zinc-800 py-1 text-base shadow-lg ring-zinc-700 ring-1 ring-inset focus:outline-none sm:text-sm"
             >
               <ListboxOption
+                v-if="!poolOrders?.length"
+                :disabled="true"
+                class="text-right text-zinc-500 text-sm py-2 px-4"
+              >
+                No Records
+              </ListboxOption>
+
+              <ListboxOption
                 as="template"
-                v-for="person in people"
-                :key="person.id"
-                :value="person"
-                v-slot="{ active, selected }"
+                v-for="order in poolOrders"
+                :key="order.orderId"
+                :value="order"
+                v-slot="{ active, selectedOrder }"
               >
                 <li
                   :class="[
@@ -76,14 +95,14 @@ const selected = ref(people[3])
                 >
                   <span
                     :class="[
-                      selected ? 'font-semibold' : 'font-normal',
+                      selectedOrder ? 'font-semibold' : 'font-normal',
                       'block truncate',
                     ]"
-                    >{{ person.name }}</span
+                    >{{ order.orderId }}</span
                   >
 
                   <span
-                    v-if="selected"
+                    v-if="selectedOrder"
                     :class="[
                       active ? 'text-white' : 'text-orange-400',
                       'absolute inset-y-0 right-0 flex items-center pr-4',
@@ -100,7 +119,8 @@ const selected = ref(people[3])
 
       <div class="flex justify-center">
         <button
-          class="mx-auto bg-orange-300 w-full py-3 text-orange-950 rounded-md"
+          class="mx-auto bg-orange-300 w-full py-3 text-orange-950 rounded-md disabled:cursor-not-allowed disabled:opacity-30"
+          :disabled="!selectedOrder"
         >
           Remove
         </button>

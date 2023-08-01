@@ -133,7 +133,7 @@ type LiquidityOfferParams = {
   poolState: 1
   poolType: 1
 }
-export const addLiquidity = async ({
+export const pushAddLiquidity = async ({
   address,
   amount,
   coinAmount,
@@ -174,4 +174,39 @@ export const getPoolPubKey = async () => {
   return await ordersApiFetch(`pool/pair/key?net=${network}`).then(
     ({ publicKey }: { publicKey: string }) => publicKey
   )
+}
+
+export type PoolOrder = {
+  orderId: string
+  address: string
+  amount: number
+  decimalNum: number
+  inscriptionId: string
+  net: 'livenet'
+  pair: string
+  poolState: 1
+  poolType: 1
+  psbtRaw: string
+  tick: string
+  timestamp: number
+}
+export const getMyPoolOrders = async ({
+  address,
+  tick,
+}: {
+  address: string
+  tick: string
+}): Promise<PoolOrder[]> => {
+  const network = 'livenet'
+  const params = new URLSearchParams({
+    net: network,
+    tick,
+    address,
+    poolState: '1',
+    poolType: '1',
+  })
+
+  return await ordersApiFetch(`pool/orders?${params}`).then((res) => {
+    return res
+  })
 }

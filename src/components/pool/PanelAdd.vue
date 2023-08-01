@@ -31,6 +31,7 @@ import { buildAddLiquidity } from '@/lib/order-pool-builder'
 import { sleep } from '@/lib/helpers'
 
 import OrderConfirmationModal from './ConfirmationModal.vue'
+import Decimal from 'decimal.js'
 
 const addressStore = useAddressStore()
 const networkStore = useNetworkStore()
@@ -73,11 +74,12 @@ const providesBtc = ref(false)
 const reversePrice = computed(() => {
   if (!selected.value) return 0
 
+  // prevent float number precision problem
   return (
     Number(selected.value.amount) *
-    (selectedMultiplier.value ? selectedMultiplier.value : 1) *
+    (selectedMultiplier.value ? selectedMultiplier.value : 1.5) *
     (marketPrice.value ? marketPrice.value : 0)
-  )
+  ).toFixed(8)
 })
 
 const builtInfo = ref<
@@ -93,11 +95,12 @@ async function submitAdd() {
   isBuilding.value = true
 
   const builtRes = await buildAddLiquidity({
-    total: Number(reversePrice.value) * 1e8,
-    amount: Number(selected.value.amount),
+    total: new Decimal(reversePrice.value).times(1e8),
+    amount: new Decimal(selected.value.amount),
     selectedPair: selectedPair,
   }).catch(async (e) => {
     await sleep(500)
+    console.log(e)
 
     ElMessage.error(e.message)
     builtInfo.value = undefined
@@ -197,7 +200,7 @@ async function submitAdd() {
             leave-to-class="opacity-0"
           >
             <ListboxOptions
-              class="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-zinc-800 py-1 text-base shadow-lg ring-1 ring-zinc-700 ring-opacity-5 focus:outline-none sm:text-sm"
+              class="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-zinc-800 py-1 text-base shadow-lg ring-1 ring-zinc-700 ring-inset focus:outline-none sm:text-sm"
               v-if="myBrc20Info?.transferBalanceList.length"
             >
               <ListboxOption
@@ -438,8 +441,11 @@ async function submitAdd() {
 
       <div class="flex justify-center">
         <button
-          class="mx-auto bg-orange-300 w-full py-3 text-orange-950 rounded-md"
+          :class="[
+            'mx-auto bg-orange-300 w-full py-3 text-orange-950 rounded-md disabled:cursor-not-allowed disabled:opacity-30',
+          ]"
           @click.prevent="submitAdd"
+          :disabled="!selected"
         >
           Submit
         </button>

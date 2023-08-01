@@ -32,6 +32,7 @@ declare module '@vue/runtime-core' {
     OrderPanelHeader: typeof import('./src/components/orders/OrderPanelHeader.vue')['default']
     PairSelect: typeof import('./src/components/orders/PairSelect.vue')['default']
     PairSelector: typeof import('./src/components/pool/PairSelector.vue')['default']
+    PairSelectorPanel: typeof import('./src/components/pool/PairSelectorPanel.vue')['default']
     Panel: typeof import('./src/components/orders/Panel.vue')['default']
     PanelAdd: typeof import('./src/components/pool/PanelAdd.vue')['default']
     PanelClaim: typeof import('./src/components/pool/PanelClaim.vue')['default']

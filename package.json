@@ -17,6 +17,7 @@
     "browserify": "^17.0.0",
     "buffer": "^6.0.3",
     "clsx": "^1.2.1",
+    "decimal.js": "^10.4.3",
     "element-plus": "^2.3.5",
     "lucide-vue-next": "^0.236.0",
     "pinia": "^2.1.3",

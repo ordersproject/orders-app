@@ -19,10 +19,7 @@ import {
 import { useAddressStore, useCooldownerStore, useNetworkStore } from '@/store'
 import { DEBUG } from '@/data/constants'
 import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
-
-import btcIcon from '@/assets/btc.svg?url'
-import ordiIcon from '@/assets/ordi.svg?url'
-import rdexIcon from '@/assets/rdex.png?url'
+import assets from '@/data/assets'
 
 const unisat = window.unisat
 
@@ -68,16 +65,7 @@ onMounted(async () => {
 })
 
 function getIconFromSymbol(symbol: string) {
-  switch (symbol) {
-    case 'btc':
-      return btcIcon
-    case 'ordi':
-      return ordiIcon
-    case 'rdex':
-      return rdexIcon
-  }
-
-  return ''
+  return assets.find((asset) => asset.symbol === symbol)?.icon || ''
 }
 
 function discardOrder() {

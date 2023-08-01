@@ -1,4 +1,5 @@
 import { Buffer } from 'buffer'
+import Decimal from 'decimal.js'
 
 import {
   useAddressStore,
@@ -38,13 +39,25 @@ async function generateMultisigAddress() {
   return multisigPayment.address ?? raise('Failed to generate multisig address')
 }
 
+async function generateMultisigScript() {
+  const btcjs = useBtcJsStore().get!
+
+  const { selfPubKey, exchangePubKey } = await getBothPubKeys()
+  const pubkeys = [selfPubKey, exchangePubKey].map((hex) =>
+    Buffer.from(hex, 'hex')
+  )
+  const redeem = btcjs.payments.p2ms({ m: 2, pubkeys })
+
+  return redeem.output ?? raise('Failed to generate multisig script')
+}
+
 export async function buildAddLiquidity({
   total,
   amount,
   selectedPair,
 }: {
-  total: number
-  amount: number
+  total: Decimal
+  amount: Decimal
   selectedPair: TradingPair
 }) {
   const networkStore = useNetworkStore()
@@ -61,7 +74,7 @@ export async function buildAddLiquidity({
   }).then((brc20Info) => {
     // choose a real ordinal with the right amount, not the white amount (Heil Uncle Roger!)
     return brc20Info.transferBalanceList.find(
-      (brc20) => Number(brc20.amount) === amount
+      (brc20) => brc20.amount === amount.toString()
     )
   })
   if (!transferable) {
@@ -105,27 +118,24 @@ export async function buildAddLiquidity({
 
   // Step 2: Build BTC output for the pool
   const multisigAddress = await generateMultisigAddress()
+  // const multisigScript = btcjs.address.toOutputScript(multisigAddress)
+  const multisigScript = await generateMultisigScript()
   addLiquidity.addOutput({
-    address: multisigAddress,
-    value: total,
+    script: multisigScript,
+    value: Number(total),
   })
+  console.log({ multisigScript: multisigScript.toString() })
 
   return {
     order: addLiquidity,
     type: 'add-liquidity',
     value: ordinalValue,
     amount,
-    totalPrice: 0,
-    networkFee: 0,
-    serviceFee: 0,
-    totalSpent: 0,
     fromSymbol: selectedPair.fromSymbol,
     toSymbol: selectedPair.toSymbol,
     fromValue: amount,
     toValue: total,
-    observing: {
-      txId: ordinalUtxo.txId,
-      outputIndex: ordinalUtxo.outputIndex,
-    },
+    fromAddress: address,
+    toAddress: multisigAddress,
   }
 }

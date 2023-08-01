@@ -9,20 +9,16 @@ import {
 import { Loader, ArrowDownIcon, RefreshCcwIcon } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 
-import { prettyBtcDisplay, prettyCoinDisplay } from '@/lib/helpers'
 import {
-  pushBidOrder,
-  pushAskOrder,
-  pushBuyTake,
-  pushSellTake,
-} from '@/queries/orders-api'
+  prettyAddress,
+  prettyBtcDisplay,
+  prettyCoinDisplay,
+} from '@/lib/helpers'
+import { pushAddLiquidity } from '@/queries/pool'
 import { useAddressStore, useCooldownerStore, useNetworkStore } from '@/store'
 import { DEBUG } from '@/data/constants'
 import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
-
-import btcIcon from '@/assets/btc.svg?url'
-import ordiIcon from '@/assets/ordi.svg?url'
-import rdexIcon from '@/assets/rdex.png?url'
+import assets from '@/data/assets'
 
 const unisat = window.unisat
 
@@ -65,16 +61,7 @@ onMounted(async () => {
 })
 
 function getIconFromSymbol(symbol: string) {
-  switch (symbol) {
-    case 'btc':
-      return btcIcon
-    case 'ordi':
-      return ordiIcon
-    case 'rdex':
-      return rdexIcon
-  }
-
-  return ''
+  return assets.find((asset) => asset.symbol === symbol)?.icon || ''
 }
 
 function discardOrder() {
@@ -92,45 +79,21 @@ async function submitOrder() {
     let pushRes: any
     // 2. push
     switch (builtInfo!.type) {
-      case 'buy':
-      case 'free claim':
-        pushRes = await pushBuyTake({
-          psbtRaw: signed,
-          network: networkStore.ordersNetwork,
-          orderId: builtInfo.orderId,
-        })
-        break
-      case 'sell':
-        pushRes = await pushSellTake({
-          psbtRaw: signed,
-          network: networkStore.ordersNetwork,
-          orderId: builtInfo.orderId,
+      case 'add-liquidity':
+        type LiquidityOffer = Parameters<typeof pushAddLiquidity>[0]
+        const liquidityOffer: LiquidityOffer = {
           address: addressStore.get!,
-          value: builtInfo.value,
-          amount: builtInfo.amount,
-        })
-        break
-      case 'bid':
-        pushRes = await pushBidOrder({
-          psbtRaw: signed,
-          network: networkStore.ordersNetwork,
-          address: addressStore.get!,
+          amount: builtInfo.toValue.toNumber(),
+          // psbtRaw: signed.psbt,
+          coinAmount: builtInfo.fromValue.toNumber(),
+          coinPsbtRaw: signed,
+          net: networkStore.network,
+          pair: `${selectedPair.fromSymbol.toUpperCase()}-${selectedPair.toSymbol.toUpperCase()}`,
           tick: selectedPair.fromSymbol,
-          feeb: builtInfo.feeb,
-          fee: builtInfo.networkFee,
-          total: builtInfo.total,
-          using: builtInfo.using,
-          orderId: builtInfo.orderId,
-        })
-        break
-      case 'ask':
-        pushRes = await pushAskOrder({
-          psbtRaw: signed,
-          network: networkStore.ordersNetwork,
-          address: addressStore.get!,
-          tick: selectedPair.fromSymbol,
-          amount: builtInfo.amount,
-        })
+          poolState: 1,
+          poolType: 1,
+        }
+        pushRes = await pushAddLiquidity(liquidityOffer)
         break
     }
   } catch (err: any) {
@@ -147,11 +110,6 @@ async function submitOrder() {
     clearBuiltInfo()
     return
   }
-
-  // Start cooldowner: observe certain input utxo (payment or brc20), see if its consumption is witnessed by the network
-  // cooldowner.start({
-  //   observing: builtInfo.observing,
-  // })
 
   // Show success message
   emit('update:isOpen', false)
@@ -210,14 +168,19 @@ async function submitOrder() {
                     class="h-8 w-8 rounded-full"
                   />
 
-                  <span>
-                    {{
-                      prettyCoinDisplay(
-                        builtInfo.fromValue,
-                        builtInfo.fromSymbol
-                      )
-                    }}
-                  </span>
+                  <div class="flex flex-col items-start gap-1">
+                    <span>
+                      {{
+                        prettyCoinDisplay(
+                          builtInfo.fromValue,
+                          builtInfo.fromSymbol
+                        )
+                      }}
+                    </span>
+                    <span class="text-zinc-500">
+                      {{ prettyAddress(builtInfo.fromAddress) + ' (You)' }}
+                    </span>
+                  </div>
                 </div>
 
                 <div class="ml-1">
@@ -230,15 +193,23 @@ async function submitOrder() {
                     alt=""
                     class="h-8 w-8 rounded-full"
                   />
-                  <span>
-                    {{
-                      prettyCoinDisplay(builtInfo.toValue, builtInfo.toSymbol)
-                    }}
-                  </span>
+                  <div class="flex flex-col items-start gap-1">
+                    <span>
+                      {{
+                        prettyCoinDisplay(builtInfo.toValue, builtInfo.toSymbol)
+                      }}
+                    </span>
+                    <span class="text-zinc-500">
+                      {{
+                        prettyAddress(builtInfo.toAddress) +
+                        ' (MultiSig Address)'
+                      }}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div class="mt-8 grid grid-cols-2 gap-4">
+              <!-- <div class="mt-8 grid grid-cols-2 gap-4">
                 <div class="col-span-2">
                   <div class="my-4 w-16 border-t border-zinc-700"></div>
                 </div>
@@ -260,7 +231,7 @@ async function submitOrder() {
                     {{ prettyBtcDisplay(builtInfo.serviceFee) }}
                   </span>
                 </div>
-              </div>
+              </div> -->
             </div>
           </DialogDescription>
 
