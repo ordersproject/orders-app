@@ -7,6 +7,7 @@ import grumLogo from '@/assets/grum.png?url'
 import vmpxLogo from '@/assets/vmpx.jpg?url'
 import tracLogo from '@/assets/trac.png?url'
 import lgerLogo from '@/assets/lger.jpg?url'
+import saycLogo from '@/assets/sayc.jpg?url'
 
 import { useRoute } from 'vue-router'
 import { InjectionKey } from 'vue'
@@ -66,6 +67,13 @@ const tradingPairs = [
     fromSymbol: 'LGER',
     toSymbol: 'btc',
     fromIcon: lgerLogo,
+    toIcon: btcLogo,
+  },
+  {
+    id: 9,
+    fromSymbol: 'sayc',
+    toSymbol: 'btc',
+    fromIcon: saycLogo,
     toIcon: btcLogo,
   },
 ]

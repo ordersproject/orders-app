@@ -3,7 +3,6 @@ type BitcoinJs = typeof import('bitcoinjs-lib')
 import { useLocalStorage, type RemovableRef } from '@vueuse/core'
 
 import { type SimpleUtxoFromMempool } from './queries/proxy'
-import { type TradingPair } from './data/trading-pairs'
 
 export const useAddressStore = defineStore('address', {
   state: () => {
