@@ -1,7 +1,7 @@
 <p align="center">
-  <a href="https://orders.exchnage">
+  <a href="https://orders.exchange">
     <picture>
-      <img src="https://pbs.twimg.com/profile_images/1663852643238944776/fbrud6Pq_400x400.jpg" height="128">
+      <img src="https://app.orders.exchange/orders.png" height="128">
     </picture>
     <h1 align="center">Orders.Exchange</h1>
   </a>
