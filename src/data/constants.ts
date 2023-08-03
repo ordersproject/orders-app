@@ -1,4 +1,4 @@
-export const VERSION = '0.6.0 (beta)'
+export const VERSION = '0.6.1 (beta)'
 export const CHARGE_SERVICE_FEES = false
 export const DEBUG = import.meta.env.DEV
 

@@ -65,7 +65,10 @@ onMounted(async () => {
 })
 
 function getIconFromSymbol(symbol: string) {
-  return assets.find((asset) => asset.symbol === symbol)?.icon || ''
+  return (
+    assets.find((asset) => asset.symbol.toUpperCase() === symbol.toUpperCase())
+      ?.icon || ''
+  )
 }
 
 function discardOrder() {

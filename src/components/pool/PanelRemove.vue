@@ -1,7 +1,4 @@
 <script lang="ts" setup>
-import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
-import { getMyPoolOrders, type PoolOrder } from '@/queries/pool'
-import { useAddressStore, useNetworkStore } from '@/store'
 import {
   Listbox,
   ListboxButton,
@@ -9,38 +6,64 @@ import {
   ListboxOption,
   ListboxOptions,
 } from '@headlessui/vue'
-import { useQuery } from '@tanstack/vue-query'
-import { CheckIcon } from 'lucide-vue-next'
-import { ChevronsUpDownIcon } from 'lucide-vue-next'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { CheckIcon, ChevronsUpDownIcon } from 'lucide-vue-next'
 import { Ref, computed, inject, ref } from 'vue'
 
+import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
+import {
+  getMyPoolRecords,
+  removeLiquidity,
+  type PoolRecord,
+} from '@/queries/pool'
+import { useAddressStore } from '@/store'
+import { prettyTimestamp } from '@/lib/helpers'
+import { ElMessage } from 'element-plus'
+
+const queryClient = useQueryClient()
 const selectedPair = inject(selectedPoolPairKey, defaultPair)
 const addressStore = useAddressStore()
 const enabled = computed(() => !!addressStore.get)
 
-const { isLoading: isLoadingOrders, data: poolOrders } = useQuery({
+const { isLoading: isLoadingRecords, data: poolRecords } = useQuery({
   queryKey: [
-    'PoolOrders',
+    'poolRecords',
     {
       address: addressStore.get as string,
       tick: selectedPair.fromSymbol,
     },
   ],
   queryFn: () =>
-    getMyPoolOrders({
+    getMyPoolRecords({
       address: addressStore.get as string,
       tick: selectedPair.fromSymbol,
     }),
   enabled,
 })
 
-const selectedOrder: Ref<undefined | PoolOrder> = ref(undefined)
+const selectedRecord: Ref<undefined | PoolRecord> = ref(undefined)
+
+const { mutate: mutateRemoveLiquidity } = useMutation({
+  mutationFn: removeLiquidity,
+  onSuccess: () => {
+    ElMessage.success('Liquidity removed')
+    queryClient.invalidateQueries(['poolRecords'])
+  },
+  onError: (err: any) => {
+    ElMessage.error(err.message)
+  },
+})
+async function submitRemove() {
+  if (!selectedRecord.value) return
+
+  mutateRemoveLiquidity({ orderId: selectedRecord.value.orderId })
+}
 </script>
 
 <template>
   <div class="max-w-md mx-auto">
     <form action="" class="flex flex-col min-h-[40vh]">
-      <Listbox as="div" v-model="selectedOrder" class="grow">
+      <Listbox as="div" v-model="selectedRecord" class="grow">
         <ListboxLabel
           class="block text-base font-medium leading-6 text-zinc-300"
         >
@@ -51,9 +74,19 @@ const selectedOrder: Ref<undefined | PoolOrder> = ref(undefined)
           <ListboxButton
             class="relative w-full rounded-md bg-zinc-800 py-2 pl-3 pr-10 text-left text-zinc-300 shadow-sm ring-1 ring-inset ring-zinc-700 focus:outline-none focus:ring-2 focus:ring-orange-400 sm:text-sm sm:leading-6"
           >
-            <span class="block truncate">
-              {{ selectedOrder ? selectedOrder.orderId : '-' }}
-            </span>
+            <div v-if="selectedRecord">
+              <span class="text-orange-300">
+                {{
+                  `${
+                    selectedRecord.coinAmount
+                  } ${selectedRecord.tick.toUpperCase()}`
+                }}
+              </span>
+              <span>
+                {{ ` - (${prettyTimestamp(selectedRecord.timestamp)})` }}
+              </span>
+            </div>
+            <span v-else>{{ '-' }}</span>
             <span
               class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
             >
@@ -73,7 +106,7 @@ const selectedOrder: Ref<undefined | PoolOrder> = ref(undefined)
               class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-zinc-800 py-1 text-base shadow-lg ring-zinc-700 ring-1 ring-inset focus:outline-none sm:text-sm"
             >
               <ListboxOption
-                v-if="!poolOrders?.length"
+                v-if="!poolRecords?.length"
                 :disabled="true"
                 class="text-right text-zinc-500 text-sm py-2 px-4"
               >
@@ -82,27 +115,36 @@ const selectedOrder: Ref<undefined | PoolOrder> = ref(undefined)
 
               <ListboxOption
                 as="template"
-                v-for="order in poolOrders"
-                :key="order.orderId"
-                :value="order"
-                v-slot="{ active, selectedOrder }"
+                v-for="(record, index) in poolRecords"
+                :key="record.orderId"
+                :value="record"
+                v-slot="{ active, selected }"
               >
                 <li
                   :class="[
                     active ? 'bg-orange-300 text-orange-900' : 'text-zinc-300',
-                    'relative  select-none py-2 pl-3 pr-9',
+                    'relative select-none py-2 pl-3 pr-9 flex gap-4 group cursor-pointer',
                   ]"
                 >
-                  <span
+                  <span class="shrink-0 text-zinc-500">#{{ index + 1 }}</span>
+                  <div
                     :class="[
-                      selectedOrder ? 'font-semibold' : 'font-normal',
+                      selected ? 'font-semibold' : 'font-normal',
                       'block truncate',
                     ]"
-                    >{{ order.orderId }}</span
                   >
+                    <span
+                      :class="active ? 'text-orange-900' : 'text-orange-300'"
+                    >
+                      {{ `${record.coinAmount} ${record.tick.toUpperCase()}` }}
+                    </span>
+                    <span>
+                      {{ ` - (${prettyTimestamp(record.timestamp)})` }}
+                    </span>
+                  </div>
 
                   <span
-                    v-if="selectedOrder"
+                    v-if="selected"
                     :class="[
                       active ? 'text-white' : 'text-orange-400',
                       'absolute inset-y-0 right-0 flex items-center pr-4',
@@ -120,7 +162,8 @@ const selectedOrder: Ref<undefined | PoolOrder> = ref(undefined)
       <div class="flex justify-center">
         <button
           class="mx-auto bg-orange-300 w-full py-3 text-orange-950 rounded-md disabled:cursor-not-allowed disabled:opacity-30"
-          :disabled="!selectedOrder"
+          :disabled="!selectedRecord"
+          @click.stop="submitRemove"
         >
           Remove
         </button>

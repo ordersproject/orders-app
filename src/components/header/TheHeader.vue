@@ -25,11 +25,6 @@ const networkStore = useNetworkStore()
 const dummiesStore = useDummiesStore()
 
 onMounted(async () => {
-  // check if unisat is available
-  // if (!window.unisat) {
-  //   ElMessage.warning('Unisat not available')
-  // }
-
   if (window.unisat) {
     const unisat = window.unisat
     unisat.on('accountsChanged', (accounts: string[]) => {

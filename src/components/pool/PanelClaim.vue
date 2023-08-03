@@ -6,7 +6,6 @@ import { HelpCircleIcon } from 'lucide-vue-next'
 const { data: poolRewards } = useQuery(['poolRewards'], () =>
   getMyPoolRewards()
 )
-console.log({ poolRewards })
 </script>
 
 <template>

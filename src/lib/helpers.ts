@@ -1,12 +1,19 @@
 import { type Psbt } from 'bitcoinjs-lib'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import * as dayjs from 'dayjs'
 
 import { useAddressStore } from '@/store'
 import { FEEB_MULTIPLIER } from '../data/constants'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
+}
+
+export function prettyTimestamp(timestamp: number, isInSeconds = false) {
+  if (isInSeconds) timestamp = timestamp * 1000
+
+  return dayjs(timestamp).format('YYYY-MM-DD HH:mm:ss')
 }
 
 export function calculateFee(feeRate: number, vinLen: number, voutLen: number) {

@@ -1,5 +1,6 @@
 import { ordersApiFetch } from '@/lib/fetch'
 import sign from '@/lib/sign'
+import { useAddressStore, useNetworkStore } from '@/store'
 
 // Pool
 type PoolPair = {
@@ -176,11 +177,14 @@ export const getPoolPubKey = async () => {
   )
 }
 
-export type PoolOrder = {
+export type PoolRecord = {
   orderId: string
   address: string
   amount: number
+  coinAddress: string
+  coinAmount: number
   decimalNum: number
+  coinDecimalNum: number
   inscriptionId: string
   net: 'livenet'
   pair: string
@@ -190,13 +194,13 @@ export type PoolOrder = {
   tick: string
   timestamp: number
 }
-export const getMyPoolOrders = async ({
+export const getMyPoolRecords = async ({
   address,
   tick,
 }: {
   address: string
   tick: string
-}): Promise<PoolOrder[]> => {
+}): Promise<PoolRecord[]> => {
   const network = 'livenet'
   const params = new URLSearchParams({
     net: network,
@@ -207,6 +211,26 @@ export const getMyPoolOrders = async ({
   })
 
   return await ordersApiFetch(`pool/orders?${params}`).then((res) => {
-    return res
+    return res.results
+  })
+}
+
+export const removeLiquidity = async ({ orderId }: { orderId: string }) => {
+  const address = useAddressStore().address!
+  const network = useNetworkStore().network
+  const { publicKey, signature } = await sign()
+
+  return await ordersApiFetch(`pool/order/update`, {
+    method: 'POST',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+    body: JSON.stringify({
+      net: network,
+      address,
+      orderId,
+      orderState: 2,
+    }),
   })
 }

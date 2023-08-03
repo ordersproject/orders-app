@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { Ref, computed, inject, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Buffer } from 'buffer'
 import {
   Listbox,
   ListboxButton,
@@ -16,12 +15,7 @@ import { CheckIcon, ChevronsUpDownIcon, HelpCircleIcon } from 'lucide-vue-next'
 import { useQuery } from '@tanstack/vue-query'
 
 import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
-import {
-  useAddressStore,
-  useBtcJsStore,
-  useCredentialsStore,
-  useNetworkStore,
-} from '@/store'
+import { useAddressStore, useNetworkStore } from '@/store'
 import {
   Brc20Transferable,
   getMarketPrice,
@@ -112,53 +106,6 @@ async function submitAdd() {
   builtInfo.value = builtRes
   console.log({ builtRes })
 
-  return
-
-  const btcjs = useBtcJsStore().get!
-  const selfAddress = addressStore.get!
-  const credential = useCredentialsStore().getByAddress(selfAddress)
-  // const selfPubKey = credential?.publicKey ?? raise('no credential')
-  const selfPubKey =
-    '037651f0d9d5f5fd74aa04890168888ce01f26702faba2a5fbd820cbc1c638e7a8'
-
-  // request exchange pubkey
-
-  const exchangePubKey =
-    '037355ad3caeacd0b8e69fd519bf7aac71c3c0227ae446f0c737e4616d7c1ac4f9'
-  const pubkeys = [selfPubKey, exchangePubKey].map((pkHex) => {
-    return Buffer.from(pkHex, 'hex')
-  })
-
-  // generate multisig address
-  const redeem = btcjs.payments.p2ms({
-    m: 2,
-    pubkeys,
-    network: btcjs.networks.bitcoin,
-  })
-  const res = btcjs.payments.p2wsh({
-    redeem,
-    network: btcjs.networks.bitcoin,
-  })
-  console.log({
-    redeemAddress: redeem.address,
-    multisigAddress: res.address,
-    redeem,
-  })
-
-  // type LiquidityOffer = Parameters<typeof addLiquidity>[0]
-  // const liquidityOffer: LiquidityOffer = {
-  //   address: addressStore.get!,
-  //   amount: Number(reversePrice.value),
-  //   coinAmount: selected.value.amount,
-  //   coinPsbtRaw: '',
-  //   net: networkStore.network,
-  //   pair: `${selectedPair.fromSymbol.toUpperCase()}-${selectedPair.toSymbol.toUpperCase()}`,
-  //   tick: selectedPair.fromSymbol,
-  //   poolState: 1,
-  //   poolType: 1,
-  // }
-
-  // await addLiquidity(liquidityOffer)
   return
 }
 </script>

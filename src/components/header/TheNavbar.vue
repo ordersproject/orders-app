@@ -20,7 +20,6 @@ const links: {
   {
     name: 'Whitelist',
     path: '/whitelist',
-    new: true,
   },
   {
     name: 'Pool',

@@ -15,7 +15,7 @@ import { InjectionKey } from 'vue'
 const tradingPairs = [
   {
     id: 1,
-    fromSymbol: 'RDEX',
+    fromSymbol: 'rdex',
     toSymbol: 'btc',
     fromIcon: rdexLogo,
     toIcon: btcLogo,
@@ -29,7 +29,7 @@ const tradingPairs = [
   },
   {
     id: 3,
-    fromSymbol: 'OXBT',
+    fromSymbol: 'oxbt',
     toSymbol: 'btc',
     fromIcon: oxbtLogo,
     toIcon: btcLogo,
@@ -43,14 +43,14 @@ const tradingPairs = [
   },
   {
     id: 5,
-    fromSymbol: 'GRUM',
+    fromSymbol: 'grum',
     toSymbol: 'btc',
     fromIcon: grumLogo,
     toIcon: btcLogo,
   },
   {
     id: 6,
-    fromSymbol: 'VMPX',
+    fromSymbol: 'vmpx',
     toSymbol: 'btc',
     fromIcon: vmpxLogo,
     toIcon: btcLogo,
@@ -64,7 +64,7 @@ const tradingPairs = [
   },
   {
     id: 8,
-    fromSymbol: 'LGER',
+    fromSymbol: 'lger',
     toSymbol: 'btc',
     fromIcon: lgerLogo,
     toIcon: btcLogo,
