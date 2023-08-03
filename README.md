@@ -1,18 +1,37 @@
-# Vue 3 + TypeScript + Vite
+<p align="center">
+  <a href="https://orders.exchange">
+    <picture>
+      <img src="https://app.orders.exchange/orders.png" height="128">
+    </picture>
+    <h1 align="center">Orders.Exchange</h1>
+  </a>
+</p>
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+<!-- <p align="center">
+  <a aria-label="License" href="https://github.com/vercel/next.js/blob/canary/license.md">
+    <img alt="" src="https://img.shields.io/npm/l/next.svg?style=for-the-badge&labelColor=000000">
+  </a>
+  <a aria-label="Join the community on Discord" href="https://discord.gg/nGrjF7FJJD">
+    <img alt="" src="https://img.shields.io/badge/Join%20the%20community-blueviolet.svg?style=for-the-badge&logo=Next.js&labelColor=000000&logoWidth=20">
+  </a>
+</p> -->
 
-## Recommended IDE Setup
+## What is Orders.Exchange?
 
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+Orders is the first decentralized exchange (DEX) with orderbooks that fully operates on the Bitcoin network. It harnesses the full potential of Bitcoin's Layer 1 capabilities, powered by a combination of Ordinals protocol, PSBT technology, Bitcoin scripts, and the revolutionary Nostr protocol. Welcome to the future of Bitcoin-based DeFi with comprehensive support for BRC-20 Tokens.
 
-## Type Support For `.vue` Imports in TS
+At Orders.Exchange, we are dedicated to pushing the boundaries of what Bitcoin can achieve. Through meticulous development, we have unveiled the incredible possibilities that arise from the synergy between Bitcoin's PSBT technology and the Ordinals protocol. Prepare to witness a trustless ORDERBOOK DEX, Liquidity Pool, SWAP DEX, and LaunchPad, all encapsulated within the ingenious Nostr framework, leveraging its Relay nodes to redefine Bitcoin-based DeFi.
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
+Six months ago, the prevailing belief dictated that Bitcoin was incapable of minting NFTs; three months ago, skeptics denied the existence of Bitcoin Tokens. Prior to the launch of Orders.Exchange, doubts prevailed regarding Bitcoin's ability to support DeFi. However, we hold firm in our conviction that it will soon become evident that Bitcoin has far surpassed its initial expectations, showcasing remarkable capabilities beyond imagination.
 
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
+## Documentation
 
-1. Disable the built-in TypeScript Extension
-   1. Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-   2. Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
+Visit [https://orders-exchange.gitbook.io](https://orders-exchange.gitbook.io) to view the full documentation.
+
+## Community
+
+[Homepage](https://orders.exchange)
+
+[Discord](https://discord.gg/nGrjF7FJJD)
+
+[Twitter](https://twitter.com/ordersexchange)
