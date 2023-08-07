@@ -388,9 +388,7 @@ async function submitAdd() {
 
       <div class="flex justify-center">
         <button
-          :class="[
-            'mx-auto bg-orange-300 w-full py-3 text-orange-950 rounded-md disabled:cursor-not-allowed disabled:opacity-30',
-          ]"
+          class="mx-auto bg-orange-300 w-full py-3 text-orange-950 rounded-md disabled:cursor-not-allowed disabled:opacity-30"
           @click.prevent="submitAdd"
           :disabled="!selected"
         >

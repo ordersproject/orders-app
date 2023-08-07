@@ -1,5 +1,6 @@
 import { useAddressStore } from '../store'
 import { ElMessage } from 'element-plus'
+import { login } from './orders-api'
 
 export const getAddress = async () => {
   if (!window.unisat) {
@@ -20,6 +21,10 @@ export const getAddress = async () => {
     }
 
     useAddressStore().set(addresses[0])
+
+    // login to orders api
+    await login()
+
     return addresses[0]
   }
 
@@ -28,6 +33,7 @@ export const getAddress = async () => {
 
 export const connect = async () => {
   const connectRes = await window.unisat.requestAccounts()
+  console.log('here')
   if (connectRes && connectRes.length) {
     // if it's a legacy address(1... or m..., n...), throw error
     if (
@@ -40,6 +46,9 @@ export const connect = async () => {
     }
 
     useAddressStore().set(connectRes[0])
+
+    // login to orders api
+    await login()
 
     return connectRes[0]
   }

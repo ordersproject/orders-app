@@ -19,24 +19,46 @@ export const getOnePoolPair = async ({
   address: string
 }): Promise<PoolPair> => {
   const pairSymbol = `${from.toUpperCase()}-${to.toUpperCase()}`
-
   const network = 'livenet'
-  return await ordersApiFetch(
-    `pool/pair/info?net=${network}&tick=${from}&pair=${pairSymbol}`
-  ).then((res) => {
-    // handle empty response
-    // if res is an empty object
-    if (Object.keys(res).length === 0) {
-      return {
-        fromPoolSize: '0',
-        toPoolSize: '0',
-        myPoolBalance: '0',
-        totalPoolSupply: '0',
-      }
-    }
-    console.log({ res })
-    return res
+  const params = new URLSearchParams({
+    net: network,
+    tick: from,
+    address,
+    pair: pairSymbol,
   })
+  const { publicKey, signature } = await sign()
+
+  return await ordersApiFetch(`pool/pair/info/one?${params}`, {
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  })
+    .then((res) => {
+      // handle empty response
+      // if res is an empty object
+      if (Object.keys(res).length === 0) {
+        return {
+          fromPoolSize: '0',
+          toPoolSize: '0',
+          myPoolBalance: '0',
+          totalPoolSupply: '0',
+        }
+      }
+      return res
+    })
+    .catch((e) => {
+      if (e.message === 'pool info ie empty') {
+        return {
+          fromPoolSize: '0',
+          toPoolSize: '0',
+          myPoolBalance: '0',
+          totalPoolSupply: '0',
+        }
+      }
+
+      throw e
+    })
 }
 
 type PoolReward = {
@@ -211,12 +233,11 @@ export const getMyPoolRecords = async ({
   })
 
   return await ordersApiFetch(`pool/orders?${params}`).then((res) => {
-    return res.results
+    return res?.results || []
   })
 }
 
 export const removeLiquidity = async ({ orderId }: { orderId: string }) => {
-  const address = useAddressStore().address!
   const network = useNetworkStore().network
   const { publicKey, signature } = await sign()
 
@@ -228,9 +249,8 @@ export const removeLiquidity = async ({ orderId }: { orderId: string }) => {
     },
     body: JSON.stringify({
       net: network,
-      address,
       orderId,
-      orderState: 2,
+      poolState: 2,
     }),
   })
 }

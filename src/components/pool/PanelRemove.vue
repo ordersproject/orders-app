@@ -8,7 +8,7 @@ import {
 } from '@headlessui/vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { CheckIcon, ChevronsUpDownIcon } from 'lucide-vue-next'
-import { Ref, computed, inject, ref } from 'vue'
+import { Ref, computed, inject, ref, watch } from 'vue'
 
 import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import {
@@ -47,7 +47,17 @@ const { mutate: mutateRemoveLiquidity } = useMutation({
   mutationFn: removeLiquidity,
   onSuccess: () => {
     ElMessage.success('Liquidity removed')
-    queryClient.invalidateQueries(['poolRecords'])
+    queryClient.invalidateQueries({
+      queryKey: [
+        'poolRecords',
+        {
+          address: addressStore.get as string,
+          tick: selectedPair.fromSymbol,
+        },
+      ],
+    })
+    // reset selected record
+    selectedRecord.value = undefined
   },
   onError: (err: any) => {
     ElMessage.error(err.message)
@@ -55,6 +65,7 @@ const { mutate: mutateRemoveLiquidity } = useMutation({
 })
 async function submitRemove() {
   if (!selectedRecord.value) return
+  console.log('here')
 
   mutateRemoveLiquidity({ orderId: selectedRecord.value.orderId })
 }
@@ -163,7 +174,7 @@ async function submitRemove() {
         <button
           class="mx-auto bg-orange-300 w-full py-3 text-orange-950 rounded-md disabled:cursor-not-allowed disabled:opacity-30"
           :disabled="!selectedRecord"
-          @click.stop="submitRemove"
+          @click.prevent="submitRemove"
         >
           Remove
         </button>

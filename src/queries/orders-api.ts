@@ -2,6 +2,25 @@ import sign from '../lib/sign'
 import { useAddressStore, useNetworkStore } from '../store'
 import { ordersApiFetch } from '@/lib/fetch'
 
+export const login = async () => {
+  const { signature, address, publicKey } = await sign()
+  const loginRes = await ordersApiFetch(`login/in`, {
+    method: 'POST',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+    body: JSON.stringify({
+      net: 'livenet',
+      address,
+    }),
+  })
+
+  console.log({ loginRes })
+
+  return loginRes
+}
+
 export const getOrdiBalance = async (
   address: string,
   network: 'livenet' | 'testnet'
@@ -21,13 +40,20 @@ export type BidCandidate = {
   inscriptionId: string
   inscriptionNumber: string
   coinAmount: string
+  // poolOrderId
 }
 export const getBidCandidates = async (
   network: 'livenet' | 'testnet',
-  tick: string
+  tick: string,
+  isPool: boolean = true
 ): Promise<BidCandidate[]> => {
+  const params = new URLSearchParams({
+    net: network,
+    tick,
+    isPool: String(isPool),
+  })
   const candidates: BidCandidate[] = await ordersApiFetch(
-    `order/bid/pre?net=${network}&tick=${tick}`
+    `order/bid/pre?${params}`
   ).then(({ availableList }) => availableList)
 
   return candidates || []
@@ -53,9 +79,15 @@ export const getBidCandidateInfo = async ({
   psbtRaw: string
   orderId: string
 }> => {
-  const candidateInfo = await ordersApiFetch(
-    `order/bid?net=${network}&tick=${tick}&inscriptionId=${inscriptionId}&inscriptionNumber=${inscriptionNumber}&coinAmount=${coinAmount}&total=${total}`
-  )
+  const params = new URLSearchParams({
+    net: network,
+    tick,
+    inscriptionId,
+    inscriptionNumber,
+    coinAmount: String(coinAmount),
+    total: String(total),
+  })
+  const candidateInfo = await ordersApiFetch(`order/bid?${params}`)
 
   return candidateInfo
 }
@@ -88,9 +120,18 @@ export const getOrders = async ({
 }) => {
   const orderType = type === 'ask' ? 1 : 2
   const sortType = sort === 'asc' ? 1 : -1
-  const orders: Order[] = await ordersApiFetch(
-    `orders?net=${network}&orderType=${orderType}&orderState=1&sortKey=coinRatePrice&sortType=${sortType}&tick=${tick}`
-  ).then(({ results }) => results)
+
+  const params = new URLSearchParams({
+    net: network,
+    orderType: String(orderType),
+    orderState: '1',
+    sortKey: 'coinRatePrice',
+    sortType: String(sortType),
+    tick,
+  })
+  const orders: Order[] = await ordersApiFetch(`orders?${params}`).then(
+    ({ results }) => results
+  )
 
   return orders || []
 }
@@ -410,4 +451,3 @@ export const updateClaim = async ({
     }),
   })
 }
-

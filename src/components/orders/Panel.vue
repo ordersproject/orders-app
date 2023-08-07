@@ -486,6 +486,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
             class="mt-8"
             as="div"
             @change="limitExchangeType = $event === 0 ? 'bid' : 'ask'"
+            :default-index="1"
           >
             <TabList
               class="flex items-center justify-center gap-4"
