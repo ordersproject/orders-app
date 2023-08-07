@@ -1,11 +1,30 @@
 <script lang="ts" setup>
+import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import { getMyPoolRewards } from '@/queries/pool'
+import { useAddressStore } from '@/store'
 import { useQuery } from '@tanstack/vue-query'
 import { HelpCircleIcon } from 'lucide-vue-next'
+import { computed, inject } from 'vue'
 
-const { data: poolRewards } = useQuery(['poolRewards'], () =>
-  getMyPoolRewards()
-)
+const selectedPair = inject(selectedPoolPairKey, defaultPair)
+const addressStore = useAddressStore()
+const enabled = computed(() => !!addressStore.get)
+
+const { data: poolRewards } = useQuery({
+  queryKey: [
+    'poolRewards',
+    {
+      address: addressStore.get as string,
+      tick: selectedPair.fromSymbol,
+    },
+  ],
+  queryFn: () =>
+    getMyPoolRewards({
+      address: addressStore.get as string,
+      tick: selectedPair.fromSymbol,
+    }),
+  enabled,
+})
 </script>
 
 <template>
@@ -15,7 +34,14 @@ const { data: poolRewards } = useQuery(['poolRewards'], () =>
     <div
       class="border rounded mt-4 px-4 divide-y divide-zinc-700 border-zinc-600 grow overflow-y-auto"
     >
-      <div class="py-4" v-for="record in poolRewards" :key="record.id">
+      <div
+        class="flex items-center justify-center h-full text-zinc-500"
+        v-if="!poolRewards || poolRewards.length === 0"
+      >
+        No Rewards Currently.
+      </div>
+
+      <div class="py-4" v-for="record in poolRewards" :key="record.orderId">
         <div class="flex items-center justify-between">
           <h3 class="text-zinc-300">
             {{ record.title }}

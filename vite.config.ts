@@ -33,6 +33,7 @@ export default defineConfig({
   server: {
     open: true,
     // host: true,
+    port: 5174,
   },
   build: {
     rollupOptions: {

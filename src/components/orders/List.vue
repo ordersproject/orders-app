@@ -43,7 +43,7 @@ const { data: marketPrice } = useQuery({
 </script>
 
 <template>
-  <div class="flex flex-col gap-y-4">
+  <div class="flex flex-col gap-y-4 max-h-[60vh]">
     <div class="orders-container h-full overflow-y-scroll pr-1">
       <table class="w-full">
         <thead>

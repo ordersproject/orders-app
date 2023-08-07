@@ -16,8 +16,6 @@ export const login = async () => {
     }),
   })
 
-  console.log({ loginRes })
-
   return loginRes
 }
 
@@ -204,7 +202,31 @@ export const getOneBrc20 = async ({
   tick: string
   address: string
 }) => {
-  const brc20: Brc20 = await ordersApiFetch(`address/${address}/${tick}`)
+  let brc20: Brc20 = await ordersApiFetch(`address/${address}/${tick}`)
+
+  // map inscriptionId into : notation
+  if (brc20) {
+    brc20.transferBalanceList = brc20.transferBalanceList.map((transfer) => {
+      const inscriptionNumber = transfer.inscriptionNumber
+      const amount = transfer.amount
+
+      let inscriptionId
+      if (transfer.inscriptionId.includes('i')) {
+        inscriptionId =
+          transfer.inscriptionId.split('i')[0] +
+          ':' +
+          transfer.inscriptionId.split('i')[1]
+      } else {
+        inscriptionId = transfer.inscriptionId
+      }
+
+      return {
+        inscriptionId,
+        inscriptionNumber,
+        amount,
+      }
+    })
+  }
 
   return brc20 || {}
 }

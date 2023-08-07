@@ -13,6 +13,7 @@ import {
 } from '@headlessui/vue'
 import { CheckIcon, ChevronsUpDownIcon, HelpCircleIcon } from 'lucide-vue-next'
 import { useQuery } from '@tanstack/vue-query'
+import Decimal from 'decimal.js'
 
 import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import { useAddressStore, useNetworkStore } from '@/store'
@@ -23,17 +24,18 @@ import {
 } from '@/queries/orders-api'
 import { buildAddLiquidity } from '@/lib/order-pool-builder'
 import { sleep } from '@/lib/helpers'
+import { getMyPooledInscriptions } from '@/queries/pool'
 
 import OrderConfirmationModal from './ConfirmationModal.vue'
-import Decimal from 'decimal.js'
+import { DEBUG } from '@/data/constants'
 
 const addressStore = useAddressStore()
 const networkStore = useNetworkStore()
 const selectedPair = inject(selectedPoolPairKey, defaultPair)
 
-const { data: myBrc20Info } = useQuery({
+const { data: myPoolableBrc20s } = useQuery({
   queryKey: [
-    'myBrc20Info',
+    'myPoolableBrc20s',
     {
       address: addressStore.get,
       network: networkStore.network,
@@ -41,11 +43,29 @@ const { data: myBrc20Info } = useQuery({
     },
   ],
   queryFn: () =>
-    getOneBrc20({
-      address: addressStore.get!,
-      tick: selectedPair.fromSymbol,
-    }),
+    Promise.all([
+      getOneBrc20({
+        address: addressStore.get!,
+        tick: selectedPair.fromSymbol,
+      }),
+      getMyPooledInscriptions({
+        address: addressStore.get!,
+        tick: selectedPair.fromSymbol,
+      }),
+    ]).then(([allBrc20s, pooledBrc20s]) => {
+      console.log({
+        allBrc20s,
+        pooledBrc20s,
+      })
+      // filter out pooled brc20s
+      const poolableBrc20s = allBrc20s.transferBalanceList.filter((brc20) => {
+        return !pooledBrc20s.some(
+          (pooledBrc20) => pooledBrc20.inscriptionId === brc20.inscriptionId
+        )
+      })
 
+      return poolableBrc20s
+    }),
   enabled: computed(
     () => networkStore.network !== 'testnet' && !!addressStore.get
   ),
@@ -57,7 +77,11 @@ const { data: marketPrice } = useQuery({
     'marketPrice',
     { network: networkStore.network, tick: selectedPair.fromSymbol },
   ],
-  queryFn: () => getMarketPrice({ tick: selectedPair.fromSymbol }),
+  queryFn: () =>
+    getMarketPrice({ tick: selectedPair.fromSymbol }).then((res) => {
+      if (DEBUG) return 0.00000002 // TODO: remove this
+      return res
+    }),
 })
 
 const multipliers = [1.5, 1.8, 2]
@@ -148,11 +172,19 @@ async function submitAdd() {
           >
             <ListboxOptions
               class="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-zinc-800 py-1 text-base shadow-lg ring-1 ring-zinc-700 ring-inset focus:outline-none sm:text-sm"
-              v-if="myBrc20Info?.transferBalanceList.length"
+              v-if="typeof myPoolableBrc20s === 'object'"
             >
               <ListboxOption
+                v-if="myPoolableBrc20s.length === 0"
+                :disabled="true"
+                class="text-right text-zinc-500 text-sm py-2 px-4"
+              >
+                No poolable {{ selectedPair.fromSymbol.toUpperCase() }}
+              </ListboxOption>
+
+              <ListboxOption
                 as="template"
-                v-for="transferable in myBrc20Info?.transferBalanceList"
+                v-for="transferable in myPoolableBrc20s"
                 :key="transferable.inscriptionId"
                 :value="transferable"
                 v-slot="{ active, selected }"

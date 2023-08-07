@@ -6,8 +6,8 @@ import { useAddressStore, useNetworkStore } from '@/store'
 type PoolPair = {
   fromPoolSize: string
   toPoolSize: string
-  myPoolBalance: string
-  totalPoolSupply: string
+  myFromPoolBalance: string
+  myToPoolBalance: string
 }
 export const getOnePoolPair = async ({
   from,
@@ -18,7 +18,7 @@ export const getOnePoolPair = async ({
   to: string
   address: string
 }): Promise<PoolPair> => {
-  const pairSymbol = `${from.toUpperCase()}-${to.toUpperCase()}`
+  const pairSymbol = `${from.toUpperCase()}_${to.toUpperCase()}`
   const network = 'livenet'
   const params = new URLSearchParams({
     net: network,
@@ -34,26 +34,44 @@ export const getOnePoolPair = async ({
       'X-Public-Key': publicKey,
     },
   })
-    .then((res) => {
-      // handle empty response
-      // if res is an empty object
-      if (Object.keys(res).length === 0) {
+    .then(
+      (res: {
+        amount: number
+        coinAmount: number
+        decimalNum: number
+        net: 'livenet'
+        ownAmount: number
+        ownCoinAmount: number
+        ownCount: number
+        pair: string
+        tick: string
+      }) => {
+        // handle empty response
+        // if res is an empty object
+        if (Object.keys(res).length === 0) {
+          return {
+            fromPoolSize: '0',
+            toPoolSize: '0',
+            myFromPoolBalance: '0',
+            myToPoolBalance: '0',
+          }
+        }
+
         return {
-          fromPoolSize: '0',
-          toPoolSize: '0',
-          myPoolBalance: '0',
-          totalPoolSupply: '0',
+          fromPoolSize: res.coinAmount.toString(),
+          toPoolSize: res.amount.toString(),
+          myFromPoolBalance: (res.ownCoinAmount || 0).toString(),
+          myToPoolBalance: (res.ownAmount || 0).toString(),
         }
       }
-      return res
-    })
+    )
     .catch((e) => {
       if (e.message === 'pool info ie empty') {
         return {
           fromPoolSize: '0',
           toPoolSize: '0',
-          myPoolBalance: '0',
-          totalPoolSupply: '0',
+          myFromPoolBalance: '0',
+          myToPoolBalance: '0',
         }
       }
 
@@ -74,7 +92,7 @@ type PoolReward = {
   }
   status: 'claimable' | 'claimed'
 }
-export const getMyPoolRewards = async (): Promise<PoolReward[]> => {
+export const getMyPoolRewards2 = async (): Promise<PoolReward[]> => {
   return [
     {
       id: '1',
@@ -142,6 +160,28 @@ export const getMyPoolRewards = async (): Promise<PoolReward[]> => {
       status: 'claimed',
     },
   ]
+}
+
+type PooledInscription = {
+  coinAmount: string
+  inscriptionId: string
+  inscriptionNumber: string
+}
+export const getMyPooledInscriptions = async ({
+  address,
+  tick,
+}: {
+  address: string
+  tick: string
+}): Promise<PooledInscription[]> => {
+  const params = new URLSearchParams({
+    tick,
+    address,
+  })
+
+  return await ordersApiFetch(`pool/inscription?${params}`).then((res) => {
+    return res?.availableList || []
+  })
 }
 
 type LiquidityOfferParams = {
@@ -229,6 +269,27 @@ export const getMyPoolRecords = async ({
     tick,
     address,
     poolState: '1',
+    poolType: '1',
+  })
+
+  return await ordersApiFetch(`pool/orders?${params}`).then((res) => {
+    return res?.results || []
+  })
+}
+
+export const getMyPoolRewards = async ({
+  address,
+  tick,
+}: {
+  address: string
+  tick: string
+}): Promise<PoolRecord[]> => {
+  const network = 'livenet'
+  const params = new URLSearchParams({
+    net: network,
+    tick,
+    address,
+    poolState: '3', // 3 for claimable (used)
     poolType: '1',
   })
 

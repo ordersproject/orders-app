@@ -54,21 +54,21 @@ const infoMap = computed(() => {
       value: pairInfo.value.toPoolSize,
     },
     {
-      label: `Your LP(${selectedPair.fromSymbol.toUpperCase()}-${selectedPair.toSymbol.toUpperCase()}) balance`,
-      value: pairInfo.value.myPoolBalance,
+      label: `Your LP(${selectedPair.fromSymbol.toUpperCase()}-${selectedPair.toSymbol.toUpperCase()}) ${selectedPair.fromSymbol.toUpperCase()}`,
+      value: pairInfo.value.myFromPoolBalance,
     },
     {
-      label: `Your LP(${selectedPair.fromSymbol.toUpperCase()}-${selectedPair.toSymbol.toUpperCase()}) supply`,
-      value: pairInfo.value.totalPoolSupply,
+      label: `Your LP(${selectedPair.fromSymbol.toUpperCase()}-${selectedPair.toSymbol.toUpperCase()}) ${selectedPair.toSymbol.toUpperCase()}`,
+      value: pairInfo.value.myToPoolBalance,
     },
     {
       label: 'Your share of the pool',
       value:
-        Number(pairInfo.value.totalPoolSupply) === 0
+        Number(pairInfo.value.fromPoolSize) === 0
           ? '-'
           : (
-              (Number(pairInfo.value.myPoolBalance) /
-                Number(pairInfo.value.totalPoolSupply)) *
+              (Number(pairInfo.value.myFromPoolBalance) /
+                Number(pairInfo.value.fromPoolSize)) *
               100
             ).toFixed(4) + '%',
     },

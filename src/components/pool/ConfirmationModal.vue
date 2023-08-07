@@ -91,7 +91,7 @@ async function submitOrder() {
           coinAmount: builtInfo.fromValue.toNumber(),
           coinPsbtRaw: signed,
           net: networkStore.network,
-          pair: `${selectedPair.fromSymbol.toUpperCase()}-${selectedPair.toSymbol.toUpperCase()}`,
+          pair: `${selectedPair.fromSymbol.toUpperCase()}_${selectedPair.toSymbol.toUpperCase()}`,
           tick: selectedPair.fromSymbol,
           poolState: 1,
           poolType: 1,
