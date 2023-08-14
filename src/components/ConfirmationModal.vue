@@ -20,6 +20,7 @@ import { useAddressStore, useCooldownerStore, useNetworkStore } from '@/store'
 import { DEBUG } from '@/data/constants'
 import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
 import assets from '@/data/assets'
+import { useQueryClient } from '@tanstack/vue-query'
 
 const unisat = window.unisat
 

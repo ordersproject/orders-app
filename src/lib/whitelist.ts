@@ -25,4 +25,5 @@ export default [
   'bc1qlqjpjtfud8j700psy5ca4xhm4cguwj5uwvf9xz',
   'bc1qmk4y4kyjr8lv3tzkw830e96e37gv5mqfne476k',
   'tb1qmk4y4kyjr8lv3tzkw830e96e37gv5mqfelwdp9',
+  'bc1p3shjflzjarunqtxapxdnj5d63kkqfu5kv03gwj4mkluycn300klqvnftd2',
 ]

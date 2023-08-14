@@ -58,6 +58,7 @@ import OrderPanelHeader from './PanelHeader.vue'
 import OrderList from './List.vue'
 import OrderConfirmationModal from '../ConfirmationModal.vue'
 import { selectPair, selectedPairKey } from '@/data/trading-pairs'
+import { DEBUG } from '@/data/constants'
 
 const unisat = window.unisat
 
@@ -267,6 +268,7 @@ async function buildOrder() {
           inscriptionId: selectedBidCandidate.value.inscriptionId,
           inscriptionNumber: selectedBidCandidate.value.inscriptionNumber,
           selectedPair,
+          poolOrderId: selectedBidCandidate.value.poolOrderId,
         })
       } else {
         buildRes = await buildAskLimit({
@@ -321,6 +323,8 @@ async function buildOrder() {
     setIsOpen(false)
     builtInfo.value = undefined
     isLimitExchangeMode.value = false
+    
+    if (DEBUG) throw error
   }
 
   isBuilding.value = false
@@ -434,6 +438,8 @@ const { data: btcBalance } = useQuery({
     return unisat.getBalance().then((res: BalanceResult) => res.total)
   },
 })
+
+const usePool = selectedPair.hasPool
 const { data: bidCandidates } = useQuery({
   queryKey: [
     'bidCandidates',
@@ -443,7 +449,7 @@ const { data: bidCandidates } = useQuery({
     },
   ],
   queryFn: () =>
-    getBidCandidates(networkStore.network, selectedPair.fromSymbol),
+    getBidCandidates(networkStore.network, selectedPair.fromSymbol, usePool),
 })
 const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
 </script>

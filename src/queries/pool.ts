@@ -180,7 +180,23 @@ export const getMyPooledInscriptions = async ({
   })
 
   return await ordersApiFetch(`pool/inscription?${params}`).then((res) => {
-    return res?.availableList || []
+    if (!res?.availableList) return []
+
+    return res.availableList.map((item: any) => {
+      let inscriptionId
+      if (item.inscriptionId.includes(':')) {
+        inscriptionId =
+          item.inscriptionId.split(':')[0] +
+          'i' +
+          item.inscriptionId.split(':')[1]
+      } else {
+        inscriptionId = item.inscriptionId
+      }
+
+      item.inscriptionId = inscriptionId
+
+      return item
+    })
   })
 }
 
@@ -312,6 +328,62 @@ export const removeLiquidity = async ({ orderId }: { orderId: string }) => {
       net: network,
       orderId,
       poolState: 2,
+    }),
+  })
+}
+
+type ClaimEssential = {
+  coinPsbtRaw: string
+  psbtRaw: string
+  rewardCoinAmount: number
+  net: 'livenet'
+  orderId: string
+  tick: string
+}
+export const getClaimEssential = async ({
+  orderId,
+  tick,
+}: {
+  orderId: string
+  tick: string
+}): Promise<ClaimEssential> => {
+  const network = useNetworkStore().network
+  const address = useAddressStore().get!
+  const { publicKey, signature } = await sign()
+
+  return await ordersApiFetch(`pool/order/claim`, {
+    method: 'POST',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+    body: JSON.stringify({
+      address,
+      net: network,
+      poolOrderId: orderId,
+      tick,
+    }),
+  })
+}
+
+export const submitClaim = async ({
+  orderId,
+  psbtRaw,
+}: {
+  orderId: string
+  psbtRaw: string
+}) => {
+  const { publicKey, signature } = await sign()
+
+  return await ordersApiFetch(`pool/order/claim/submit`, {
+    method: 'POST',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+    body: JSON.stringify({
+      poolOrderId: orderId,
+      psbtRaw,
     }),
   })
 }

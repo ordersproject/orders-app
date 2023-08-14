@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 
-import TheHeader from '@/components/header/TheHeader.vue'
-import NotAvailableOverlay from '@/components/overlays/NotAvailable.vue'
 import { DEBUG } from './data/constants'
 import { useBtcJsStore } from './store'
+
+import TheHeader from '@/components/header/TheHeader.vue'
+import NotAvailableOverlay from '@/components/overlays/NotAvailable.vue'
 
 const btcJsStore = useBtcJsStore()
 
@@ -21,6 +22,15 @@ onMounted(async () => {
   const secp256k1 = await import('tiny-secp256k1')
   btcjs.initEccLib(secp256k1)
   btcJsStore.set(btcjs)
+})
+
+// setup vue-query
+import { useQueryClient } from '@tanstack/vue-query'
+const queryClient = useQueryClient()
+queryClient.setDefaultOptions({
+  queries: {
+    staleTime: 1000 * 30, // 30 seconds
+  },
 })
 </script>
 

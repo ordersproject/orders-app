@@ -30,6 +30,14 @@ export default defineConfig({
       '@': '/src',
     },
   },
+  optimizeDeps: {
+    esbuildOptions: {
+      // Node.js global to browser globalThis
+      define: {
+        global: 'globalThis',
+      },
+    },
+  },
   server: {
     open: true,
     // host: true,

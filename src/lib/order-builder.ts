@@ -144,18 +144,21 @@ export async function buildBidLimit({
   inscriptionId,
   inscriptionNumber,
   selectedPair,
+  poolOrderId,
 }: {
   total: number
   coinAmount: number
   inscriptionId: string
   inscriptionNumber: string
   selectedPair: TradingPair
+  poolOrderId?: string
 }) {
   const networkStore = useNetworkStore()
   const orderNetwork = networkStore.network
   const btcNetwork = networkStore.btcNetwork
   const btcjs = window.bitcoin
   const address = useAddressStore().get!
+  const isPool = !!selectedPair.hasPool
 
   // Step 1. prepare bid from exchange
   const candidateInfo = await getBidCandidateInfo({
@@ -165,6 +168,8 @@ export async function buildBidLimit({
     inscriptionNumber,
     coinAmount,
     total,
+    isPool,
+    poolOrderId,
   })
 
   const exchange = btcjs.Psbt.fromHex(candidateInfo.psbtRaw, {
@@ -211,6 +216,7 @@ export async function buildBidLimit({
   }
   bid.addInput(exchangeInput)
   totalInput += exchangeInput.witnessUtxo!.value
+  console.log({ exchange })
 
   const exchangeOutput = exchange.txOutputs[0]
   bid.addOutput(exchangeOutput)
@@ -264,10 +270,6 @@ export async function buildBidLimit({
     sighashType:
       btcjs.Transaction.SIGHASH_ALL | btcjs.Transaction.SIGHASH_ANYONECANPAY,
   }
-  // return await debugBidLimit({
-  //   exchange,
-  //   paymentInput,
-  // })
 
   bid.addInput(paymentInput)
   totalInput += paymentInput.witnessUtxo.value

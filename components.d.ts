@@ -36,6 +36,7 @@ declare module '@vue/runtime-core' {
     Panel: typeof import('./src/components/orders/Panel.vue')['default']
     PanelAdd: typeof import('./src/components/pool/PanelAdd.vue')['default']
     PanelClaim: typeof import('./src/components/pool/PanelClaim.vue')['default']
+    PanelClaimRewardItem: typeof import('./src/components/pool/PanelClaimRewardItem.vue')['default']
     PanelHeader: typeof import('./src/components/orders/PanelHeader.vue')['default']
     PanelRemove: typeof import('./src/components/pool/PanelRemove.vue')['default']
     PoolPairSelect: typeof import('./src/components/pool/PoolPairSelect.vue')['default']

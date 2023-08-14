@@ -8,22 +8,16 @@ import './style.css'
 import routes from '@/routes'
 import App from './App.vue'
 
+import { Buffer } from 'buffer'
+// @ts-ignore
+globalThis.Buffer = Buffer
+
 const router = VueRouter.createRouter({
   history: VueRouter.createWebHistory(),
   routes,
 })
 
 const pinia = createPinia()
-
-// const vueQueryPluginOptions: VueQueryPluginOptions = {
-//   queryClientConfig: {
-//     defaultOptions: {
-//       queries: {
-//         staleTime: 1000 * 10, // 10 seconds
-//       },
-//     },
-//   },
-// }
 
 // wait until bitcoin is loaded then mount the app
 const launchInterval = setInterval(() => {

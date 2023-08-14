@@ -3,13 +3,9 @@ import { useAddressStore, useNetworkStore } from '../store'
 import { ordersApiFetch } from '@/lib/fetch'
 
 export const login = async () => {
-  const { signature, address, publicKey } = await sign()
+  const address = useAddressStore().get as string
   const loginRes = await ordersApiFetch(`login/in`, {
     method: 'POST',
-    headers: {
-      'X-Signature': signature,
-      'X-Public-Key': publicKey,
-    },
     body: JSON.stringify({
       net: 'livenet',
       address,
@@ -38,7 +34,7 @@ export type BidCandidate = {
   inscriptionId: string
   inscriptionNumber: string
   coinAmount: string
-  // poolOrderId
+  poolOrderId?: string
 }
 export const getBidCandidates = async (
   network: 'livenet' | 'testnet',
@@ -50,9 +46,27 @@ export const getBidCandidates = async (
     tick,
     isPool: String(isPool),
   })
-  const candidates: BidCandidate[] = await ordersApiFetch(
+  let candidates: BidCandidate[] = await ordersApiFetch(
     `order/bid/pre?${params}`
   ).then(({ availableList }) => availableList)
+
+  if (candidates) {
+    candidates = candidates.map((candidate) => {
+      let inscriptionId
+      if (candidate.inscriptionId.includes(':')) {
+        inscriptionId =
+          candidate.inscriptionId.split(':')[0] +
+          'i' +
+          candidate.inscriptionId.split(':')[1]
+      } else {
+        inscriptionId = candidate.inscriptionId
+      }
+
+      candidate.inscriptionId = inscriptionId
+
+      return candidate
+    })
+  }
 
   return candidates || []
 }
@@ -64,6 +78,8 @@ export const getBidCandidateInfo = async ({
   inscriptionNumber,
   coinAmount,
   total,
+  isPool,
+  poolOrderId,
 }: {
   network: 'livenet' | 'testnet'
   tick: string
@@ -71,6 +87,8 @@ export const getBidCandidateInfo = async ({
   inscriptionNumber: string
   coinAmount: string | number
   total: number
+  isPool: boolean
+  poolOrderId?: string
 }): Promise<{
   net: 'livenet' | 'testnet'
   tick: string
@@ -80,12 +98,25 @@ export const getBidCandidateInfo = async ({
   const params = new URLSearchParams({
     net: network,
     tick,
-    inscriptionId,
     inscriptionNumber,
     coinAmount: String(coinAmount),
     total: String(total),
+    // inscriptionId,
   })
-  const candidateInfo = await ordersApiFetch(`order/bid?${params}`)
+  if (isPool) {
+    params.append('isPool', String(isPool))
+
+    if (poolOrderId) params.append('poolOrderId', poolOrderId)
+  }
+
+  const candidateInfo = await ordersApiFetch(
+    `order/bid?${params}&inscriptionId=${inscriptionId}`
+  )
+
+  // validate
+  if (!candidateInfo.psbtRaw) {
+    throw new Error('Psbt is not provided.')
+  }
 
   return candidateInfo
 }
@@ -211,11 +242,11 @@ export const getOneBrc20 = async ({
       const amount = transfer.amount
 
       let inscriptionId
-      if (transfer.inscriptionId.includes('i')) {
+      if (transfer.inscriptionId.includes(':')) {
         inscriptionId =
-          transfer.inscriptionId.split('i')[0] +
-          ':' +
-          transfer.inscriptionId.split('i')[1]
+          transfer.inscriptionId.split(':')[0] +
+          'i' +
+          transfer.inscriptionId.split(':')[1]
       } else {
         inscriptionId = transfer.inscriptionId
       }

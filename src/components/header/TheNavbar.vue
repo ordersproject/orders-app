@@ -52,7 +52,9 @@ function isLinkActive(path: string) {
         :class="
           cn(
             'px-4 py-2 text-sm font-medium rounded-md transition-all',
-            isLinkActive(link.path) ? 'text-orange-300' : 'text-zinc-300',
+            isLinkActive(link.path)
+              ? 'text-orange-300 underline underline-offset-4 hover:underline-offset-2'
+              : 'text-zinc-300',
             link.comingSoon
               ? 'text-zinc-500 cursor-default'
               : 'hover:bg-black hover:text-orange-300'

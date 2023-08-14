@@ -33,7 +33,6 @@ export const getAddress = async () => {
 
 export const connect = async () => {
   const connectRes = await window.unisat.requestAccounts()
-  console.log('here')
   if (connectRes && connectRes.length) {
     // if it's a legacy address(1... or m..., n...), throw error
     if (

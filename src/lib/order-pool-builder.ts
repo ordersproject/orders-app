@@ -8,10 +8,15 @@ import {
   useNetworkStore,
 } from '@/store'
 import { getOneBrc20 } from '@/queries/orders-api'
-import { type SimpleUtxoFromMempool, getTxHex } from '@/queries/proxy'
+import {
+  type SimpleUtxoFromMempool,
+  getTxHex,
+  getUtxos2,
+} from '@/queries/proxy'
 import { type TradingPair } from '@/data/trading-pairs'
 import { raise } from './utils'
 import { getPoolPubKey } from '@/queries/pool'
+import { calculatePsbtFee } from './helpers'
 
 async function getBothPubKeys() {
   const selfAddress = useAddressStore().get!
@@ -138,4 +143,56 @@ export async function buildAddLiquidity({
     fromAddress: address,
     toAddress: multisigAddress,
   }
+}
+
+export async function buildClaimBtcTx({ psbt }: { psbt: string }) {
+  const btcjs = window.bitcoin
+  const address = useAddressStore().get!
+
+  const claim = btcjs.Psbt.fromHex(psbt)
+
+  // Add payment input
+  const paymentUtxo = await getUtxos2(address).then((result) => {
+    // choose the largest utxo
+    const utxo = result.reduce((prev, curr) => {
+      if (prev.satoshis > curr.satoshis) {
+        return prev
+      } else {
+        return curr
+      }
+    })
+    return utxo
+  })
+
+  if (!paymentUtxo) {
+    throw new Error('no utxo')
+  }
+
+  // query rawTx of the utxo
+  const rawTx = await getTxHex(paymentUtxo.txId)
+  // decode rawTx
+  const tx = btcjs.Transaction.fromHex(rawTx)
+
+  // construct input
+  const paymentInput = {
+    hash: paymentUtxo.txId,
+    index: paymentUtxo.outputIndex,
+    witnessUtxo: tx.outs[paymentUtxo.outputIndex],
+    sighashType:
+      btcjs.Transaction.SIGHASH_ALL | btcjs.Transaction.SIGHASH_ANYONECANPAY,
+  }
+
+  claim.addInput(paymentInput)
+
+  // Add change output
+  const feeb = 12
+  const fee = calculatePsbtFee(feeb, claim)
+  const changeValue = paymentUtxo.satoshis - fee
+
+  claim.addOutput({
+    address,
+    value: changeValue,
+  })
+
+  return claim
 }

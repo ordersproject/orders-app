@@ -32,6 +32,9 @@ dependencies:
   decimal.js:
     specifier: ^10.4.3
     version: 10.4.3
+  ecpair:
+    specifier: ^2.1.0
+    version: 2.1.0
   element-plus:
     specifier: ^2.3.5
     version: 2.3.5(vue@3.3.4)
@@ -1388,6 +1391,15 @@ packages:
     resolution: {integrity: sha512-asLFVfWWtJ90ZyOUHMqk7/S2w2guQKxUI2itj3d92ADHhxUSbCMGi1f1cBcJ7xM1To+pE/Khbwo1yuNbMEPKeA==}
     dependencies:
       readable-stream: 2.3.8
+    dev: false
+
+  /ecpair@2.1.0:
+    resolution: {integrity: sha512-cL/mh3MtJutFOvFc27GPZE2pWL3a3k4YvzUWEOvilnfZVlH3Jwgx/7d6tlD7/75tNk8TG2m+7Kgtz0SI1tWcqw==}
+    engines: {node: '>=8.0.0'}
+    dependencies:
+      randombytes: 2.1.0
+      typeforce: 1.18.0
+      wif: 2.0.6
     dev: false
 
   /electron-to-chromium@1.4.402:

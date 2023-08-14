@@ -16,10 +16,12 @@ import { cn } from '@/lib/helpers'
 import { inject } from 'vue'
 
 const router = useRouter()
+
+const poolablePairs = tradingPairs.filter((pair) => pair.hasPool)
 const selectedPair = inject(selectedPoolPairKey, defaultPair)
 
 const choosePair = (pairId: number) => {
-  const pair = tradingPairs.find((pair) => pair.id === pairId)
+  const pair = poolablePairs.find((pair) => pair.id === pairId)
   if (pair) {
     const pairSymbol = `${pair.fromSymbol}-${pair.toSymbol}`
     router.push({
@@ -72,7 +74,7 @@ const choosePair = (pairId: number) => {
       >
         <ListboxOption
           v-slot="{ active, selected }"
-          v-for="pair in tradingPairs"
+          v-for="pair in poolablePairs"
           :key="pair.id"
           :value="pair.id"
         >
