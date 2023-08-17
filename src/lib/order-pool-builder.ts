@@ -17,6 +17,7 @@ import { type TradingPair } from '@/data/trading-pairs'
 import { raise } from './utils'
 import { getPoolPubKey } from '@/queries/pool'
 import { calculatePsbtFee } from './helpers'
+import { toXOnly } from './btc-helpers'
 
 async function getBothPubKeys() {
   const selfAddress = useAddressStore().get!
@@ -26,12 +27,18 @@ async function getBothPubKeys() {
   const exchangePubKey = await getPoolPubKey()
 
   return {
+    selfPubKey:
+      '037651f0d9d5f5fd74aa04890168888ce01f26702faba2a5fbd820cbc1c638e7a8',
+    exchangePubKey:
+      '037355ad3caeacd0b8e69fd519bf7aac71c3c0227ae446f0c737e4616d7c1ac4f9',
+  }
+  return {
     selfPubKey,
     exchangePubKey,
   }
 }
 
-async function generateMultisigAddress() {
+export async function generateP2wshPayment() {
   const btcjs = useBtcJsStore().get!
 
   const { selfPubKey, exchangePubKey } = await getBothPubKeys()
@@ -39,21 +46,7 @@ async function generateMultisigAddress() {
     Buffer.from(hex, 'hex')
   )
   const redeem = btcjs.payments.p2ms({ m: 2, pubkeys })
-  const multisigPayment = btcjs.payments.p2wsh({ redeem })
-
-  return multisigPayment.address ?? raise('Failed to generate multisig address')
-}
-
-async function generateMultisigScript() {
-  const btcjs = useBtcJsStore().get!
-
-  const { selfPubKey, exchangePubKey } = await getBothPubKeys()
-  const pubkeys = [selfPubKey, exchangePubKey].map((hex) =>
-    Buffer.from(hex, 'hex')
-  )
-  const redeem = btcjs.payments.p2ms({ m: 2, pubkeys })
-
-  return redeem.output ?? raise('Failed to generate multisig script')
+  return btcjs.payments.p2wsh({ redeem })
 }
 
 export async function buildAddLiquidity({
@@ -122,9 +115,9 @@ export async function buildAddLiquidity({
   })
 
   // Step 2: Build BTC output for the pool
-  const multisigAddress = await generateMultisigAddress()
-  // const multisigScript = btcjs.address.toOutputScript(multisigAddress)
-  const multisigScript = await generateMultisigScript()
+  const msPayment = await generateP2wshPayment()
+  const multisigAddress = msPayment.address ?? raise('no multisig address')
+  const multisigScript = msPayment.output
   addLiquidity.addOutput({
     script: multisigScript,
     value: Number(total),
@@ -145,11 +138,19 @@ export async function buildAddLiquidity({
   }
 }
 
-export async function buildClaimBtcTx({ psbt }: { psbt: string }) {
+export async function buildClaimBtcTx({
+  psbt,
+  pubKey,
+}: {
+  psbt: string
+  pubKey: Buffer
+}) {
   const btcjs = window.bitcoin
   const address = useAddressStore().get!
 
   const claim = btcjs.Psbt.fromHex(psbt)
+  console.log({ claim })
+  // const claim = new btcjs.Psbt()
 
   // Add payment input
   const paymentUtxo = await getUtxos2(address).then((result) => {
@@ -178,8 +179,9 @@ export async function buildClaimBtcTx({ psbt }: { psbt: string }) {
     hash: paymentUtxo.txId,
     index: paymentUtxo.outputIndex,
     witnessUtxo: tx.outs[paymentUtxo.outputIndex],
-    sighashType:
-      btcjs.Transaction.SIGHASH_ALL | btcjs.Transaction.SIGHASH_ANYONECANPAY,
+    tapInternalKey: pubKey,
+    // sighashType:
+    //   btcjs.Transaction.SIGHASH_ALL | btcjs.Transaction.SIGHASH_ANYONECANPAY,
   }
 
   claim.addInput(paymentInput)

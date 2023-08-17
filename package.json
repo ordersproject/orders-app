@@ -13,6 +13,8 @@
     "@headlessui/vue": "^1.7.13",
     "@tanstack/vue-query": "^4.29.11",
     "@vueuse/core": "^10.1.2",
+    "bip32": "^4.0.0",
+    "bip39": "^3.1.0",
     "bitcoinjs-lib": "^6.1.0",
     "browserify": "^17.0.0",
     "buffer": "^6.0.3",

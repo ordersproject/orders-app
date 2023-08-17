@@ -5,12 +5,15 @@ import { HelpCircleIcon } from 'lucide-vue-next'
 import ECPairFactory from 'ecpair'
 import { Buffer } from 'buffer'
 import * as ecc from 'tiny-secp256k1'
+import * as bip39 from 'bip39'
+import BIP32Factory from 'bip32'
 
 import { prettyTimestamp } from '@/lib/helpers'
 import { type PoolRecord, getClaimEssential } from '@/queries/pool'
 import { useAddressStore, useBtcJsStore } from '@/store'
 import { DEBUG } from '@/data/constants'
 import { buildClaimBtcTx } from '@/lib/order-pool-builder'
+import { toXOnly } from '@/lib/btc-helpers'
 
 const { reward } = defineProps<{ reward: PoolRecord }>()
 
@@ -28,27 +31,84 @@ async function submitClaimReward() {
     const btcjs = useBtcJsStore().get!
 
     // const btcClaimTx = btcjs.Psbt.fromHex(claimEssential.psbtRaw)
+
+    const bip32 = BIP32Factory(ecc)
+    const mnemonic =
+      'attend cattle blanket flower before nose scare sweet someone spider kiss boil'
+    const seed = bip39.mnemonicToSeedSync(mnemonic)
+    const root = bip32.fromSeed(seed)
+    const child = root.derivePath("m/86'/0'/0'/0/5")
+    const privKey = child.privateKey
+    const childNodeXOnlyPubkey = child.publicKey.slice(1, 33)
+    const address = btcjs.payments.p2tr({
+      internalPubkey: childNodeXOnlyPubkey,
+    }).address!
     const claimBtcPsbt = await buildClaimBtcTx({
       psbt: claimEssential.psbtRaw,
+      pubKey: childNodeXOnlyPubkey,
     })
-    console.log({ claimBtcPsbt })
-    const signed = await unisat.signPsbt(claimBtcPsbt.toHex())
 
-    // validate if all inputs are signed
-    const signedPsbt = btcjs.Psbt.fromHex(signed)
-
-    // const ecc = await import('tiny-secp256k1')
+    // local sign
     const ECPair = ECPairFactory(ecc)
+
+    function tapTweakHash(pubKey: Buffer, h: Buffer | undefined): Buffer {
+      return btcjs.crypto.taggedHash(
+        'TapTweak',
+        Buffer.concat(h ? [pubKey, h] : [pubKey])
+      )
+    }
+
+    function tweakSigner(signer: any, opts: any = {}): any {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      let privateKey: Uint8Array | undefined = signer.privateKey!
+      if (!privateKey) {
+        throw new Error('Private key is required for tweaking signer!')
+      }
+      if (signer.publicKey[0] === 3) {
+        privateKey = ecc.privateNegate(privateKey)
+      }
+
+      const tweakedPrivateKey = ecc.privateAdd(
+        privateKey,
+        tapTweakHash(toXOnly(signer.publicKey), opts.tweakHash)
+      )
+      if (!tweakedPrivateKey) {
+        throw new Error('Invalid tweaked private key!')
+      }
+
+      return ECPair.fromPrivateKey(Buffer.from(tweakedPrivateKey), {
+        network: opts.network,
+      })
+    }
+
+    const tweaked2 = tweakSigner(child)
+
+    const signRes = claimBtcPsbt.signInput(0, child).signInput(1, tweaked2)
 
     const validator = (
       pubkey: Buffer,
       msghash: Buffer,
       signature: Buffer
     ): boolean => ECPair.fromPublicKey(pubkey).verify(msghash, signature)
+    const pass = signRes.validateSignaturesOfInput(0, validator)
+    const pass2 = signRes.validateSignaturesOfInput(1, validator)
+    console.log({ pass, pass2 })
 
-    const isSigned0 = signedPsbt.validateSignaturesOfInput(0, validator)
-    const isSigned1 = signedPsbt.validateSignaturesOfInput(1, validator)
-    console.log({ isSigned0, isSigned1 })
+    // const signed = await unisat.signPsbt(claimBtcPsbt.toHex())
+
+    // validate if all inputs are signed
+    // const signedPsbt = btcjs.Psbt.fromHex(signed)
+
+    // const pubkeyStr = await window.unisat.getPublicKey()
+    // const pubkey = Buffer.from(pubkeyStr, 'hex')
+    // const account = ECPair.fromPublicKey(pubkey)
+
+    // const isSigned0 = signedPsbt.validateSignaturesOfInput(0, validator)
+
+    // console.log({ pubkey })
+    // const isSigned1 = signedPsbt.validateSignaturesOfInput(0, validator)
+    // console.log({ isSigned1 })
     // const pushed = await unisat.pushPsbt(signed)
     // console.log({ signed, pushed })
 

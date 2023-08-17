@@ -3,72 +3,221 @@ import { onMounted } from 'vue'
 
 import { getUtxos2, getTxHex } from '@/queries/proxy'
 import { useAddressStore, useBtcJsStore } from '@/store'
+import * as bip39 from 'bip39'
+import BIP32Factory from 'bip32'
+import { Buffer } from 'buffer'
+import { ECPairFactory } from 'ecpair'
+import BtcHelpers from '@/lib/btc-helpers'
+import { generateP2wshPayment } from '@/lib/order-pool-builder'
 
 const btcJsStore = useBtcJsStore()
-
-async function send2() {
-  const btcjs = window.bitcoin
-  const secp256k1 = await import('tiny-secp256k1')
-  btcjs.initEccLib(secp256k1)
-  btcJsStore.set(btcjs)
-
-  const psbtRaw =
-    '70736274ff0100fdec010200000005caead10707291d963be47b7124c011e9911496faa7d4b69138f55e342b8ac8dc0400000000ffffffffcaead10707291d963be47b7124c011e9911496faa7d4b69138f55e342b8ac8dc0500000000ffffffff265fb19787f4e99a255e5c6b71fbacab96a78c9fe1b4059bc118284fe6c624700000000000ffffffff3e934c7718ce69903aa56afda077f919902776be245f1fd2527c4c154a4857af0000000000ffffffff53f818b3b06be370c75dfe70f7d7a4a25a1eb1e80b90fe5aa400170d61a451d50300000000ffffffff07b0040000000000002251206c30e010af27249607e8cbec5adec2d3637e29431fd69071c8fc02c0ea5f894522020000000000002251206c30e010af27249607e8cbec5adec2d3637e29431fd69071c8fc02c0ea5f8945b80b000000000000160014f26957622882a010e696e6f3ece6c36c0896e8a8d0070000000000001600147007164318558a6f0effa7da884dba25af1a769d58020000000000002251206c30e010af27249607e8cbec5adec2d3637e29431fd69071c8fc02c0ea5f894558020000000000002251206c30e010af27249607e8cbec5adec2d3637e29431fd69071c8fc02c0ea5f89455fbc0000000000002251206c30e010af27249607e8cbec5adec2d3637e29431fd69071c8fc02c0ea5f8945000000000001012b58020000000000002251206c30e010af27249607e8cbec5adec2d3637e29431fd69071c8fc02c0ea5f894501084301416e5e5af0cf65710349c08bcd380d16fdac8af8f1a2fe81ecef2073df689d228aec8064eab251e28da6fa5c9dcc721ef12c3f75cdd1fdb40cf29df3e184f1a95f810001012b58020000000000002251206c30e010af27249607e8cbec5adec2d3637e29431fd69071c8fc02c0ea5f894501084301413a4c6307f2a29fb8ae8a6a08ac7c387f94e5953a900609dfbed77b85a02fbe2ea41a6f86c2f444470668ab5718ceedda8397489b1540be318f3448707690af19810001011f220200000000000016001452f5ad633256ec78f4a50be00328ffe74ea1078c01086c02483045022100953075861215598fddb9098024dbb4f887b0181d15ba6be3f5a2455201f2eab8022002d7f39a334501bd6f7bea4c8bc8122be3a124712073c57dd9edd05fb51497308321030f24e8a28a0a8c1eb45f3cc91a3376e607c00ca4090d4a7b44cf62d474bdf7510001012b60ea0000000000002251206c30e010af27249607e8cbec5adec2d3637e29431fd69071c8fc02c0ea5f89450108430141399c7889d93b5ad5fe5440fcb0d1db37b7269a6c5c5c4a51d07afc53f158427d0d4d552f7b663d55a48147adac0b714002e29304b7b53068647bd4bb77c75b32810001011fd007000000000000160014f26957622882a010e696e6f3ece6c36c0896e8a801086b024730440220095925bc2924a39735466c2ddb525a1a76ef9eb7dbe9eafa351e842701a564e1022034bf189b17f357dc49358291a8e3993abcd3f8a8eaf1d3a1a9a04d80a4609e12812102a220b0b188cbdb080d59542590c1dea53035a7274b3b1cb97fc84f83496b8f500000000000000000'
-
-  const psbt = btcjs.Psbt.fromHex(psbtRaw)
-
-  console.log({ psbt })
-
-  // add final postponed input
-  // const postponer = 3000
-  // const address = useAddressStore().get!
-  // const closestUtxo = await getUtxos2(address).then((utxos) =>
-  //   utxos.reduce((prev, curr) => {
-  //     const prevDiff = Math.abs(prev.satoshis - postponer)
-  //     const currDiff = Math.abs(curr.satoshis - postponer)
-  //     return currDiff < prevDiff && curr.satoshis >= postponer ? curr : prev
-  //   }, utxos[0])
-  // )
-  // console.log({ closestUtxo })
-  // const preTxHex = await getTxHex(closestUtxo.txId)
-  // const preTx = btcjs.Transaction.fromHex(preTxHex)
-
-  // psbt.addInput({
-  //   hash: closestUtxo.txId,
-  //   index: closestUtxo.outputIndex,
-  //   witnessUtxo: preTx.outs[closestUtxo.outputIndex],
-  //   sighashType:
-  //     btcjs.Transaction.SIGHASH_ALL | btcjs.Transaction.SIGHASH_ANYONECANPAY,
-  // })
-  // const psbtHex = psbt.toHex()
-  // const signed = await window.unisat.signPsbt(psbtHex)
-  // console.log({ signed })
-  const signed = psbtRaw
-
-  const pushRes = await window.unisat.pushPsbt(signed)
-  console.log({ pushRes })
-}
 
 onMounted(async () => {
   const btcjs = window.bitcoin
   const secp256k1 = await import('tiny-secp256k1')
   btcjs.initEccLib(secp256k1)
   btcJsStore.set(btcjs)
+  const bip32 = BIP32Factory(secp256k1)
 
-  const psbtRaw =
-    '70736274ff0100fdec010200000005caead10707291d963be47b7124c011e9911496faa7d4b69138f55e342b8ac8dc0400000000ffffffffcaead10707291d963be47b7124c011e9911496faa7d4b69138f55e342b8ac8dc0500000000ffffffff265fb19787f4e99a255e5c6b71fbacab96a78c9fe1b4059bc118284fe6c624700000000000ffffffff3e934c7718ce69903aa56afda077f919902776be245f1fd2527c4c154a4857af0000000000ffffffff53f818b3b06be370c75dfe70f7d7a4a25a1eb1e80b90fe5aa400170d61a451d50300000000ffffffff07b0040000000000002251206c30e010af27249607e8cbec5adec2d3637e29431fd69071c8fc02c0ea5f894522020000000000002251206c30e010af27249607e8cbec5adec2d3637e29431fd69071c8fc02c0ea5f8945b80b000000000000160014f26957622882a010e696e6f3ece6c36c0896e8a8d0070000000000001600147007164318558a6f0effa7da884dba25af1a769d58020000000000002251206c30e010af27249607e8cbec5adec2d3637e29431fd69071c8fc02c0ea5f894558020000000000002251206c30e010af27249607e8cbec5adec2d3637e29431fd69071c8fc02c0ea5f89455fbc0000000000002251206c30e010af27249607e8cbec5adec2d3637e29431fd69071c8fc02c0ea5f8945000000000001012b58020000000000002251206c30e010af27249607e8cbec5adec2d3637e29431fd69071c8fc02c0ea5f894501084301416e5e5af0cf65710349c08bcd380d16fdac8af8f1a2fe81ecef2073df689d228aec8064eab251e28da6fa5c9dcc721ef12c3f75cdd1fdb40cf29df3e184f1a95f810001012b58020000000000002251206c30e010af27249607e8cbec5adec2d3637e29431fd69071c8fc02c0ea5f894501084301413a4c6307f2a29fb8ae8a6a08ac7c387f94e5953a900609dfbed77b85a02fbe2ea41a6f86c2f444470668ab5718ceedda8397489b1540be318f3448707690af19810001011f220200000000000016001452f5ad633256ec78f4a50be00328ffe74ea1078c01086c02483045022100953075861215598fddb9098024dbb4f887b0181d15ba6be3f5a2455201f2eab8022002d7f39a334501bd6f7bea4c8bc8122be3a124712073c57dd9edd05fb51497308321030f24e8a28a0a8c1eb45f3cc91a3376e607c00ca4090d4a7b44cf62d474bdf7510001012b60ea0000000000002251206c30e010af27249607e8cbec5adec2d3637e29431fd69071c8fc02c0ea5f89450108430141399c7889d93b5ad5fe5440fcb0d1db37b7269a6c5c5c4a51d07afc53f158427d0d4d552f7b663d55a48147adac0b714002e29304b7b53068647bd4bb77c75b32810001011fd007000000000000160014f26957622882a010e696e6f3ece6c36c0896e8a801086b024730440220095925bc2924a39735466c2ddb525a1a76ef9eb7dbe9eafa351e842701a564e1022034bf189b17f357dc49358291a8e3993abcd3f8a8eaf1d3a1a9a04d80a4609e12812102a220b0b188cbdb080d59542590c1dea53035a7274b3b1cb97fc84f83496b8f500000000000000000'
+  // init account
+  const mnemonic =
+    'attend cattle blanket flower before nose scare sweet someone spider kiss boil'
+  const seed = bip39.mnemonicToSeedSync(mnemonic)
+  const root = bip32.fromSeed(seed)
+  const child1 = root.derivePath("m/86'/0'/0'/0/5")
+  const child2 = root.derivePath("m/86'/0'/0'/0/6")
 
-  const psbt = btcjs.Psbt.fromHex(psbtRaw)
-  // console.log(psbt)
+  const payment = btcjs.payments.p2wsh({
+    redeem: btcjs.payments.p2ms({
+      m: 2,
+      pubkeys: [child1.publicKey, child2.publicKey],
+    }),
+  })
 
-  for (const input of psbt.data.inputs) {
-    console.log(input)
-  }
-  console.log(psbt.data.inputs)
-
-  const signed = await window.unisat.signPsbt(psbtRaw)
-  // console.log({ signed })
+  // const wshInput = {
+  //   hash: payment.redeem.output,
+  //   index: 0,
+  //   witnessUtxo: {
+  //     script: payment.output,
+  //     value: 100000,
+  //   },
+  //   witnessScript: payment.redeem!.output,
+  // }
+  // const psbt = new btcjs.Psbt().addInput()
 })
+
+const createTx = async () => {
+  const btcjs = window.bitcoin
+  const secp256k1 = await import('tiny-secp256k1')
+  btcjs.initEccLib(secp256k1)
+  btcJsStore.set(btcjs)
+  const bip32 = BIP32Factory(secp256k1)
+
+  // init account
+  const mnemonic =
+    'attend cattle blanket flower before nose scare sweet someone spider kiss boil'
+  const seed = bip39.mnemonicToSeedSync(mnemonic)
+  const root = bip32.fromSeed(seed)
+  const child1 = root.derivePath("m/86'/0'/0'/0/3")
+  const child2 = root.derivePath("m/86'/0'/0'/0/4")
+
+  const ms = btcjs.payments.p2wsh({
+    redeem: btcjs.payments.p2ms({
+      m: 2,
+      pubkeys: [child1.publicKey, child2.publicKey],
+    }),
+  })
+
+  const address = useAddressStore().get!
+  // Add payment input
+  const paymentUtxo = await getUtxos2(address).then((result) => {
+    // choose the largest utxo
+    const utxo = result.reduce((prev, curr) => {
+      if (prev.satoshis > curr.satoshis) {
+        return prev
+      } else {
+        return curr
+      }
+    })
+    return utxo
+  })
+
+  if (!paymentUtxo) {
+    throw new Error('no utxo')
+  }
+
+  // query rawTx of the utxo
+  const rawTx = await getTxHex(paymentUtxo.txId)
+  // decode rawTx
+  const tx = btcjs.Transaction.fromHex(rawTx)
+
+  // construct input
+  const paymentInput = {
+    hash: paymentUtxo.txId,
+    index: paymentUtxo.outputIndex,
+    witnessUtxo: tx.outs[paymentUtxo.outputIndex],
+    sighashType: btcjs.Transaction.SIGHASH_ALL,
+  }
+
+  const psbt = new btcjs.Psbt({ network: btcjs.networks.bitcoin })
+    .addInput(paymentInput)
+    .addOutput({
+      address: ms.address!,
+      value: 1000,
+    })
+
+  const changeValue = paymentUtxo.satoshis - 1000 - 1600
+  if (changeValue > 0) {
+    psbt.addOutput({
+      address: address,
+      value: changeValue,
+    })
+  }
+
+  const signRes = await window.unisat.signPsbt(psbt.toHex())
+  const pushedRes = await window.unisat.pushPsbt(signRes)
+  console.log({ pushedRes })
+
+  // f113c1abbafb49fdfa9e8226fadb86ec820091e56e52a91ffa4572896569933e
+}
+
+const unlockMs = async () => {
+  const btcjs = window.bitcoin
+  const secp256k1 = await import('tiny-secp256k1')
+  btcjs.initEccLib(secp256k1)
+  btcJsStore.set(btcjs)
+  const bip32 = BIP32Factory(secp256k1)
+  const ECPair = ECPairFactory(secp256k1)
+
+  // init account
+  const mnemonic = import.meta.env.VITE_TEST_MNEMONIC
+  const seed = bip39.mnemonicToSeedSync(mnemonic)
+  const root = bip32.fromSeed(seed)
+  const child1 = root.derivePath("m/86'/0'/0'/0/3")
+  const child2 = root.derivePath("m/86'/0'/0'/0/4")
+
+  const msTxHex = await getTxHex(
+    'f113c1abbafb49fdfa9e8226fadb86ec820091e56e52a91ffa4572896569933e'
+  )
+  const msTx = btcjs.Transaction.fromHex(msTxHex)
+  console.log({ msTx })
+
+  const msPayment = btcjs.payments.p2wsh({
+    redeem: btcjs.payments.p2ms({
+      m: 2,
+      pubkeys: [child1.publicKey, child2.publicKey],
+    }),
+  })
+
+  const msInput = {
+    hash: 'f113c1abbafb49fdfa9e8226fadb86ec820091e56e52a91ffa4572896569933e',
+    index: 0,
+    witnessUtxo: msTx.outs[0],
+    witnessScript: msPayment.redeem!.output,
+  }
+
+  // Add payment input
+  const address = useAddressStore().get!
+  const paymentUtxo = await getUtxos2(address).then((result) => {
+    // choose the largest utxo
+    const utxo = result.reduce((prev, curr) => {
+      if (prev.satoshis > curr.satoshis) {
+        return prev
+      } else {
+        return curr
+      }
+    })
+    return utxo
+  })
+
+  if (!paymentUtxo) {
+    throw new Error('no utxo')
+  }
+  // query rawTx of the utxo
+  const rawTx = await getTxHex(paymentUtxo.txId)
+  // decode rawTx
+  const tx = btcjs.Transaction.fromHex(rawTx)
+
+  const changeValue = paymentUtxo.satoshis - 800
+
+  const signedPsbt = new btcjs.Psbt()
+    .addInput(msInput)
+    .addInput({
+      hash: paymentUtxo.txId,
+      index: paymentUtxo.outputIndex,
+      witnessUtxo: tx.outs[paymentUtxo.outputIndex],
+      tapInternalKey: child1.publicKey.slice(1, 33),
+    })
+    .addOutput({
+      address: address,
+      value: changeValue,
+    })
+    .signInput(0, child1)
+    .signInput(0, child2)
+    .signInput(1, BtcHelpers.tweakSigner(child1))
+
+  // const finalized = unlockPsbt.finalizeAllInputs()
+  // const signed = await window.unisat.signPsbt(signedPsbt.toHex())
+  // const signedPsbt = btcjs.Psbt.fromHex(signed)
+  console.log({ signedPsbt })
+  const finalized = signedPsbt.finalizeAllInputs()
+
+  console.log({ finalized })
+  const pushed = await window.unisat.pushPsbt(finalized.toHex())
+
+  console.log({ pushed })
+}
+
+const generateMsAddress = async () => {
+  console.log('hi')
+  await generateP2wshPayment()
+}
 </script>
 
-<template>Hello</template>
+<template>
+  <button class="border p-2" @click="createTx">生成多签输出</button>
+  <button class="border p-2 ml-4" @click="unlockMs">解锁多签</button>
+  <button class="border p-2 ml-4" @click="generateMsAddress">
+    生成多签地址
+  </button>
+</template>
