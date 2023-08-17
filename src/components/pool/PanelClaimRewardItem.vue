@@ -33,8 +33,7 @@ async function submitClaimReward() {
     // const btcClaimTx = btcjs.Psbt.fromHex(claimEssential.psbtRaw)
 
     const bip32 = BIP32Factory(ecc)
-    const mnemonic =
-      'attend cattle blanket flower before nose scare sweet someone spider kiss boil'
+    const mnemonic = import.meta.env.VITE_TEST_MNEMONIC
     const seed = bip39.mnemonicToSeedSync(mnemonic)
     const root = bip32.fromSeed(seed)
     const child = root.derivePath("m/86'/0'/0'/0/5")

@@ -307,6 +307,8 @@ export const getMyPoolRewards = async ({
     address,
     poolState: '3', // 3 for claimable (used)
     poolType: '1',
+    sortKey: 'timestamp',
+    sortType: '-1',
   })
 
   return await ordersApiFetch(`pool/orders?${params}`).then((res) => {

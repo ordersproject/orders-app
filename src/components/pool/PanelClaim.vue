@@ -32,7 +32,7 @@ const { data: poolRewards } = useQuery({
   <div class="max-w-xl mx-auto h-[40vh] flex flex-col">
     <h3 class="text-base font-medium leading-6 text-zinc-300">My Rewards</h3>
 
-    <div class="rounded mt-4 grow overflow-y-auto -mx-4">
+    <div class="rounded mt-4 grow overflow-y-auto -mx-4 space-y-2">
       <div
         class="flex items-center justify-center h-full text-zinc-500"
         v-if="!poolRewards || poolRewards.length === 0"
