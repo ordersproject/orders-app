@@ -17,7 +17,6 @@ import { type TradingPair } from '@/data/trading-pairs'
 import { raise } from './utils'
 import { getPoolPubKey } from '@/queries/pool'
 import { calculatePsbtFee } from './helpers'
-import { toXOnly } from './btc-helpers'
 
 async function getBothPubKeys() {
   const selfAddress = useAddressStore().get!
@@ -26,12 +25,6 @@ async function getBothPubKeys() {
 
   const exchangePubKey = await getPoolPubKey()
 
-  return {
-    selfPubKey:
-      '037651f0d9d5f5fd74aa04890168888ce01f26702faba2a5fbd820cbc1c638e7a8',
-    exchangePubKey:
-      '037355ad3caeacd0b8e69fd519bf7aac71c3c0227ae446f0c737e4616d7c1ac4f9',
-  }
   return {
     selfPubKey,
     exchangePubKey,
@@ -117,12 +110,11 @@ export async function buildAddLiquidity({
   // Step 2: Build BTC output for the pool
   const msPayment = await generateP2wshPayment()
   const multisigAddress = msPayment.address ?? raise('no multisig address')
-  const multisigScript = msPayment.output
+  console.log({ multisigAddress })
   addLiquidity.addOutput({
-    script: multisigScript,
+    address: multisigAddress,
     value: Number(total),
   })
-  console.log({ multisigScript: multisigScript.toString() })
 
   return {
     order: addLiquidity,
