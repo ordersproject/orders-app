@@ -141,10 +141,7 @@ const unlockMs = async () => {
   console.log({ msTx })
 
   const msPayment = btcjs.payments.p2wsh({
-    redeem: btcjs.payments.p2ms({
-      m: 2,
-      pubkeys: [child1.publicKey, child2.publicKey],
-    }),
+    // redeem: { output: msTx.outs[0].script },
   })
 
   const msInput = {
@@ -178,32 +175,36 @@ const unlockMs = async () => {
 
   const changeValue = paymentUtxo.satoshis - 800
 
-  const signedPsbt = new btcjs.Psbt()
+  const signing = new btcjs.Psbt()
     .addInput(msInput)
-    .addInput({
-      hash: paymentUtxo.txId,
-      index: paymentUtxo.outputIndex,
-      witnessUtxo: tx.outs[paymentUtxo.outputIndex],
-      tapInternalKey: child1.publicKey.slice(1, 33),
-    })
+    // .addInput({
+    //   hash: paymentUtxo.txId,
+    //   index: paymentUtxo.outputIndex,
+    //   witnessUtxo: tx.outs[paymentUtxo.outputIndex],
+    //   tapInternalKey: child1.publicKey.slice(1, 33),
+    // })
     .addOutput({
       address: address,
       value: changeValue,
     })
     .signInput(0, child1)
-    .signInput(0, child2)
-    .signInput(1, BtcHelpers.tweakSigner(child1))
+    .toHex()
+  // .signInput(0, child2)
+  // .signInput(1, BtcHelpers.tweakSigner(child1))
 
-  // const finalized = unlockPsbt.finalizeAllInputs()
+  const toSign = btcjs.Psbt.fromHex(signing)
+  toSign.signInput(0, child2)
+
+  const finalized = toSign.finalizeAllInputs()
   // const signed = await window.unisat.signPsbt(signedPsbt.toHex())
   // const signedPsbt = btcjs.Psbt.fromHex(signed)
-  console.log({ signedPsbt })
-  const finalized = signedPsbt.finalizeAllInputs()
-
   console.log({ finalized })
-  const pushed = await window.unisat.pushPsbt(finalized.toHex())
+  // const finalized = signedPsbt.finalizeAllInputs()
 
-  console.log({ pushed })
+  // console.log({ finalized })
+  // const pushed = await window.unisat.pushPsbt(finalized.toHex())
+
+  // console.log({ pushed })
 }
 
 const generateMsAddress = async () => {

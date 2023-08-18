@@ -9,7 +9,7 @@ export const DUST_UTXO_VALUE = 546
 // feeb
 export const MIN_FEEB = 10
 export const EXTREME_FEEB = 1
-export const FEEB_MULTIPLIER = 1.4
+export const FEEB_MULTIPLIER = 1.3
 
 // exchange
 export const SERVICE_TESTNET_ADDRESS = import.meta.env

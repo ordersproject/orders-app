@@ -130,7 +130,7 @@ export async function buildAddLiquidity({
   }
 }
 
-export async function buildClaimBtcTx({
+export async function buildClaimBtcPsbt({
   psbt,
   pubKey,
 }: {
@@ -142,7 +142,6 @@ export async function buildClaimBtcTx({
 
   const claim = btcjs.Psbt.fromHex(psbt)
   console.log({ claim })
-  // const claim = new btcjs.Psbt()
 
   // Add payment input
   const paymentUtxo = await getUtxos2(address).then((result) => {

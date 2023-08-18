@@ -12,8 +12,8 @@ import { prettyTimestamp } from '@/lib/helpers'
 import { type PoolRecord, getClaimEssential } from '@/queries/pool'
 import { useAddressStore, useBtcJsStore } from '@/store'
 import { DEBUG } from '@/data/constants'
-import { buildClaimBtcTx } from '@/lib/order-pool-builder'
-import { toXOnly } from '@/lib/btc-helpers'
+import { buildClaimBtcPsbt } from '@/lib/order-pool-builder'
+import btcHelpers, { toXOnly } from '@/lib/btc-helpers'
 
 const { reward } = defineProps<{ reward: PoolRecord }>()
 
@@ -37,62 +37,37 @@ async function submitClaimReward() {
     const seed = bip39.mnemonicToSeedSync(mnemonic)
     const root = bip32.fromSeed(seed)
     const child = root.derivePath("m/86'/0'/0'/0/5")
-    const privKey = child.privateKey
     const childNodeXOnlyPubkey = child.publicKey.slice(1, 33)
-    const address = btcjs.payments.p2tr({
-      internalPubkey: childNodeXOnlyPubkey,
-    }).address!
-    const claimBtcPsbt = await buildClaimBtcTx({
+    const claimBtcPsbt = await buildClaimBtcPsbt({
       psbt: claimEssential.psbtRaw,
       pubKey: childNodeXOnlyPubkey,
     })
+    console.log({ claimBtcPsbt })
 
-    // local sign
-    const ECPair = ECPairFactory(ecc)
+    claimBtcPsbt
+      .signInput(0, child, [3 | 128])
+      .signInput(1, btcHelpers.tweakSigner(child))
 
-    function tapTweakHash(pubKey: Buffer, h: Buffer | undefined): Buffer {
-      return btcjs.crypto.taggedHash(
-        'TapTweak',
-        Buffer.concat(h ? [pubKey, h] : [pubKey])
-      )
-    }
+    const exchangePubKey = Buffer.from(
+      '03782f1f1736fbd1048a3b29ac9e7f5ab8c64f0c87d6a0bd671c0d6d67a3181da2',
+      'hex'
+    )
+    const selfPubKey = Buffer.from(child.publicKey.toString('hex'), 'hex')
 
-    function tweakSigner(signer: any, opts: any = {}): any {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      let privateKey: Uint8Array | undefined = signer.privateKey!
-      if (!privateKey) {
-        throw new Error('Private key is required for tweaking signer!')
-      }
-      if (signer.publicKey[0] === 3) {
-        privateKey = ecc.privateNegate(privateKey)
-      }
+    console.log({
+      pk1: '03782f1f1736fbd1048a3b29ac9e7f5ab8c64f0c87d6a0bd671c0d6d67a3181da2',
+      pk2: claimBtcPsbt.data.inputs[0].partialSig![0].pubkey.toString('hex'),
+      pk3: selfPubKey.toString('hex'),
+      pk4: claimBtcPsbt.data.inputs[0].partialSig![1].pubkey.toString('hex'),
+    })
 
-      const tweakedPrivateKey = ecc.privateAdd(
-        privateKey,
-        tapTweakHash(toXOnly(signer.publicKey), opts.tweakHash)
-      )
-      if (!tweakedPrivateKey) {
-        throw new Error('Invalid tweaked private key!')
-      }
+    console.log({
+      validate0: btcHelpers.validate(claimBtcPsbt, [0], exchangePubKey),
+      validate1: btcHelpers.validate(claimBtcPsbt, [0], selfPubKey),
+      validate2: btcHelpers.validate(claimBtcPsbt, [1]),
+    })
 
-      return ECPair.fromPrivateKey(Buffer.from(tweakedPrivateKey), {
-        network: opts.network,
-      })
-    }
-
-    const tweaked2 = tweakSigner(child)
-
-    const signRes = claimBtcPsbt.signInput(0, child).signInput(1, tweaked2)
-
-    const validator = (
-      pubkey: Buffer,
-      msghash: Buffer,
-      signature: Buffer
-    ): boolean => ECPair.fromPublicKey(pubkey).verify(msghash, signature)
-    const pass = signRes.validateSignaturesOfInput(0, validator)
-    const pass2 = signRes.validateSignaturesOfInput(1, validator)
-    console.log({ pass, pass2 })
+    claimBtcPsbt.finalizeAllInputs()
 
     // const signed = await unisat.signPsbt(claimBtcPsbt.toHex())
 
@@ -108,8 +83,8 @@ async function submitClaimReward() {
     // console.log({ pubkey })
     // const isSigned1 = signedPsbt.validateSignaturesOfInput(0, validator)
     // console.log({ isSigned1 })
-    // const pushed = await unisat.pushPsbt(signed)
-    // console.log({ signed, pushed })
+    const pushed = await unisat.pushPsbt(claimBtcPsbt.toHex())
+    console.log({ pushed })
 
     ElMessage.success('Reward claimed')
     queryClient.invalidateQueries({
