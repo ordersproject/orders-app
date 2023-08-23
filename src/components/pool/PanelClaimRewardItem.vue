@@ -8,29 +8,30 @@ import * as ecc from 'tiny-secp256k1'
 import * as bip39 from 'bip39'
 import BIP32Factory from 'bip32'
 
-import { prettyTimestamp } from '@/lib/helpers'
+import { prettyTimestamp, sleep } from '@/lib/helpers'
 import { type PoolRecord, getClaimEssential } from '@/queries/pool'
 import { useAddressStore, useBtcJsStore } from '@/store'
 import { DEBUG } from '@/data/constants'
-import { buildClaimBtcPsbt } from '@/lib/order-pool-builder'
+import { buildClaimBtcPsbt, buildClaimPsbt } from '@/lib/order-pool-builder'
 import btcHelpers, { toXOnly } from '@/lib/btc-helpers'
+
+import ClaimingOverlay from '@/components/overlays/Claiming.vue'
+import { ref } from 'vue'
 
 const { reward } = defineProps<{ reward: PoolRecord }>()
 
 const queryClient = useQueryClient()
 const addressStore = useAddressStore()
+
+const claiming = ref(false)
+
 async function submitClaimReward() {
-  console.log('claiming')
+  claiming.value = true
   try {
     const claimEssential = await getClaimEssential({
       orderId: reward.orderId,
       tick: reward.tick,
     })
-
-    const unisat = window.unisat
-    const btcjs = useBtcJsStore().get!
-
-    // const btcClaimTx = btcjs.Psbt.fromHex(claimEssential.psbtRaw)
 
     const bip32 = BIP32Factory(ecc)
     const mnemonic = import.meta.env.VITE_TEST_MNEMONIC
@@ -38,38 +39,38 @@ async function submitClaimReward() {
     const root = bip32.fromSeed(seed)
     const child = root.derivePath("m/86'/0'/0'/0/5")
     const childNodeXOnlyPubkey = child.publicKey.slice(1, 33)
-    const claimBtcPsbt = await buildClaimBtcPsbt({
-      psbt: claimEssential.psbtRaw,
+    const claimPsbt = await buildClaimPsbt({
+      btcMsPsbtRaw: claimEssential.psbtRaw,
+      ordinalMsPsbtRaw: claimEssential.coinPsbtRaw,
       pubKey: childNodeXOnlyPubkey,
     })
-    console.log({ claimBtcPsbt })
 
-    claimBtcPsbt
-      .signInput(0, child, [3 | 128])
-      .signInput(1, btcHelpers.tweakSigner(child))
+    // claimPsbt
+    //   .signInput(0, child, [3 | 128])
+    //   .signInput(1, btcHelpers.tweakSigner(child))
 
-    const exchangePubKey = Buffer.from(
-      '03782f1f1736fbd1048a3b29ac9e7f5ab8c64f0c87d6a0bd671c0d6d67a3181da2',
-      'hex'
-    )
-    const selfPubKey = Buffer.from(child.publicKey.toString('hex'), 'hex')
+    // const exchangePubKey = Buffer.from(
+    //   '03782f1f1736fbd1048a3b29ac9e7f5ab8c64f0c87d6a0bd671c0d6d67a3181da2',
+    //   'hex'
+    // )
+    // const selfPubKey = Buffer.from(child.publicKey.toString('hex'), 'hex')
 
-    console.log({
-      pk1: '03782f1f1736fbd1048a3b29ac9e7f5ab8c64f0c87d6a0bd671c0d6d67a3181da2',
-      pk2: claimBtcPsbt.data.inputs[0].partialSig![0].pubkey.toString('hex'),
-      pk3: selfPubKey.toString('hex'),
-      pk4: claimBtcPsbt.data.inputs[0].partialSig![1].pubkey.toString('hex'),
-    })
+    // console.log({
+    //   pk1: '03782f1f1736fbd1048a3b29ac9e7f5ab8c64f0c87d6a0bd671c0d6d67a3181da2',
+    //   pk2: claimPsbt.data.inputs[0].partialSig![0].pubkey.toString('hex'),
+    //   pk3: selfPubKey.toString('hex'),
+    //   pk4: claimPsbt.data.inputs[0].partialSig![1].pubkey.toString('hex'),
+    // })
 
-    console.log({
-      validate0: btcHelpers.validate(claimBtcPsbt, [0], exchangePubKey),
-      validate1: btcHelpers.validate(claimBtcPsbt, [0], selfPubKey),
-      validate2: btcHelpers.validate(claimBtcPsbt, [1]),
-    })
+    // console.log({
+    //   validate0: btcHelpers.validate(claimPsbt, [0], exchangePubKey),
+    //   validate1: btcHelpers.validate(claimPsbt, [0], selfPubKey),
+    //   validate2: btcHelpers.validate(claimPsbt, [1]),
+    // })
 
-    claimBtcPsbt.finalizeAllInputs()
+    // claimPsbt.finalizeAllInputs()
 
-    // const signed = await unisat.signPsbt(claimBtcPsbt.toHex())
+    const signed = await window.unisat.signPsbt(claimPsbt.toHex())
 
     // validate if all inputs are signed
     // const signedPsbt = btcjs.Psbt.fromHex(signed)
@@ -83,8 +84,8 @@ async function submitClaimReward() {
     // console.log({ pubkey })
     // const isSigned1 = signedPsbt.validateSignaturesOfInput(0, validator)
     // console.log({ isSigned1 })
-    const pushed = await unisat.pushPsbt(claimBtcPsbt.toHex())
-    console.log({ pushed })
+    // const pushed = await unisat.pushPsbt(claimBtcPsbt.toHex())
+    // console.log({ pushed })
 
     ElMessage.success('Reward claimed')
     queryClient.invalidateQueries({
@@ -100,10 +101,14 @@ async function submitClaimReward() {
     if (DEBUG) console.error(e)
     ElMessage.error('Error while claiming reward.')
   }
+
+  claiming.value = false
 }
 </script>
 
 <template>
+  <ClaimingOverlay v-if="claiming" />
+
   <div class="py-4 mx-4 bg-zinc-950 rounded-lg px-4">
     <div class="flex items-center justify-between">
       <h3 class="text-zinc-300">
@@ -115,18 +120,6 @@ async function submitClaimReward() {
           )})`
         }}
       </h3>
-
-      <el-popover
-        placement="bottom-start"
-        :width="400"
-        trigger="hover"
-        content="Rewards are available to for pledged assets and pledges respectively."
-        popper-class="!bg-zinc-800 !text-zinc-300 !shadow-lg !shadow-orange-400/10 "
-      >
-        <template #reference>
-          <HelpCircleIcon class="h-5 w-5 text-zinc-300" aria-hidden="true" />
-        </template>
-      </el-popover>
     </div>
 
     <div class="mt-4 flex items-center justify-between">

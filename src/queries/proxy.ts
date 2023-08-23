@@ -53,8 +53,10 @@ export type FeebPlan = {
 export const getFeebPlans = async ({
   network,
 }: {
-  network: 'livenet' | 'testnet'
+  network?: 'livenet' | 'testnet'
 }): Promise<FeebPlan[]> => {
+  if (!network) network = 'livenet'
+
   const url = `https://api2.orders.exchange/api/feeb-plans?network=${network}`
   const feebPlans = await fetch(url, {
     headers: {

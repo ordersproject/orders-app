@@ -93,7 +93,7 @@ const utils = {
       dummiesPsbt.addOutput({ address: address, value: DUMMY_UTXO_VALUE })
 
       const feeb = networkStore.network === 'testnet' ? EXTREME_FEEB : MIN_FEEB
-      const fee = calculatePsbtFee(feeb, dummiesPsbt)
+      const fee = calculatePsbtFee(dummiesPsbt, feeb)
 
       const changeValue = paymentUtxo.satoshis - DUMMY_UTXO_VALUE * 2 - fee
 

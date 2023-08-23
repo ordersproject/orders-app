@@ -14,7 +14,7 @@ import {
   getUtxos2,
 } from '@/queries/proxy'
 import { type TradingPair } from '@/data/trading-pairs'
-import { raise } from './utils'
+import { change, raise } from './helpers'
 import { getPoolPubKey } from '@/queries/pool'
 import { calculatePsbtFee } from './helpers'
 
@@ -141,50 +141,46 @@ export async function buildClaimBtcPsbt({
   const address = useAddressStore().get!
 
   const claim = btcjs.Psbt.fromHex(psbt)
-  console.log({ claim })
-
-  // Add payment input
-  const paymentUtxo = await getUtxos2(address).then((result) => {
-    // choose the largest utxo
-    const utxo = result.reduce((prev, curr) => {
-      if (prev.satoshis > curr.satoshis) {
-        return prev
-      } else {
-        return curr
-      }
-    })
-    return utxo
-  })
-
-  if (!paymentUtxo) {
-    throw new Error('no utxo')
-  }
-
-  // query rawTx of the utxo
-  const rawTx = await getTxHex(paymentUtxo.txId)
-  // decode rawTx
-  const tx = btcjs.Transaction.fromHex(rawTx)
-
-  // construct input
-  const paymentInput = {
-    hash: paymentUtxo.txId,
-    index: paymentUtxo.outputIndex,
-    witnessUtxo: tx.outs[paymentUtxo.outputIndex],
-    tapInternalKey: pubKey,
-    // sighashType:
-    //   btcjs.Transaction.SIGHASH_ALL | btcjs.Transaction.SIGHASH_ANYONECANPAY,
-  }
-
-  claim.addInput(paymentInput)
 
   // Add change output
-  const feeb = 12
-  const fee = calculatePsbtFee(feeb, claim)
-  const changeValue = paymentUtxo.satoshis - fee
+  await change({ psbt: claim, pubKey })
+  console.log({ claim })
 
-  claim.addOutput({
-    address,
-    value: changeValue,
+  return claim
+}
+
+export async function buildClaimPsbt({
+  btcMsPsbtRaw,
+  ordinalMsPsbtRaw,
+  pubKey,
+}: {
+  btcMsPsbtRaw: string
+  ordinalMsPsbtRaw: string
+  pubKey: Buffer
+}) {
+  const btcjs = useBtcJsStore().get ?? raise('Btc library not loaded.')
+
+  const claim = btcjs.Psbt.fromHex(ordinalMsPsbtRaw)
+  const btcPsbt = btcjs.Psbt.fromHex(btcMsPsbtRaw)
+
+  // Add BTC input
+  claim.addInput({
+    hash: btcPsbt.txInputs[0].hash,
+    index: btcPsbt.txInputs[0].index,
+    witnessUtxo: btcPsbt.data.inputs[0].witnessUtxo,
+  })
+
+  // Add BTC output
+  claim.addOutput(btcPsbt.txOutputs[0])
+
+  console.log({
+    size1: (claim.data.globalMap.unsignedTx as any).tx.virtualSize(),
+  })
+  // Add change output
+  await change({ psbt: claim, pubKey })
+  console.log({ claim })
+  console.log({
+    size2: (claim.data.globalMap.unsignedTx as any).tx.virtualSize(),
   })
 
   return claim

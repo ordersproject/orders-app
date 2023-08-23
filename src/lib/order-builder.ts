@@ -8,6 +8,7 @@ import { calculatePsbtFee } from './helpers'
 import {
   DUMMY_UTXO_VALUE,
   DUST_UTXO_VALUE,
+  MIN_FEEB,
   SERVICE_LIVENET_ADDRESS,
   SERVICE_TESTNET_ADDRESS,
 } from '@/data/constants'
@@ -276,7 +277,7 @@ export async function buildBidLimit({
 
   // Step 9: add change output
   const feeb = btcNetwork === 'bitcoin' ? 12 : 1
-  const fee = calculatePsbtFee(feeb, bid)
+  const fee = calculatePsbtFee(bid, feeb)
 
   const totalOutput = bid.txOutputs.reduce(
     (partialSum, a) => partialSum + a.value,
@@ -459,7 +460,7 @@ export async function buildBuyTake({
   totalInput += paymentInput.witnessUtxo.value
 
   // Step 9: add change output
-  let fee = calculatePsbtFee(feeb, buyPsbt)
+  let fee = calculatePsbtFee(buyPsbt, feeb)
 
   const totalOutput = buyPsbt.txOutputs.reduce(
     (partialSum, a) => partialSum + a.value,
@@ -730,7 +731,7 @@ export async function buildClaimTake({
   totalInput += paymentInput.witnessUtxo.value
 
   // Step 9: add change output
-  let fee = calculatePsbtFee(15, takePsbt)
+  let fee = calculatePsbtFee(takePsbt, MIN_FEEB)
 
   const totalOutput = takePsbt.txOutputs.reduce(
     (partialSum, a) => partialSum + a.value,

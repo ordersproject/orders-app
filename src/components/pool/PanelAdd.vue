@@ -219,7 +219,7 @@ async function submitAdd() {
         </div>
       </Listbox>
 
-      <SwitchGroup>
+      <!-- <SwitchGroup>
         <div class="flex items-center mt-8">
           <Switch
             v-model="providesBtc"
@@ -271,7 +271,7 @@ async function submitAdd() {
             </template>
           </el-popover>
         </div>
-      </SwitchGroup>
+      </SwitchGroup> -->
 
       <transition
         leave-active-class="transition ease-in duration-100"

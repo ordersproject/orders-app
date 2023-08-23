@@ -3,8 +3,10 @@ import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import * as dayjs from 'dayjs'
 
-import { useAddressStore } from '@/store'
-import { FEEB_MULTIPLIER } from '../data/constants'
+import { useAddressStore, useBtcJsStore } from '@/store'
+import { DUST_UTXO_VALUE, FEEB_MULTIPLIER, MIN_FEEB } from '../data/constants'
+import { getFeebPlans, getTxHex, getUtxos2 } from '@/queries/proxy'
+import { Buffer } from 'buffer'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -28,22 +30,88 @@ export function calculateFee(feeRate: number, vinLen: number, voutLen: number) {
   return fee
 }
 
-export function calculatePsbtFee(feeRate: number, psbt: Psbt) {
+export function calculatePsbtFee(psbt: Psbt, feeRate: number) {
   // clone a new psbt to mock the finalization
   const clonedPsbt = psbt.clone()
-  const address = useAddressStore().get!
+  const address = useAddressStore().get ?? raise('Not logined.')
 
   // mock the change output
   clonedPsbt.addOutput({
     address,
-    value: 546,
+    value: DUST_UTXO_VALUE,
   })
-  const unsignedTx: any = clonedPsbt.data.globalMap.unsignedTx
-  const virtualSize = unsignedTx.tx.virtualSize()
+  const virtualSize = (
+    clonedPsbt.data.globalMap.unsignedTx as any
+  ).tx.virtualSize()
   const fee = Math.max(virtualSize * feeRate, 546)
 
+  return fee
+
   // bump up the fee
-  return Math.round(fee * FEEB_MULTIPLIER)
+  // return Math.round(fee * FEEB_MULTIPLIER)
+}
+
+export async function change({
+  psbt,
+  feeb,
+  pubKey,
+}: {
+  psbt: Psbt
+  feeb?: number
+  pubKey?: Buffer
+}) {
+  // check if address is set
+  const address = useAddressStore().get ?? raise('Not logined.')
+
+  // Add payment input
+  const paymentUtxo = await getUtxos2(address).then((result) => {
+    // choose the largest utxo
+    const utxo = result.reduce((prev, curr) => {
+      if (prev.satoshis > curr.satoshis) {
+        return prev
+      } else {
+        return curr
+      }
+    })
+    return utxo
+  })
+
+  if (!paymentUtxo) {
+    throw new Error('no utxo')
+  }
+
+  // query rawTx of the utxo
+  const rawTx = await getTxHex(paymentUtxo.txId)
+  // decode rawTx
+  const btcjs = useBtcJsStore().get ?? raise('Btc library not loaded.')
+  const tx = btcjs.Transaction.fromHex(rawTx)
+
+  // construct input
+  const paymentInput = {
+    hash: paymentUtxo.txId,
+    index: paymentUtxo.outputIndex,
+    witnessUtxo: tx.outs[paymentUtxo.outputIndex],
+    tapInternalKey: pubKey,
+  }
+
+  psbt.addInput(paymentInput)
+
+  // Add change output
+  if (!feeb) {
+    feeb = (await getFeebPlans({ network: 'livenet' }).then(
+      (plans) => plans[0]?.feeRate || MIN_FEEB
+    )) as number
+  }
+
+  const fee = calculatePsbtFee(psbt, feeb)
+  const changeValue = paymentUtxo.satoshis - fee
+
+  if (changeValue >= DUST_UTXO_VALUE) {
+    psbt.addOutput({
+      address,
+      value: changeValue,
+    })
+  }
 }
 
 export const prettyAddress = (address: string, len = 6) => {
@@ -77,4 +145,8 @@ export type SimpleUtxo = {
   satoshis: number
   outputIndex: number
   addressType: any
+}
+
+export const raise = (err: string): never => {
+  throw new Error(err)
 }

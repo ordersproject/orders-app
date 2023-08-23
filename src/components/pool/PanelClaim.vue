@@ -30,7 +30,20 @@ const { data: poolRewards } = useQuery({
 
 <template>
   <div class="max-w-xl mx-auto h-[40vh] flex flex-col">
-    <h3 class="text-base font-medium leading-6 text-zinc-300">My Rewards</h3>
+    <div class="flex items-center gap-4">
+      <h3 class="text-base font-medium leading-6 text-zinc-300">My Rewards</h3>
+      <el-popover
+        placement="bottom-start"
+        :width="400"
+        trigger="hover"
+        content="Rewards are available to for pledged assets and pledges respectively."
+        popper-class="!bg-zinc-800 !text-zinc-300 !shadow-lg !shadow-orange-400/10 "
+      >
+        <template #reference>
+          <HelpCircleIcon class="h-4 w-4 text-zinc-400" aria-hidden="true" />
+        </template>
+      </el-popover>
+    </div>
 
     <div class="rounded mt-4 grow overflow-y-auto -mx-4 space-y-2">
       <div
