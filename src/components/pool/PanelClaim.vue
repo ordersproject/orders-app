@@ -2,7 +2,6 @@
 import { useQuery } from '@tanstack/vue-query'
 import { HelpCircleIcon } from 'lucide-vue-next'
 import { computed, inject, ref } from 'vue'
-import * as ecc from 'tiny-secp256k1'
 import { Buffer } from 'buffer'
 
 import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
@@ -11,16 +10,16 @@ import { useAddressStore, useBtcJsStore } from '@/store'
 
 import PanelClaimRewardItem from './PanelClaimRewardItem.vue'
 import { raise } from '@/lib/helpers'
-import { ECPairFactory } from 'ecpair'
 
 const selectedPair = inject(selectedPoolPairKey, defaultPair)
 const addressStore = useAddressStore()
 const enabled = computed(() => !!addressStore.get)
 
+const btcStore = useBtcJsStore()
 const privateKeyHex = ref('')
-const ECPair = ECPairFactory(ecc)
+const ECPair = btcStore.ECPair ?? raise('ECPair not ready')
 const derivedAddress = computed(() => {
-  const btcjs = useBtcJsStore().get ?? raise('btcjs not ready')
+  const btcjs = btcStore.get ?? raise('btcjs not ready')
 
   if (!privateKeyHex.value) return '-'
 

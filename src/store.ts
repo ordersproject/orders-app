@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 type BitcoinJs = typeof import('bitcoinjs-lib')
+import { type ECPairAPI } from 'ecpair'
 import { useLocalStorage, type RemovableRef } from '@vueuse/core'
 
 import { type SimpleUtxoFromMempool } from './queries/proxy'
@@ -50,6 +51,7 @@ export const useBtcJsStore = defineStore('btcjs', {
   state: () => {
     return {
       btcjs: undefined as BitcoinJs | undefined,
+      ECPair: undefined as ECPairAPI | undefined,
     }
   },
 
@@ -60,6 +62,9 @@ export const useBtcJsStore = defineStore('btcjs', {
   actions: {
     set(btcjs: BitcoinJs) {
       this.btcjs = btcjs
+    },
+    setECPair(ECPair: ECPairAPI) {
+      this.ECPair = ECPair
     },
   },
 })

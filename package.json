@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "vite",
     "init-btc": "npx browserify --standalone bitcoin - -o src/lib/bitcoin.js <<<\"module.exports = require('bitcoinjs-lib');\"",
+    "init-ecpair": "npx browserify --standalone ecpair - -o public/ecpair.js <<<\"module.exports = require('ecpair');\"",
+    "init-bip32": "npx browserify --standalone bip32 - -o public/bip32.js <<<\"module.exports = require('bip32');\"",
+    "init-bip39": "npx browserify --standalone bip39 - -o public/bip39.js <<<\"module.exports = require('bip39');\"",
     "build": "vue-tsc && vite build",
     "preview": "vite preview"
   },

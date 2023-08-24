@@ -1,14 +1,12 @@
 <script lang="ts" setup>
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { ElMessage } from 'element-plus'
-import ECPairFactory from 'ecpair'
 import { Buffer } from 'buffer'
-import * as ecc from 'tiny-secp256k1'
 import { inject, ref } from 'vue'
 
-import { prettyTimestamp } from '@/lib/helpers'
+import { prettyTimestamp, raise } from '@/lib/helpers'
 import { type PoolRecord, getClaimEssential, submitClaim } from '@/queries/pool'
-import { useAddressStore } from '@/store'
+import { useAddressStore, useBtcJsStore } from '@/store'
 import { DEBUG, SIGHASH_SINGLE_ANYONECANPAY } from '@/data/constants'
 import { buildClaimPsbt } from '@/lib/order-pool-builder'
 import btcHelpers from '@/lib/btc-helpers'
@@ -54,9 +52,8 @@ async function submitClaimReward() {
       tick: reward.tick,
     })
 
-    const signer = ECPairFactory(ecc).fromPrivateKey(
-      Buffer.from(privateKeyHex, 'hex')
-    )
+    const ECPair = useBtcJsStore().ECPair ?? raise('ECPair not ready')
+    const signer = ECPair.fromPrivateKey(Buffer.from(privateKeyHex, 'hex'))
 
     const claimPsbt = await buildClaimPsbt({
       btcMsPsbtRaw: claimEssential.psbtRaw,

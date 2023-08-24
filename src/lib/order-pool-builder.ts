@@ -16,7 +16,6 @@ import {
 import { type TradingPair } from '@/data/trading-pairs'
 import { change, raise } from './helpers'
 import { getPoolPubKey } from '@/queries/pool'
-import { calculatePsbtFee } from './helpers'
 
 async function getBothPubKeys() {
   const selfAddress = useAddressStore().get!

@@ -1,20 +1,21 @@
 import { useBtcJsStore } from '@/store'
 import { Buffer } from 'buffer'
 import * as ecc from 'tiny-secp256k1'
-import ECPairFactory from 'ecpair'
 import { type Psbt } from 'bitcoinjs-lib'
+import { raise } from './helpers'
 
 export function toXOnly(pubKey: Buffer) {
   return pubKey.length === 32 ? pubKey : pubKey.slice(1, 33)
 }
 
 class BtcHelpers {
-  private btcjs: any
-  private ECPair: any
+  private btcjs
+  private ECPair
 
   constructor() {
-    this.btcjs = useBtcJsStore().get!
-    this.ECPair = ECPairFactory(ecc)
+    const btcJsStore = useBtcJsStore()
+    this.btcjs = btcJsStore.get ?? raise('Btc library not loaded.')
+    this.ECPair = btcJsStore.ECPair ?? raise('ECPair not loaded.')
   }
 
   public fromPubKey(pubKey: string): any {
