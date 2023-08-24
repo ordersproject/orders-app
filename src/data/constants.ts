@@ -10,6 +10,12 @@ export const MIN_FEEB = 10
 export const EXTREME_FEEB = 1
 export const FEEB_MULTIPLIER = 1.3
 
+// Sighash types
+export const SIGHASH_ALL = 0x01
+export const SIGHASH_SINGLE = 0x03
+export const SIGHASH_ANYONECANPAY = 0x80
+export const SIGHASH_SINGLE_ANYONECANPAY = 0x83
+
 // exchange
 export const SERVICE_TESTNET_ADDRESS = import.meta.env
   .VITE_SERVICE_TESTNET_ADDRESS

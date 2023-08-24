@@ -152,36 +152,50 @@ export async function buildClaimBtcPsbt({
 export async function buildClaimPsbt({
   btcMsPsbtRaw,
   ordinalMsPsbtRaw,
+  ordinalReleasePsbtRaw,
   pubKey,
 }: {
   btcMsPsbtRaw: string
   ordinalMsPsbtRaw: string
+  ordinalReleasePsbtRaw: string
   pubKey: Buffer
 }) {
   const btcjs = useBtcJsStore().get ?? raise('Btc library not loaded.')
 
   const claim = btcjs.Psbt.fromHex(ordinalMsPsbtRaw)
   const btcPsbt = btcjs.Psbt.fromHex(btcMsPsbtRaw)
+  const releasePsbt = btcjs.Psbt.fromHex(ordinalReleasePsbtRaw)
 
   // Add BTC input
   claim.addInput({
     hash: btcPsbt.txInputs[0].hash,
     index: btcPsbt.txInputs[0].index,
     witnessUtxo: btcPsbt.data.inputs[0].witnessUtxo,
+    witnessScript: btcPsbt.data.inputs[0].witnessScript,
+    partialSig: btcPsbt.data.inputs[0].partialSig,
+    sighashType:
+      btcjs.Transaction.SIGHASH_SINGLE | btcjs.Transaction.SIGHASH_ANYONECANPAY,
   })
 
   // Add BTC output
   claim.addOutput(btcPsbt.txOutputs[0])
 
-  console.log({
-    size1: (claim.data.globalMap.unsignedTx as any).tx.virtualSize(),
+  // Add release input
+  claim.addInput({
+    hash: releasePsbt.txInputs[0].hash,
+    index: releasePsbt.txInputs[0].index,
+    witnessUtxo: releasePsbt.data.inputs[0].witnessUtxo,
+    partialSig: releasePsbt.data.inputs[0].partialSig,
+    witnessScript: releasePsbt.data.inputs[0].witnessScript,
+    sighashType:
+      btcjs.Transaction.SIGHASH_SINGLE | btcjs.Transaction.SIGHASH_ANYONECANPAY,
   })
+
+  // Add release output
+  claim.addOutput(releasePsbt.txOutputs[0])
+
   // Add change output
-  await change({ psbt: claim, pubKey })
-  console.log({ claim })
-  console.log({
-    size2: (claim.data.globalMap.unsignedTx as any).tx.virtualSize(),
-  })
+  await change({ psbt: claim })
 
   return claim
 }

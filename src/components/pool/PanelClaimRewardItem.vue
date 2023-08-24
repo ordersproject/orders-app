@@ -1,29 +1,50 @@
 <script lang="ts" setup>
-import { useQueryClient } from '@tanstack/vue-query'
+import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { ElMessage } from 'element-plus'
-import { HelpCircleIcon } from 'lucide-vue-next'
 import ECPairFactory from 'ecpair'
 import { Buffer } from 'buffer'
 import * as ecc from 'tiny-secp256k1'
-import * as bip39 from 'bip39'
-import BIP32Factory from 'bip32'
+import { inject, ref } from 'vue'
 
-import { prettyTimestamp, sleep } from '@/lib/helpers'
-import { type PoolRecord, getClaimEssential } from '@/queries/pool'
-import { useAddressStore, useBtcJsStore } from '@/store'
-import { DEBUG } from '@/data/constants'
-import { buildClaimBtcPsbt, buildClaimPsbt } from '@/lib/order-pool-builder'
-import btcHelpers, { toXOnly } from '@/lib/btc-helpers'
+import { prettyTimestamp } from '@/lib/helpers'
+import { type PoolRecord, getClaimEssential, submitClaim } from '@/queries/pool'
+import { useAddressStore } from '@/store'
+import { DEBUG, SIGHASH_SINGLE_ANYONECANPAY } from '@/data/constants'
+import { buildClaimPsbt } from '@/lib/order-pool-builder'
+import btcHelpers from '@/lib/btc-helpers'
+import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
 
 import ClaimingOverlay from '@/components/overlays/Claiming.vue'
-import { ref } from 'vue'
 
-const { reward } = defineProps<{ reward: PoolRecord }>()
+const { reward, privateKeyHex } = defineProps<{
+  reward: PoolRecord
+  privateKeyHex: string
+}>()
 
 const queryClient = useQueryClient()
 const addressStore = useAddressStore()
 
 const claiming = ref(false)
+
+const selectedPair = inject(selectedPoolPairKey, defaultPair)
+const { mutate: mutateFinishReward } = useMutation({
+  mutationFn: submitClaim,
+  onSuccess: () => {
+    ElMessage.success('Reward claimed')
+    queryClient.invalidateQueries({
+      queryKey: [
+        'poolRecords',
+        {
+          address: addressStore.get as string,
+          tick: selectedPair.fromSymbol,
+        },
+      ],
+    })
+  },
+  onError: (err: any) => {
+    ElMessage.error(err.message)
+  },
+})
 
 async function submitClaimReward() {
   claiming.value = true
@@ -33,43 +54,48 @@ async function submitClaimReward() {
       tick: reward.tick,
     })
 
-    const bip32 = BIP32Factory(ecc)
-    const mnemonic = import.meta.env.VITE_TEST_MNEMONIC
-    const seed = bip39.mnemonicToSeedSync(mnemonic)
-    const root = bip32.fromSeed(seed)
-    const child = root.derivePath("m/86'/0'/0'/0/5")
-    const childNodeXOnlyPubkey = child.publicKey.slice(1, 33)
+    const signer = ECPairFactory(ecc).fromPrivateKey(
+      Buffer.from(privateKeyHex, 'hex')
+    )
+
     const claimPsbt = await buildClaimPsbt({
       btcMsPsbtRaw: claimEssential.psbtRaw,
       ordinalMsPsbtRaw: claimEssential.coinPsbtRaw,
-      pubKey: childNodeXOnlyPubkey,
+      ordinalReleasePsbtRaw: claimEssential.coinTransferPsbtRaw,
+      pubKey: signer.publicKey.slice(1, 33),
     })
 
-    // claimPsbt
-    //   .signInput(0, child, [3 | 128])
-    //   .signInput(1, btcHelpers.tweakSigner(child))
+    console.log({ claimPsbt })
 
-    // const exchangePubKey = Buffer.from(
-    //   '03782f1f1736fbd1048a3b29ac9e7f5ab8c64f0c87d6a0bd671c0d6d67a3181da2',
-    //   'hex'
-    // )
-    // const selfPubKey = Buffer.from(child.publicKey.toString('hex'), 'hex')
+    claimPsbt
+      .signInput(0, signer, [SIGHASH_SINGLE_ANYONECANPAY])
+      .signInput(1, signer, [SIGHASH_SINGLE_ANYONECANPAY])
+      .signInput(2, signer, [SIGHASH_SINGLE_ANYONECANPAY])
+    // .signInput(3, btcHelpers.tweakSigner(signer))
+
+    const exchangePubKey = Buffer.from(
+      '03782f1f1736fbd1048a3b29ac9e7f5ab8c64f0c87d6a0bd671c0d6d67a3181da2',
+      'hex'
+    )
+    const selfPubKey = Buffer.from(signer.publicKey.toString('hex'), 'hex')
 
     // console.log({
     //   pk1: '03782f1f1736fbd1048a3b29ac9e7f5ab8c64f0c87d6a0bd671c0d6d67a3181da2',
     //   pk2: claimPsbt.data.inputs[0].partialSig![0].pubkey.toString('hex'),
-    //   pk3: selfPubKey.toString('hex'),
-    //   pk4: claimPsbt.data.inputs[0].partialSig![1].pubkey.toString('hex'),
+    //   pk3: claimPsbt.data.inputs[1].partialSig![0].pubkey.toString('hex'),
+    //   pkself: signer.publicKey.toString('hex'),
     // })
 
-    // console.log({
-    //   validate0: btcHelpers.validate(claimPsbt, [0], exchangePubKey),
-    //   validate1: btcHelpers.validate(claimPsbt, [0], selfPubKey),
-    //   validate2: btcHelpers.validate(claimPsbt, [1]),
-    // })
+    console.log({
+      validate00: btcHelpers.validate(claimPsbt, [0], exchangePubKey),
+      validate01: btcHelpers.validate(claimPsbt, [0], selfPubKey),
+      validate10: btcHelpers.validate(claimPsbt, [1], exchangePubKey),
+      validate11: btcHelpers.validate(claimPsbt, [1], selfPubKey),
+      validate20: btcHelpers.validate(claimPsbt, [2], exchangePubKey),
+      validate21: btcHelpers.validate(claimPsbt, [2], selfPubKey),
+    })
 
-    // claimPsbt.finalizeAllInputs()
-
+    claimPsbt.finalizeInput(0).finalizeInput(1).finalizeInput(2)
     const signed = await window.unisat.signPsbt(claimPsbt.toHex())
 
     // validate if all inputs are signed
@@ -84,18 +110,12 @@ async function submitClaimReward() {
     // console.log({ pubkey })
     // const isSigned1 = signedPsbt.validateSignaturesOfInput(0, validator)
     // console.log({ isSigned1 })
-    // const pushed = await unisat.pushPsbt(claimBtcPsbt.toHex())
-    // console.log({ pushed })
+    // const pushed = await window.unisat.pushPsbt(signed)
 
-    ElMessage.success('Reward claimed')
-    queryClient.invalidateQueries({
-      queryKey: [
-        'poolRewards',
-        {
-          address: addressStore.get as string,
-          tick: reward.tick,
-        },
-      ],
+    // notify api to update order state
+    mutateFinishReward({
+      orderId: reward.orderId,
+      psbtRaw: signed,
     })
   } catch (e: any) {
     if (DEBUG) console.error(e)

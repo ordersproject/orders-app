@@ -15,7 +15,6 @@ export default async function sign() {
   const signature = await window.unisat.signMessage(message)
 
   credentialsStore.add({ publicKey, signature, address })
-  console.log({ publicKey, signature, address })
 
   return { publicKey, signature, address }
 }

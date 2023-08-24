@@ -1,15 +1,36 @@
 <script lang="ts" setup>
-import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
-import { getMyPoolRewards } from '@/queries/pool'
-import { useAddressStore } from '@/store'
 import { useQuery } from '@tanstack/vue-query'
 import { HelpCircleIcon } from 'lucide-vue-next'
-import { computed, inject } from 'vue'
+import { computed, inject, ref } from 'vue'
+import * as ecc from 'tiny-secp256k1'
+import { Buffer } from 'buffer'
+
+import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
+import { getMyPoolRewards } from '@/queries/pool'
+import { useAddressStore, useBtcJsStore } from '@/store'
+
 import PanelClaimRewardItem from './PanelClaimRewardItem.vue'
+import { raise } from '@/lib/helpers'
+import { ECPairFactory } from 'ecpair'
 
 const selectedPair = inject(selectedPoolPairKey, defaultPair)
 const addressStore = useAddressStore()
 const enabled = computed(() => !!addressStore.get)
+
+const privateKeyHex = ref('')
+const ECPair = ECPairFactory(ecc)
+const derivedAddress = computed(() => {
+  const btcjs = useBtcJsStore().get ?? raise('btcjs not ready')
+
+  if (!privateKeyHex.value) return '-'
+
+  const keyPair = ECPair.fromPrivateKey(Buffer.from(privateKeyHex.value, 'hex'))
+  const { address } = btcjs.payments.p2tr({
+    internalPubkey: keyPair.publicKey.slice(1, 33),
+  })
+
+  return address
+})
 
 const { data: poolRewards } = useQuery({
   queryKey: [
@@ -30,6 +51,23 @@ const { data: poolRewards } = useQuery({
 
 <template>
   <div class="max-w-xl mx-auto h-[40vh] flex flex-col">
+    <div class="mb-8 space-y-2">
+      <div class="items-center grid gap-4 justify-center text-xs grid-cols-6">
+        <span>Private Key</span>
+        <input
+          type="text"
+          placeholder="Enter your wif here...test only"
+          v-model="privateKeyHex"
+          class="w-full rounded bg-zinc-800 p-2 placeholder-zinc-500 outline-none border border-zinc-700 text-xs col-span-5"
+        />
+      </div>
+
+      <div class="gap-4 grid items-center text-xs grid-cols-6">
+        <div class="">Address</div>
+        <div class="text-xs text-zinc-500">{{ derivedAddress }}</div>
+      </div>
+    </div>
+
     <div class="flex items-center gap-4">
       <h3 class="text-base font-medium leading-6 text-zinc-300">My Rewards</h3>
       <el-popover
@@ -57,6 +95,7 @@ const { data: poolRewards } = useQuery({
         v-for="reward in poolRewards"
         :key="reward.orderId"
         :reward="reward"
+        :privateKeyHex="privateKeyHex"
       />
     </div>
   </div>

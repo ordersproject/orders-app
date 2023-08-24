@@ -87,12 +87,15 @@ export async function change({
   const tx = btcjs.Transaction.fromHex(rawTx)
 
   // construct input
-  const paymentInput = {
+  const paymentInput: any = {
     hash: paymentUtxo.txId,
     index: paymentUtxo.outputIndex,
     witnessUtxo: tx.outs[paymentUtxo.outputIndex],
-    tapInternalKey: pubKey,
   }
+  if (pubKey) {
+    paymentInput.tapInternalPubkey = pubKey
+  }
+  console.log({ paymentInput })
 
   psbt.addInput(paymentInput)
 

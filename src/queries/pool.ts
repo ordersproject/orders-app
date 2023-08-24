@@ -337,6 +337,7 @@ export const removeLiquidity = async ({ orderId }: { orderId: string }) => {
 type ClaimEssential = {
   coinPsbtRaw: string
   psbtRaw: string
+  coinTransferPsbtRaw: string
   rewardCoinAmount: number
   net: 'livenet'
   orderId: string
@@ -377,7 +378,7 @@ export const submitClaim = async ({
 }) => {
   const { publicKey, signature } = await sign()
 
-  return await ordersApiFetch(`pool/order/claim/submit`, {
+  return await ordersApiFetch(`pool/order/claim/commit`, {
     method: 'POST',
     headers: {
       'X-Signature': signature,
