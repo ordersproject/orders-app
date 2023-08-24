@@ -7,16 +7,14 @@ import {
   ListboxLabel,
   ListboxOption,
   ListboxOptions,
-  SwitchGroup,
-  SwitchLabel,
-  Switch,
 } from '@headlessui/vue'
-import { CheckIcon, ChevronsUpDownIcon, HelpCircleIcon } from 'lucide-vue-next'
+import { CheckIcon, ChevronsUpDownIcon } from 'lucide-vue-next'
 import { useQuery } from '@tanstack/vue-query'
 import Decimal from 'decimal.js'
 
 import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import { useAddressStore, useNetworkStore } from '@/store'
+import { DEBUG } from '@/data/constants'
 import {
   Brc20Transferable,
   getMarketPrice,
@@ -26,8 +24,7 @@ import { buildAddLiquidity } from '@/lib/order-pool-builder'
 import { sleep } from '@/lib/helpers'
 import { getMyPooledInscriptions } from '@/queries/pool'
 
-import OrderConfirmationModal from './ConfirmationModal.vue'
-import { DEBUG } from '@/data/constants'
+import OrderConfirmationModal from './PoolConfirmationModal.vue'
 
 const addressStore = useAddressStore()
 const networkStore = useNetworkStore()

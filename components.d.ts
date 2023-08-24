@@ -27,6 +27,7 @@ declare module '@vue/runtime-core' {
     PanelClaimRewardItem: typeof import('./src/components/pool/PanelClaimRewardItem.vue')['default']
     PanelHeader: typeof import('./src/components/orders/PanelHeader.vue')['default']
     PanelRemove: typeof import('./src/components/pool/PanelRemove.vue')['default']
+    PoolConfirmationModal: typeof import('./src/components/pool/PoolConfirmationModal.vue')['default']
     PoolPairSelect: typeof import('./src/components/pool/PoolPairSelect.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
