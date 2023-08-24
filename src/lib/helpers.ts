@@ -1,10 +1,10 @@
 import { type Psbt } from 'bitcoinjs-lib'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import * as dayjs from 'dayjs'
+import dayjs from 'dayjs/esm/index.js'
 
 import { useAddressStore, useBtcJsStore } from '@/store'
-import { DUST_UTXO_VALUE, FEEB_MULTIPLIER, MIN_FEEB } from '../data/constants'
+import { DUST_UTXO_VALUE, MIN_FEEB } from '../data/constants'
 import { getFeebPlans, getTxHex, getUtxos2 } from '@/queries/proxy'
 import { Buffer } from 'buffer'
 
