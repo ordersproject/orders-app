@@ -14,8 +14,8 @@ class BtcHelpers {
 
   constructor() {
     const btcJsStore = useBtcJsStore()
-    this.btcjs = btcJsStore.get ?? raise('Btc library not loaded.')
-    this.ECPair = btcJsStore.ECPair ?? raise('ECPair not loaded.')
+    this.btcjs = btcJsStore.get!
+    this.ECPair = btcJsStore.ECPair!
   }
 
   public fromPubKey(pubKey: string): any {

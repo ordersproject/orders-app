@@ -83,7 +83,7 @@ export async function change({
   // query rawTx of the utxo
   const rawTx = await getTxHex(paymentUtxo.txId)
   // decode rawTx
-  const btcjs = useBtcJsStore().get ?? raise('Btc library not loaded.')
+  const btcjs = useBtcJsStore().get!
   const tx = btcjs.Transaction.fromHex(rawTx)
 
   // construct input

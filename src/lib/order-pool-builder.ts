@@ -159,7 +159,7 @@ export async function buildClaimPsbt({
   ordinalReleasePsbtRaw: string
   pubKey: Buffer
 }) {
-  const btcjs = useBtcJsStore().get ?? raise('Btc library not loaded.')
+  const btcjs = useBtcJsStore().get!
 
   const claim = btcjs.Psbt.fromHex(ordinalMsPsbtRaw)
   const btcPsbt = btcjs.Psbt.fromHex(btcMsPsbtRaw)
