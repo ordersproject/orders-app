@@ -9,7 +9,7 @@ import { type PoolRecord, getClaimEssential, submitClaim } from '@/queries/pool'
 import { useAddressStore, useBtcJsStore } from '@/store'
 import { DEBUG, SIGHASH_SINGLE_ANYONECANPAY } from '@/data/constants'
 import { buildClaimPsbt } from '@/lib/order-pool-builder'
-import btcHelpers from '@/lib/btc-helpers'
+import BtcHelpers from '@/lib/btc-helpers'
 import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
 
 import ClaimingOverlay from '@/components/overlays/Claiming.vue'
@@ -46,6 +46,7 @@ const { mutate: mutateFinishReward } = useMutation({
 
 async function submitClaimReward() {
   claiming.value = true
+  const btcHelpers = new BtcHelpers()
   try {
     const claimEssential = await getClaimEssential({
       orderId: props.reward.orderId,

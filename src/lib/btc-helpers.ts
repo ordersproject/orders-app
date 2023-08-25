@@ -76,4 +76,4 @@ class BtcHelpers {
   }
 }
 
-export default new BtcHelpers()
+export default BtcHelpers
