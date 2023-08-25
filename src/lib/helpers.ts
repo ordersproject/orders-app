@@ -4,7 +4,12 @@ import { twMerge } from 'tailwind-merge'
 import dayjs from 'dayjs/esm/index.js'
 
 import { useAddressStore, useBtcJsStore } from '@/store'
-import { DUST_UTXO_VALUE, MIN_FEEB } from '../data/constants'
+import {
+  DUST_UTXO_VALUE,
+  FEEB_MULTIPLIER,
+  MIN_FEEB,
+  MS_FEEB_MULTIPLIER,
+} from '../data/constants'
 import { getFeebPlans, getTxHex, getUtxos2 } from '@/queries/proxy'
 import { Buffer } from 'buffer'
 
@@ -30,7 +35,7 @@ export function calculateFee(feeRate: number, vinLen: number, voutLen: number) {
   return fee
 }
 
-export function calculatePsbtFee(psbt: Psbt, feeRate: number) {
+export function calculatePsbtFee(psbt: Psbt, feeRate: number, isMs?: boolean) {
   // clone a new psbt to mock the finalization
   const clonedPsbt = psbt.clone()
   const address = useAddressStore().get ?? raise('Not logined.')
@@ -45,20 +50,23 @@ export function calculatePsbtFee(psbt: Psbt, feeRate: number) {
   ).tx.virtualSize()
   const fee = Math.max(virtualSize * feeRate, 546)
 
-  return fee
+  // return fee
 
   // bump up the fee
-  // return Math.round(fee * FEEB_MULTIPLIER)
+  const multiplier = isMs ? MS_FEEB_MULTIPLIER : FEEB_MULTIPLIER
+  return Math.round(fee * multiplier)
 }
 
 export async function change({
   psbt,
   feeb,
   pubKey,
+  isMs,
 }: {
   psbt: Psbt
   feeb?: number
   pubKey?: Buffer
+  isMs?: boolean
 }) {
   // check if address is set
   const address = useAddressStore().get ?? raise('Not logined.')
@@ -106,7 +114,7 @@ export async function change({
     )) as number
   }
 
-  const fee = calculatePsbtFee(psbt, feeb)
+  const fee = calculatePsbtFee(psbt, feeb, isMs)
   const changeValue = paymentUtxo.satoshis - fee
 
   if (changeValue >= DUST_UTXO_VALUE) {
