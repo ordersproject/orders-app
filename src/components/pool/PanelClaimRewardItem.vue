@@ -14,7 +14,7 @@ import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
 
 import ClaimingOverlay from '@/components/overlays/Claiming.vue'
 
-const { reward, privateKeyHex } = defineProps<{
+const props = defineProps<{
   reward: PoolRecord
   privateKeyHex: string
 }>()
@@ -48,12 +48,14 @@ async function submitClaimReward() {
   claiming.value = true
   try {
     const claimEssential = await getClaimEssential({
-      orderId: reward.orderId,
-      tick: reward.tick,
+      orderId: props.reward.orderId,
+      tick: props.reward.tick,
     })
 
     const ECPair = useBtcJsStore().ECPair ?? raise('ECPair not ready')
-    const signer = ECPair.fromPrivateKey(Buffer.from(privateKeyHex, 'hex'))
+    const signer = ECPair.fromPrivateKey(
+      Buffer.from(props.privateKeyHex, 'hex')
+    )
 
     const claimPsbt = await buildClaimPsbt({
       btcMsPsbtRaw: claimEssential.psbtRaw,
@@ -111,7 +113,7 @@ async function submitClaimReward() {
 
     // notify api to update order state
     mutateFinishReward({
-      orderId: reward.orderId,
+      orderId: props.reward.orderId,
       psbtRaw: signed,
     })
   } catch (e: any) {
