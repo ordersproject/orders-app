@@ -1,6 +1,6 @@
 export const VERSION = '0.6.2 (beta)'
 export const CHARGE_SERVICE_FEES = false
-export const DEBUG = import.meta.env.DEV
+export const DEBUG = true
 
 export const DUMMY_UTXO_VALUE = 600
 export const DUST_UTXO_VALUE = 546
