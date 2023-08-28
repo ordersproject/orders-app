@@ -1,4 +1,4 @@
-import { type Psbt } from 'bitcoinjs-lib'
+import { PsbtTxInput, type Psbt, PsbtTxOutput, PsbtInput } from 'bitcoinjs-lib'
 import { Buffer } from 'buffer'
 
 import { useAddressStore, useBtcJsStore } from '@/store'
@@ -10,6 +10,65 @@ import {
 } from '@/data/constants'
 import { getFeebPlans, getTxHex, getUtxos2 } from '@/queries/proxy'
 import { raise } from './helpers'
+import { type TransactionOutput } from 'bitcoinjs-lib/src/psbt'
+
+var TX_EMPTY_SIZE = 4 + 1 + 1 + 4
+var TX_INPUT_BASE = 32 + 4 + 1 + 4
+var TX_INPUT_PUBKEYHASH = 107
+var TX_INPUT_SEGWIT = 27
+var TX_INPUT_TAPROOT = 17 // round up 16.5 bytes
+var TX_OUTPUT_BASE = 8 + 1
+var TX_OUTPUT_PUBKEYHASH = 25
+var TX_OUTPUT_SCRIPTHASH = 23
+var TX_OUTPUT_SEGWIT = 22
+var TX_OUTPUT_SEGWIT_SCRIPTHASH = 34
+
+function inputBytes(input: PsbtInput) {
+  return (
+    TX_INPUT_BASE +
+    (input.script
+      ? input.script.length
+      : input.isTaproot
+      ? TX_INPUT_TAPROOT
+      : input.witnessUtxo
+      ? TX_INPUT_SEGWIT
+      : TX_INPUT_PUBKEYHASH)
+  )
+}
+
+function outputBytes(output: PsbtOutput) {
+  return (
+    TX_OUTPUT_BASE +
+    (output.script
+      ? output.script.length
+      : output.address?.startsWith('bc1') || output.address?.startsWith('tb1')
+      ? output.address?.length === 42
+        ? TX_OUTPUT_SEGWIT
+        : TX_OUTPUT_SEGWIT_SCRIPTHASH
+      : output.address?.startsWith('3') || output.address?.startsWith('2')
+      ? TX_OUTPUT_SCRIPTHASH
+      : TX_OUTPUT_PUBKEYHASH)
+  )
+}
+
+function transactionBytes(inputs: PsbtInput[], outputs: PsbtOutput[]) {
+  return (
+    TX_EMPTY_SIZE +
+    inputs.reduce(function (a, x) {
+      return a + inputBytes(x)
+    }, 0) +
+    outputs.reduce(function (a, x) {
+      return a + outputBytes(x)
+    }, 0)
+  )
+}
+
+export function calcFee(psbt: Psbt, feeRate: number) {
+  const inputs = psbt.data.inputs
+  const outputs = psbt.data.outputs
+
+  return Math.ceil(transactionBytes(inputs, outputs) * feeRate)
+}
 
 export function calculateFee(feeRate: number, vinLen: number, voutLen: number) {
   const baseTxSize = 10
@@ -102,7 +161,7 @@ export async function change({
     )) as number
   }
 
-  const fee = calculatePsbtFee(psbt, feeb, isMs)
+  const fee = calcFee(psbt, feeb)
   const changeValue = paymentUtxo.satoshis - fee
 
   if (changeValue >= DUST_UTXO_VALUE) {
