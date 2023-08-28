@@ -1,7 +1,5 @@
 <script lang="ts" setup>
-import { useRoute, useRouter } from 'vue-router'
-
-import { cn } from '@/lib/helpers'
+import { useRoute } from 'vue-router'
 
 import NavbarMenu from './NavbarMenu.vue'
 
@@ -49,17 +47,15 @@ function isLinkActive(path: string) {
 
     <nav class="ml-6 flex items-center gap-x-2">
       <component
-        :class="
-          cn(
-            'px-4 py-2 text-sm font-medium rounded-md transition-all',
-            isLinkActive(link.path)
-              ? 'text-orange-300 underline underline-offset-4 hover:underline-offset-2'
-              : 'text-zinc-300',
-            link.comingSoon
-              ? 'text-zinc-500 cursor-default'
-              : 'hover:bg-black hover:text-orange-300'
-          )
-        "
+        :class="[
+          'px-4 py-2 text-sm font-medium rounded-md transition-all',
+          isLinkActive(link.path)
+            ? 'text-orange-300 underline underline-offset-4 hover:underline-offset-2'
+            : 'text-zinc-300',
+          link.comingSoon
+            ? 'text-zinc-500 cursor-default'
+            : 'hover:bg-black hover:text-orange-300',
+        ]"
         v-for="link in links"
         :key="link.name"
         :is="link.comingSoon ? 'span' : 'router-link'"

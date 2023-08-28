@@ -9,7 +9,7 @@ import {
 import { Loader, ArrowDownIcon, RefreshCcwIcon } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 
-import { prettyBtcDisplay, prettyCoinDisplay } from '@/lib/helpers'
+import { prettyBtcDisplay, prettyCoinDisplay } from '@/lib/formatters'
 import {
   pushBidOrder,
   pushAskOrder,

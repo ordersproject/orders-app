@@ -12,7 +12,6 @@ import tradingPairs, {
   defaultPair,
   selectedPoolPairKey,
 } from '@/data/trading-pairs'
-import { cn } from '@/lib/helpers'
 import { inject } from 'vue'
 
 const router = useRouter()
@@ -79,12 +78,10 @@ const choosePair = (pairId: number) => {
           :value="pair.id"
         >
           <button
-            :class="
-              cn(
-                'flex items-center justify-between p-4 text-sm w-full',
-                active && 'bg-black'
-              )
-            "
+            :class="[
+              'flex items-center justify-between p-4 text-sm w-full',
+              active && 'bg-black',
+            ]"
           >
             <div class="flex items-center">
               <div class="flex">
@@ -93,9 +90,10 @@ const choosePair = (pairId: number) => {
               </div>
 
               <span
-                :class="
-                  cn('font-bold ml-2 uppercase', selected && 'text-orange-300')
-                "
+                :class="[
+                  'font-bold ml-2 uppercase',
+                  selected && 'text-orange-300',
+                ]"
               >
                 {{ pair.fromSymbol }}-{{ pair.toSymbol }}
               </span>

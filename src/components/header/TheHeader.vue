@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { ShieldAlertIcon, CheckCircle2 } from 'lucide-vue-next'
 
 import unisatIcon from '@/assets/unisat-icon.png?url'
-import { prettyAddress } from '@/lib/helpers'
+import { prettyAddress } from '@/lib/formatters'
 import {
   useAddressStore,
   useDummiesStore,
@@ -126,21 +126,23 @@ const unisatModalOpen = ref(false)
     <TheNavbar />
 
     <div class="flex gap-2">
-      <el-tooltip
-        effect="light"
-        placement="bottom"
-        :content="`Click to switch to ${
-          networkStore.network === 'testnet' ? 'livenet' : 'testnet'
-        } `"
-        v-if="addressStore.get && whitelist.includes(addressStore.get)"
-      >
-        <button
-          class="h-10 cursor-pointer items-center rounded-lg bg-black/90 px-4 text-sm text-zinc-300 transition hover:text-orange-300"
-          @click="switchNetwork"
+      <div class="hidden lg:block">
+        <el-tooltip
+          effect="light"
+          placement="bottom"
+          :content="`Click to switch to ${
+            networkStore.network === 'testnet' ? 'livenet' : 'testnet'
+          } `"
+          v-if="addressStore.get && whitelist.includes(addressStore.get)"
         >
-          {{ networkStore.network }}
-        </button>
-      </el-tooltip>
+          <button
+            class="h-10 cursor-pointer items-center rounded-lg bg-black/90 px-4 text-sm text-zinc-300 transition hover:text-orange-300"
+            @click="switchNetwork"
+          >
+            {{ networkStore.network }}
+          </button>
+        </el-tooltip>
+      </div>
 
       <button
         class="h-10 rounded-lg border-2 border-orange-300 px-4 transition hover:border-orange-400 hover:bg-orange-400"
@@ -154,7 +156,11 @@ const unisatModalOpen = ref(false)
         class="flex h-10 cursor-pointer items-center divide-x divide-zinc-700 rounded-lg bg-black/90 px-4"
         v-else
       >
-        <div class="flex gap-2 pr-4" @click="copyAddress" title="copy address">
+        <div
+          class="lg:flex gap-2 pr-4 hidden"
+          @click="copyAddress"
+          title="copy address"
+        >
           <img class="h-5" :src="unisatIcon" alt="Unisat" />
           <span class="text-sm text-orange-300">
             {{ prettyAddress(addressStore.get) }}

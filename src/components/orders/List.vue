@@ -4,7 +4,6 @@ import { computed, inject } from 'vue'
 
 import { getMarketPrice, type Order } from '@/queries/orders-api'
 import { useNetworkStore } from '@/store'
-import { cn } from '@/lib/helpers'
 import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
 
 import OrderItem from './Item.vue'
@@ -86,7 +85,7 @@ const { data: marketPrice } = useQuery({
       <el-tooltip :content="`Market Price`" placement="right" effect="light">
         <span
           :class="
-            cn('text-lg', marketPrice ? 'text-green-500' : 'text-zinc-500')
+            ['text-lg', marketPrice ? 'text-green-500' : 'text-zinc-500']
           "
         >
           {{ marketPrice?.toFixed(8) || '-' }}

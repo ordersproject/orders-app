@@ -17,7 +17,7 @@ import {
   type PoolRecord,
 } from '@/queries/pool'
 import { useAddressStore } from '@/store'
-import { prettyTimestamp } from '@/lib/helpers'
+import { prettyTimestamp } from '@/lib/formatters'
 import { ElMessage } from 'element-plus'
 
 const queryClient = useQueryClient()
@@ -182,3 +182,4 @@ async function submitRemove() {
     </form>
   </div>
 </template>
+import { prettyTimestamp } from '@/lib/prettyTimestamp'

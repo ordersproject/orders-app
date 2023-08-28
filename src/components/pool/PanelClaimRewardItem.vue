@@ -4,7 +4,8 @@ import { ElMessage } from 'element-plus'
 import { Buffer } from 'buffer'
 import { inject, ref } from 'vue'
 
-import { prettyTimestamp, raise } from '@/lib/helpers'
+import { prettyTimestamp } from '@/lib/formatters'
+import { raise } from '@/lib/helpers'
 import { type PoolRecord, getClaimEssential, submitClaim } from '@/queries/pool'
 import { useAddressStore, useBtcJsStore } from '@/store'
 import {
@@ -207,3 +208,4 @@ async function submitClaimReward() {
     </div>
   </div>
 </template>
+import { prettyTimestamp } from '@/lib/prettyTimestamp'

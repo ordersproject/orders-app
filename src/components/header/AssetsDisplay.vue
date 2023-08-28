@@ -5,7 +5,7 @@ import { computed, watch } from 'vue'
 import { LoaderIcon, ChevronsUpDownIcon } from 'lucide-vue-next'
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 
-import { cn, prettyCoinDisplay } from '@/lib/helpers'
+import { prettyCoinDisplay } from '@/lib/formatters'
 import { useAddressStore, useNetworkStore } from '@/store'
 import { getBalance } from '@/queries/unisat'
 import { getBrc20s } from '@/queries/orders-api'
@@ -89,9 +89,10 @@ const { data: myBrc20s } = useQuery({
           >
             <MenuItem v-slot="{ active }">
               <div
-                :class="
-                  cn('block px-6 py-4 transition-all', active && 'bg-zinc-950')
-                "
+                :class="[
+                  'block px-6 py-4 transition-all',
+                  active && 'bg-zinc-950',
+                ]"
               >
                 <div class="text-orange-300">BTC</div>
                 <div class="mt-2 text-xs">
@@ -107,9 +108,10 @@ const { data: myBrc20s } = useQuery({
               :key="brc20.token"
             >
               <div
-                :class="
-                  cn('block px-6 py-4 transition-all', active && 'bg-zinc-950')
-                "
+                :class="[
+                  'block px-6 py-4 transition-all',
+                  active && 'bg-zinc-950',
+                ]"
               >
                 <div class="text-orange-300 uppercase">{{ brc20.token }}</div>
                 <div class="mt-2 space-y-1 text-xs">

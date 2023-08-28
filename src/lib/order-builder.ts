@@ -4,7 +4,7 @@ import {
   useDummiesStore,
   useNetworkStore,
 } from '@/store'
-import { calculatePsbtFee } from './helpers'
+import { calculatePsbtFee } from './build-helpers'
 import {
   DUMMY_UTXO_VALUE,
   DUST_UTXO_VALUE,

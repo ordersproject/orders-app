@@ -26,13 +26,9 @@ import { ElMessage } from 'element-plus'
 import { useQuery } from '@tanstack/vue-query'
 
 import btcIcon from '@/assets/btc.svg?url'
-import {
-  calculateFee,
-  cn,
-  prettyBalance,
-  prettyBtcDisplay,
-  sleep,
-} from '@/lib/helpers'
+import { prettyBalance, prettyBtcDisplay } from '@/lib/formatters'
+import { sleep } from '@/lib/helpers'
+import {calculateFee } from '@/lib/build-helpers'
 import {
   buildAskLimit,
   buildBidLimit,
@@ -323,7 +319,7 @@ async function buildOrder() {
     setIsOpen(false)
     builtInfo.value = undefined
     isLimitExchangeMode.value = false
-    
+
     if (DEBUG) throw error
   }
 
@@ -499,15 +495,13 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
               v-slot="{ selectedIndex }"
             >
               <Tab
-                :class="
-                  cn(
-                    'w-28 rounded py-2',
-                    selectedIndex === 0
-                      ? 'bg-green-500 text-white'
-                      : 'bg-zinc-700 text-zinc-300',
-                    { 'cursor-not-allowed': !inWhitelist }
-                  )
-                "
+                :class="[
+                  'w-28 rounded py-2',
+                  selectedIndex === 0
+                    ? 'bg-green-500 text-white'
+                    : 'bg-zinc-700 text-zinc-300',
+                  { 'cursor-not-allowed': !inWhitelist },
+                ]"
                 :disabled="!inWhitelist"
               >
                 Bid
@@ -798,12 +792,10 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                           @click="goInscribe"
                         >
                           <li
-                            :class="
-                              cn(
-                                'flex cursor-pointer items-center justify-between rounded border-t border-zinc-700 p-2 text-zinc-300 transition',
-                                { 'bg-orange-500/20 text-orange-300': active }
-                              )
-                            "
+                            :class="[
+                              'flex cursor-pointer items-center justify-between rounded border-t border-zinc-700 p-2 text-zinc-300 transition',
+                              { 'bg-orange-500/20 text-orange-300': active },
+                            ]"
                           >
                             <BookPlusIcon
                               class="mr-2 h-5 w-5"

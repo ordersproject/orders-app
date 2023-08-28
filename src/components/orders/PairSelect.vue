@@ -13,7 +13,6 @@ import tradingPairs, {
   defaultPair,
   selectedPairKey,
 } from '@/data/trading-pairs'
-import { cn } from '@/lib/helpers'
 
 const router = useRouter()
 
@@ -78,12 +77,10 @@ const choosePair = (pairId: number) => {
           :value="pair.id"
         >
           <button
-            :class="
-              cn(
-                'flex items-center p-4 text-sm w-max min-w-full',
-                active && 'bg-black'
-              )
-            "
+            :class="[
+              'flex items-center p-4 text-sm w-max min-w-full',
+              active && 'bg-black',
+            ]"
           >
             <div class="flex">
               <img :src="pair.fromIcon" class="h-6" />
@@ -91,9 +88,10 @@ const choosePair = (pairId: number) => {
             </div>
 
             <span
-              :class="
-                cn('font-bold ml-2 uppercase', selected && 'text-orange-300')
-              "
+              :class="[
+                'font-bold ml-2 uppercase',
+                selected && 'text-orange-300',
+              ]"
             >
               {{ pair.fromSymbol }}-{{ pair.toSymbol }}
             </span>

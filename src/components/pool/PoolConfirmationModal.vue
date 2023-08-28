@@ -9,11 +9,7 @@ import {
 import { Loader, ArrowDownIcon, RefreshCcwIcon } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 
-import {
-  prettyAddress,
-  prettyBtcDisplay,
-  prettyCoinDisplay,
-} from '@/lib/helpers'
+import { prettyAddress, prettyCoinDisplay } from '@/lib/formatters'
 import { pushAddLiquidity } from '@/queries/pool'
 import { useAddressStore, useCooldownerStore, useNetworkStore } from '@/store'
 import { DEBUG } from '@/data/constants'

@@ -14,7 +14,8 @@ import {
   getUtxos2,
 } from '@/queries/proxy'
 import { type TradingPair } from '@/data/trading-pairs'
-import { change, raise } from './helpers'
+import { raise } from './helpers'
+import { change } from './build-helpers'
 import { getPoolPubKey } from '@/queries/pool'
 
 async function getBothPubKeys() {

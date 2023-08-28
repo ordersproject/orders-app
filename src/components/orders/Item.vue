@@ -6,7 +6,7 @@ import { ElMessage } from 'element-plus'
 
 import { useAddressStore } from '@/store'
 import { cancelOrder, type Order } from '@/queries/orders-api'
-import { prettyBalance } from '@/lib/helpers'
+import { prettyBalance } from '@/lib/formatters'
 
 const address = useAddressStore().address
 
