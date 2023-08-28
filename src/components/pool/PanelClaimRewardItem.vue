@@ -118,8 +118,12 @@ async function submitClaimReward() {
       psbtRaw: signed,
     })
   } catch (e: any) {
-    if (DEBUG) console.error(e)
-    ElMessage.error('Error while claiming reward.')
+    if (DEBUG) {
+      console.error(e)
+      ElMessage.error(e.message)
+    } else {
+      ElMessage.error('Error while claiming reward.')
+    }
   }
 
   claiming.value = false
