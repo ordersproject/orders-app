@@ -211,7 +211,7 @@ export async function buildClaimPsbt({
   claim.addOutput(rewardPsbt.txOutputs[0])
 
   // Add change output
-  await change({ psbt: claim, isMs: true })
+  await change({ psbt: claim })
 
   return claim
 }

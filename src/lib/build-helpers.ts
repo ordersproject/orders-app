@@ -1,5 +1,6 @@
-import { PsbtTxInput, type Psbt, PsbtTxOutput, PsbtInput } from 'bitcoinjs-lib'
+import { PsbtTxOutput, type Psbt, TxOutput } from 'bitcoinjs-lib'
 import { Buffer } from 'buffer'
+import { isTaprootInput } from 'bitcoinjs-lib/src/psbt/bip371'
 
 import { useAddressStore, useBtcJsStore } from '@/store'
 import {
@@ -10,33 +11,58 @@ import {
 } from '@/data/constants'
 import { getFeebPlans, getTxHex, getUtxos2 } from '@/queries/proxy'
 import { raise } from './helpers'
-import { type TransactionOutput } from 'bitcoinjs-lib/src/psbt'
+import { Output } from 'bitcoinjs-lib/src/transaction'
 
-var TX_EMPTY_SIZE = 4 + 1 + 1 + 4
-var TX_INPUT_BASE = 32 + 4 + 1 + 4
-var TX_INPUT_PUBKEYHASH = 107
-var TX_INPUT_SEGWIT = 27
-var TX_INPUT_TAPROOT = 17 // round up 16.5 bytes
-var TX_OUTPUT_BASE = 8 + 1
-var TX_OUTPUT_PUBKEYHASH = 25
-var TX_OUTPUT_SCRIPTHASH = 23
-var TX_OUTPUT_SEGWIT = 22
-var TX_OUTPUT_SEGWIT_SCRIPTHASH = 34
+const TX_EMPTY_SIZE = 4 + 1 + 1 + 4
+const TX_INPUT_BASE = 32 + 4 + 1 + 4
+const TX_INPUT_PUBKEYHASH = 107
+const TX_INPUT_SEGWIT = 27
+const TX_INPUT_TAPROOT = 17 // round up 16.5 bytes
+const TX_OUTPUT_BASE = 8 + 1
+const TX_OUTPUT_PUBKEYHASH = 25
+const TX_OUTPUT_SCRIPTHASH = 23
+const TX_OUTPUT_SEGWIT = 22
+const TX_OUTPUT_SEGWIT_SCRIPTHASH = 34
 
-function inputBytes(input: PsbtInput) {
-  return (
-    TX_INPUT_BASE +
-    (input.script
-      ? input.script.length
-      : input.isTaproot
-      ? TX_INPUT_TAPROOT
-      : input.witnessUtxo
-      ? TX_INPUT_SEGWIT
-      : TX_INPUT_PUBKEYHASH)
-  )
+function uintOrNaN(v: any) {
+  if (typeof v !== 'number') return NaN
+  if (!isFinite(v)) return NaN
+  if (Math.floor(v) !== v) return NaN
+  if (v < 0) return NaN
+  return v
 }
 
-function outputBytes(output: PsbtOutput) {
+function sumOrNaN(txOutputs: TxOutput[] | Output[]) {
+  return txOutputs.reduce(function (a: number, x: any) {
+    return a + uintOrNaN(x.value)
+  }, 0)
+}
+
+type PsbtInput = (typeof Psbt.prototype.data.inputs)[0]
+function inputBytes(input: PsbtInput) {
+  // todo: script length
+  if (isTaprootInput(input)) {
+    console.log('taproot input')
+    return TX_INPUT_BASE + TX_INPUT_TAPROOT
+  }
+
+  if (input.witnessUtxo) return TX_INPUT_BASE + TX_INPUT_SEGWIT
+
+  return TX_INPUT_BASE + TX_INPUT_PUBKEYHASH
+
+  // return (
+  //   TX_INPUT_BASE +
+  //   (input.script
+  //     ? input.script.length
+  //     : input.isTaproot
+  //     ? TX_INPUT_TAPROOT
+  //     : input.witnessUtxo
+  //     ? TX_INPUT_SEGWIT
+  //     : TX_INPUT_PUBKEYHASH)
+  // )
+}
+
+function outputBytes(output: PsbtTxOutput) {
   return (
     TX_OUTPUT_BASE +
     (output.script
@@ -51,7 +77,7 @@ function outputBytes(output: PsbtOutput) {
   )
 }
 
-function transactionBytes(inputs: PsbtInput[], outputs: PsbtOutput[]) {
+function transactionBytes(inputs: PsbtInput[], outputs: PsbtTxOutput[]) {
   return (
     TX_EMPTY_SIZE +
     inputs.reduce(function (a, x) {
@@ -65,9 +91,12 @@ function transactionBytes(inputs: PsbtInput[], outputs: PsbtOutput[]) {
 
 export function calcFee(psbt: Psbt, feeRate: number) {
   const inputs = psbt.data.inputs
-  const outputs = psbt.data.outputs
+  const outputs = psbt.txOutputs
 
-  return Math.ceil(transactionBytes(inputs, outputs) * feeRate)
+  const bytes = transactionBytes(inputs, outputs)
+  console.log({ bytes })
+
+  return Math.ceil(bytes * feeRate)
 }
 
 export function calculateFee(feeRate: number, vinLen: number, voutLen: number) {
@@ -108,13 +137,12 @@ export async function change({
   psbt,
   feeb,
   pubKey,
-  isMs,
 }: {
   psbt: Psbt
   feeb?: number
   pubKey?: Buffer
-  isMs?: boolean
 }) {
+  // todo: sighashType
   // check if address is set
   const address = useAddressStore().get ?? raise('Not logined.')
 
@@ -161,13 +189,32 @@ export async function change({
     )) as number
   }
 
-  const fee = calcFee(psbt, feeb)
-  const changeValue = paymentUtxo.satoshis - fee
+  let fee = calcFee(psbt, feeb)
+  const totalOutput = sumOrNaN(psbt.txOutputs)
+  const totalInput = sumOrNaN(
+    psbt.data.inputs.map(
+      (input) =>
+        input.witnessUtxo || input.nonWitnessUtxo || raise('Input invalid')
+    )
+  )
+  const changeValue = totalInput - totalOutput - fee
+  console.log({ fee, totalInput, totalOutput, changeValue })
+
+  if (changeValue < 0) {
+    throw new Error('Insufficient balance')
+  }
 
   if (changeValue >= DUST_UTXO_VALUE) {
     psbt.addOutput({
       address,
       value: changeValue,
     })
+  } else {
+    fee += changeValue
+  }
+
+  return {
+    psbt,
+    fee,
   }
 }

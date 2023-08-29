@@ -4,7 +4,7 @@ import {
   useDummiesStore,
   useNetworkStore,
 } from '@/store'
-import { calculatePsbtFee } from './build-helpers'
+import { calcFee, calculatePsbtFee, change } from './build-helpers'
 import {
   DUMMY_UTXO_VALUE,
   DUST_UTXO_VALUE,
@@ -429,59 +429,63 @@ export async function buildBuyTake({
     buyPsbt.txOutputs.length - 1,
   ]
 
-  // Step 8: add payment input
-  const paymentUtxo = await getUtxos2(address).then((result) => {
-    // choose the largest utxo
-    const utxo = result.reduce((prev, curr) => {
-      if (prev.satoshis > curr.satoshis) {
-        return prev
-      } else {
-        return curr
-      }
-    })
-    return utxo
+  // // Step 8: add payment input
+  // const paymentUtxo = await getUtxos2(address).then((result) => {
+  //   // choose the largest utxo
+  //   const utxo = result.reduce((prev, curr) => {
+  //     if (prev.satoshis > curr.satoshis) {
+  //       return prev
+  //     } else {
+  //       return curr
+  //     }
+  //   })
+  //   return utxo
+  // })
+
+  // if (!paymentUtxo) {
+  //   throw new Error('no utxo')
+  // }
+
+  // // query rawTx of the utxo
+  // const rawTx = await getTxHex(paymentUtxo.txId)
+  // // decode rawTx
+  // const tx = btcjs.Transaction.fromHex(rawTx)
+
+  // // construct input
+  // const paymentInput = {
+  //   hash: paymentUtxo.txId,
+  //   index: paymentUtxo.outputIndex,
+  //   witnessUtxo: tx.outs[paymentUtxo.outputIndex],
+  //   sighashType: btcjs.Transaction.SIGHASH_ALL,
+  // }
+
+  // buyPsbt.addInput(paymentInput)
+  // totalInput += paymentInput.witnessUtxo.value
+
+  // // Step 9: add change output
+  // let fee = calculatePsbtFee(buyPsbt, feeb)
+
+  // const totalOutput = buyPsbt.txOutputs.reduce(
+  //   (partialSum, a) => partialSum + a.value,
+  //   0
+  // )
+  // const changeValue = totalInput - totalOutput - fee
+  // if (changeValue < 0) {
+  //   throw new Error('Insufficient balance')
+  // }
+  // // if change is too small, we discard it instead of sending it back to the seller
+  // if (changeValue >= DUST_UTXO_VALUE) {
+  //   buyPsbt.addOutput({
+  //     address,
+  //     value: changeValue,
+  //   })
+  // } else {
+  //   fee += changeValue
+  // }
+  const { fee } = await change({
+    psbt: buyPsbt,
+    feeb,
   })
-
-  if (!paymentUtxo) {
-    throw new Error('no utxo')
-  }
-
-  // query rawTx of the utxo
-  const rawTx = await getTxHex(paymentUtxo.txId)
-  // decode rawTx
-  const tx = btcjs.Transaction.fromHex(rawTx)
-
-  // construct input
-  const paymentInput = {
-    hash: paymentUtxo.txId,
-    index: paymentUtxo.outputIndex,
-    witnessUtxo: tx.outs[paymentUtxo.outputIndex],
-    sighashType: btcjs.Transaction.SIGHASH_ALL,
-  }
-
-  buyPsbt.addInput(paymentInput)
-  totalInput += paymentInput.witnessUtxo.value
-
-  // Step 9: add change output
-  let fee = calculatePsbtFee(buyPsbt, feeb)
-
-  const totalOutput = buyPsbt.txOutputs.reduce(
-    (partialSum, a) => partialSum + a.value,
-    0
-  )
-  const changeValue = totalInput - totalOutput - fee
-  if (changeValue < 0) {
-    throw new Error('Insufficient balance')
-  }
-  // if change is too small, we discard it instead of sending it back to the seller
-  if (changeValue >= DUST_UTXO_VALUE) {
-    buyPsbt.addOutput({
-      address,
-      value: changeValue,
-    })
-  } else {
-    fee += changeValue
-  }
   const totalSpent = sellerOutput.value + serviceFee + fee - ordValue
 
   return {
@@ -497,10 +501,10 @@ export async function buildBuyTake({
     fromValue: sellerOutput.value,
     toValue: order.coinAmount,
     isFree,
-    observing: {
-      txId: paymentUtxo.txId,
-      outputIndex: paymentUtxo.outputIndex,
-    },
+    // observing: {
+    //   txId: paymentUtxo.txId,
+    //   outputIndex: paymentUtxo.outputIndex,
+    // },
   }
 }
 
