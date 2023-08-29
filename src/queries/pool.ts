@@ -319,7 +319,7 @@ export const getMyPoolRewards = async ({
     .then((res) => {
       return res.map((item: any) => {
         item.claimState = 'pending'
-        if (item.multiSigScriptAddressTickAvailableState === '1') {
+        if (item.multiSigScriptAddressTickAvailableState === 1) {
           item.claimState = 'ready'
         }
 
