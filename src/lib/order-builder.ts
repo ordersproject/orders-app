@@ -4,7 +4,7 @@ import {
   useDummiesStore,
   useNetworkStore,
 } from '@/store'
-import { calcFee, calculatePsbtFee, change } from './build-helpers'
+import { calculatePsbtFee, change } from './build-helpers'
 import {
   DUMMY_UTXO_VALUE,
   DUST_UTXO_VALUE,
@@ -343,11 +343,11 @@ export async function buildBuyTake({
   const isFree = order.freeState === 1
 
   // get sell psbt from order detail api
-  const sellPsbtRaw = await getOneOrder({
+  const askPsbtRaw = await getOneOrder({
     orderId: order.orderId,
   }).then((order) => order.psbtRaw)
 
-  const sellPsbt = btcjs.Psbt.fromHex(sellPsbtRaw, {
+  const askPsbt = btcjs.Psbt.fromHex(askPsbtRaw, {
     network: btcjs.networks[btcNetwork],
   })
 
@@ -377,7 +377,7 @@ export async function buildBuyTake({
   })
 
   // Step 3: add ordinal output
-  const ordValue = sellPsbt.data.inputs[0].witnessUtxo!.value
+  const ordValue = askPsbt.data.inputs[0].witnessUtxo!.value
   const ordOutput = {
     address,
     value: ordValue,
@@ -386,17 +386,17 @@ export async function buildBuyTake({
 
   // Step 4: sellerInput, in
   const sellerInput = {
-    hash: sellPsbt.txInputs[0].hash,
-    index: sellPsbt.txInputs[0].index,
-    witnessUtxo: sellPsbt.data.inputs[0].witnessUtxo,
-    finalScriptWitness: sellPsbt.data.inputs[0].finalScriptWitness,
+    hash: askPsbt.txInputs[0].hash,
+    index: askPsbt.txInputs[0].index,
+    witnessUtxo: askPsbt.data.inputs[0].witnessUtxo,
+    finalScriptWitness: askPsbt.data.inputs[0].finalScriptWitness,
   }
 
   buyPsbt.addInput(sellerInput)
   totalInput += sellerInput.witnessUtxo!.value
 
   // Step 5: sellerOutput, in
-  const sellerOutput = sellPsbt.txOutputs[0]
+  const sellerOutput = askPsbt.txOutputs[0]
   buyPsbt.addOutput(sellerOutput)
 
   // Step 6: service fee
@@ -408,7 +408,7 @@ export async function buildBuyTake({
       btcNetwork === 'bitcoin'
         ? SERVICE_LIVENET_ADDRESS
         : SERVICE_TESTNET_ADDRESS
-    serviceFee = Math.max(2000, sellPsbt.txOutputs[0].value * 0.01)
+    serviceFee = Math.max(2000, askPsbt.txOutputs[0].value * 0.01)
     buyPsbt.addOutput({
       address: serviceAddress,
       value: serviceFee,

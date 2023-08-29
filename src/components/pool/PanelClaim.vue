@@ -55,7 +55,7 @@ const { data: poolRewards, isLoading: isLoadingPoolRewards } = useQuery({
         <span>Private Key</span>
         <input
           type="text"
-          placeholder="Enter your wif here...test only"
+          placeholder="Enter your private key here...test only"
           v-model="privateKeyHex"
           class="w-full rounded bg-zinc-800 p-2 placeholder-zinc-500 outline-none border border-zinc-700 text-xs col-span-5"
         />

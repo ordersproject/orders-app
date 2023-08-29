@@ -208,4 +208,3 @@ async function submitClaimReward() {
     </div>
   </div>
 </template>
-import { prettyTimestamp } from '@/lib/prettyTimestamp'
