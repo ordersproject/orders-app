@@ -262,6 +262,7 @@ export type PoolRecord = {
   coinAddress: string
   coinAmount: number
   decimalNum: number
+  claimState: 'pending' | 'ready'
   coinDecimalNum: number
   inscriptionId: string
   net: 'livenet'
@@ -311,9 +312,23 @@ export const getMyPoolRewards = async ({
     sortType: '-1',
   })
 
-  return await ordersApiFetch(`pool/orders?${params}`).then((res) => {
-    return res?.results || []
-  })
+  return await ordersApiFetch(`pool/orders?${params}`)
+    .then((res) => {
+      return res?.results || []
+    })
+    .then((res) => {
+      return res.map((item: any) => {
+        item.claimState = 'pending'
+        if (item.multiSigScriptAddressTickAvailableState === '1') {
+          item.claimState = 'ready'
+        }
+
+        delete item.multiSigScriptAddressTickAvailableState
+        console.log(item)
+
+        return item
+      })
+    })
 }
 
 export const removeLiquidity = async ({ orderId }: { orderId: string }) => {

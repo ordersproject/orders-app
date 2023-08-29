@@ -164,10 +164,14 @@ async function submitClaimReward() {
       </div>
 
       <button
-        class="rounded-md bg-orange-300 text-orange-950 px-6 py-2 shadow-md shadow-orange-300/20"
+        :class="[
+          'rounded-md bg-orange-300 text-orange-950 px-6 py-2 shadow-md shadow-orange-300/20',
+          { 'opacity-30 saturate-50': reward.claimState !== 'ready' },
+        ]"
         @click.prevent="submitClaimReward"
+        :disabled="reward.claimState !== 'ready'"
       >
-        Claim
+        {{ reward.claimState === 'ready' ? 'Claim' : 'Pending' }}
       </button>
     </div>
   </div>
