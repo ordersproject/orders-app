@@ -31,7 +31,7 @@ const derivedAddress = computed(() => {
   return address
 })
 
-const { data: poolRewards } = useQuery({
+const { data: poolRewards, isLoading: isLoadingPoolRewards } = useQuery({
   queryKey: [
     'poolRewards',
     {
@@ -83,9 +83,13 @@ const { data: poolRewards } = useQuery({
     </div>
 
     <div class="rounded mt-4 grow overflow-y-auto -mx-4 space-y-2">
+      <p v-if="isLoadingPoolRewards" class="text-center pt-4 text-zinc-500">
+        Loading...
+      </p>
+
       <div
         class="flex items-center justify-center h-full text-zinc-500"
-        v-if="!poolRewards || poolRewards.length === 0"
+        v-else-if="!poolRewards || poolRewards.length === 0"
       >
         No Rewards Currently.
       </div>
