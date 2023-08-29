@@ -9,7 +9,7 @@ export const DUST_UTXO_VALUE = 546
 export const MIN_FEEB = 10
 export const EXTREME_FEEB = 1
 export const FEEB_MULTIPLIER = 1.3
-export const MS_FEEB_MULTIPLIER = 1.45
+export const MS_FEEB_MULTIPLIER = 1.6
 
 // Sighash types
 export const SIGHASH_ALL = 0x01
