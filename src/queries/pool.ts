@@ -353,6 +353,7 @@ type ClaimEssential = {
   coinPsbtRaw: string
   psbtRaw: string
   coinTransferPsbtRaw: string
+  rewardPsbtRaw: string
   rewardCoinAmount: number
   net: 'livenet'
   orderId: string

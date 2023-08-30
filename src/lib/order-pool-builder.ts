@@ -152,18 +152,19 @@ export async function buildClaimPsbt({
   btcMsPsbtRaw,
   ordinalMsPsbtRaw,
   ordinalReleasePsbtRaw,
-  pubKey,
+  rewardPsbtRaw,
 }: {
   btcMsPsbtRaw: string
   ordinalMsPsbtRaw: string
   ordinalReleasePsbtRaw: string
-  pubKey: Buffer
+  rewardPsbtRaw: string
 }) {
   const btcjs = useBtcJsStore().get!
 
   const claim = btcjs.Psbt.fromHex(ordinalMsPsbtRaw)
   const btcPsbt = btcjs.Psbt.fromHex(btcMsPsbtRaw)
   const releasePsbt = btcjs.Psbt.fromHex(ordinalReleasePsbtRaw)
+  const rewardPsbt = btcjs.Psbt.fromHex(rewardPsbtRaw)
 
   // Add BTC input
   claim.addInput({
@@ -192,6 +193,22 @@ export async function buildClaimPsbt({
 
   // Add release output
   claim.addOutput(releasePsbt.txOutputs[0])
+
+  // Add reward input (already fully signed)
+  // claim.addInput({
+  //   hash: rewardPsbt.txInputs[0].hash,
+  //   index: rewardPsbt.txInputs[0].index,
+  //   witnessUtxo: rewardPsbt.data.inputs[0].witnessUtxo,
+  //   finalScriptWitness: rewardPsbt.data.inputs[0].finalScriptWitness,
+  //   // sighashType:
+  //   // btcjs.Transaction.SIGHASH_SINGLE | btcjs.Transaction.SIGHASH_ANYONECANPAY,
+  // })
+
+  // // build reward output
+  // claim.addOutput({
+  //   address: useAddressStore().get!,
+  //   value: rewardPsbt.txOutputs[0].value,
+  // })
 
   // Add change output
   await change({ psbt: claim, isMs: true })

@@ -15,21 +15,21 @@ const selectedPair = inject(selectedPoolPairKey, defaultPair)
 const addressStore = useAddressStore()
 const enabled = computed(() => !!addressStore.get)
 
-const btcStore = useBtcJsStore()
-const privateKeyHex = ref('')
-const ECPair = btcStore.ECPair ?? raise('ECPair not ready')
-const derivedAddress = computed(() => {
-  const btcjs = btcStore.get ?? raise('btcjs not ready')
+// const btcStore = useBtcJsStore()
+// const privateKeyHex = ref('')
+// const ECPair = btcStore.ECPair ?? raise('ECPair not ready')
+// const derivedAddress = computed(() => {
+//   const btcjs = btcStore.get ?? raise('btcjs not ready')
 
-  if (!privateKeyHex.value) return '-'
+//   if (!privateKeyHex.value) return '-'
 
-  const keyPair = ECPair.fromPrivateKey(Buffer.from(privateKeyHex.value, 'hex'))
-  const { address } = btcjs.payments.p2tr({
-    internalPubkey: keyPair.publicKey.slice(1, 33),
-  })
+//   const keyPair = ECPair.fromPrivateKey(Buffer.from(privateKeyHex.value, 'hex'))
+//   const { address } = btcjs.payments.p2tr({
+//     internalPubkey: keyPair.publicKey.slice(1, 33),
+//   })
 
-  return address
-})
+//   return address
+// })
 
 const { data: poolRewards, isLoading: isLoadingPoolRewards } = useQuery({
   queryKey: [
@@ -50,7 +50,7 @@ const { data: poolRewards, isLoading: isLoadingPoolRewards } = useQuery({
 
 <template>
   <div class="max-w-xl mx-auto h-[40vh] flex flex-col">
-    <div class="mb-8 space-y-2">
+    <!-- <div class="mb-8 space-y-2">
       <div class="items-center grid gap-4 justify-center text-xs grid-cols-6">
         <span>Private Key</span>
         <input
@@ -65,7 +65,7 @@ const { data: poolRewards, isLoading: isLoadingPoolRewards } = useQuery({
         <div class="">Address</div>
         <div class="text-xs text-zinc-500">{{ derivedAddress }}</div>
       </div>
-    </div>
+    </div> -->
 
     <div class="flex items-center gap-4">
       <h3 class="text-base font-medium leading-6 text-zinc-300">My Rewards</h3>
@@ -73,7 +73,7 @@ const { data: poolRewards, isLoading: isLoadingPoolRewards } = useQuery({
         placement="bottom-start"
         :width="400"
         trigger="hover"
-        content="Rewards are available to for pledged assets and pledges respectively."
+        content="Rewards are available for staked assets and stakes respectively."
         popper-class="!bg-zinc-800 !text-zinc-300 !shadow-lg !shadow-orange-400/10 "
       >
         <template #reference>
@@ -98,7 +98,6 @@ const { data: poolRewards, isLoading: isLoadingPoolRewards } = useQuery({
         v-for="reward in poolRewards"
         :key="reward.orderId"
         :reward="reward"
-        :privateKeyHex="privateKeyHex"
       />
     </div>
   </div>
