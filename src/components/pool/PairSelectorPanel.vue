@@ -12,6 +12,7 @@ import { getOnePoolPair } from '@/queries/pool'
 import { useAddressStore } from '@/store'
 
 import PoolPairSelect from '@/components/pool/PoolPairSelect.vue'
+import { prettyCoinDisplay } from '@/lib/helpers'
 
 const route = useRoute()
 const pairRaw = route.params?.pair as string | undefined
@@ -47,19 +48,31 @@ const infoMap = computed(() => {
   return [
     {
       label: 'Pooled ' + selectedPair.fromSymbol.toUpperCase(),
-      value: pairInfo.value.fromPoolSize,
+      value: prettyCoinDisplay(
+        pairInfo.value.fromPoolSize,
+        selectedPair.fromSymbol.toUpperCase()
+      ),
     },
     {
       label: 'Pooled ' + selectedPair.toSymbol.toUpperCase(),
-      value: pairInfo.value.toPoolSize,
+      value: prettyCoinDisplay(
+        pairInfo.value.toPoolSize,
+        selectedPair.toSymbol.toUpperCase()
+      ),
     },
     {
       label: `Your LP(${selectedPair.fromSymbol.toUpperCase()}-${selectedPair.toSymbol.toUpperCase()}) ${selectedPair.fromSymbol.toUpperCase()}`,
-      value: pairInfo.value.myFromPoolBalance,
+      value: prettyCoinDisplay(
+        pairInfo.value.myFromPoolBalance,
+        selectedPair.fromSymbol.toUpperCase()
+      ),
     },
     {
       label: `Your LP(${selectedPair.fromSymbol.toUpperCase()}-${selectedPair.toSymbol.toUpperCase()}) ${selectedPair.toSymbol.toUpperCase()}`,
-      value: pairInfo.value.myToPoolBalance,
+      value: prettyCoinDisplay(
+        pairInfo.value.myToPoolBalance,
+        selectedPair.toSymbol.toUpperCase()
+      ),
     },
     {
       label: 'Your share of the pool',

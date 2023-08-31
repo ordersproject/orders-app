@@ -324,7 +324,6 @@ export const getMyPoolRewards = async ({
         }
 
         delete item.multiSigScriptAddressTickAvailableState
-        console.log(item)
 
         return item
       })

@@ -11,6 +11,8 @@ import {
   DEBUG,
   SIGHASH_SINGLE_ANYONECANPAY,
   SIGHASH_DEFAULT,
+  SIGHASH_ALL,
+  SIGHASH_SINGLE,
 } from '@/data/constants'
 import { buildClaimPsbt } from '@/lib/order-pool-builder'
 import BtcHelpers from '@/lib/btc-helpers'
@@ -58,7 +60,10 @@ async function submitClaimReward() {
 
     // const ECPair = useBtcJsStore().ECPair ?? raise('ECPair not ready')
     // const signer = ECPair.fromPrivateKey(
-    //   Buffer.from(props.privateKeyHex, 'hex')
+    //   Buffer.from(
+    //     '',
+    //     'hex'
+    //   )
     // )
 
     const claimPsbt = await buildClaimPsbt({
@@ -67,8 +72,6 @@ async function submitClaimReward() {
       ordinalReleasePsbtRaw: claimEssential.coinTransferPsbtRaw,
       rewardPsbtRaw: claimEssential.rewardPsbtRaw,
     })
-
-    console.log({ claimPsbt })
 
     // claimPsbt
     //   .signInput(0, signer, [SIGHASH_SINGLE_ANYONECANPAY])
@@ -83,21 +86,9 @@ async function submitClaimReward() {
 
     // console.log({
     //   pk1: '03782f1f1736fbd1048a3b29ac9e7f5ab8c64f0c87d6a0bd671c0d6d67a3181da2',
-    //   pk2: claimPsbt.data.inputs[0].partialSig![0].pubkey.toString('hex'),
-    //   pk3: claimPsbt.data.inputs[1].partialSig![0].pubkey.toString('hex'),
-    //   pkself: signer.publicKey.toString('hex'),
+    //   pk2: claimPsbt.data.inputs[3].partialSig![0].pubkey.toString('hex'),
     // })
 
-    // console.log({
-    //   validate00: btcHelpers.validate(claimPsbt, [0], exchangePubKey),
-    //   validate01: btcHelpers.validate(claimPsbt, [0], selfPubKey),
-    //   validate10: btcHelpers.validate(claimPsbt, [1], exchangePubKey),
-    //   validate11: btcHelpers.validate(claimPsbt, [1], selfPubKey),
-    //   validate20: btcHelpers.validate(claimPsbt, [2], exchangePubKey),
-    //   validate21: btcHelpers.validate(claimPsbt, [2], selfPubKey),
-    // })
-
-    // claimPsbt.finalizeInput(0).finalizeInput(1).finalizeInput(2)
     type ToSignInput = {
       index: number
       address: string
@@ -120,18 +111,39 @@ async function submitClaimReward() {
         sighashTypes: [SIGHASH_SINGLE_ANYONECANPAY],
       },
       {
-        index: 3,
+        index: 4,
         address: addressStore.get!,
-        sighashTypes: [SIGHASH_DEFAULT],
+        sighashTypes: [SIGHASH_SINGLE_ANYONECANPAY],
       },
     ]
     const signed = await window.unisat.signPsbt(claimPsbt.toHex(), {
       autoFinalized: true,
       toSignInputs,
     })
-    console.log({ signed })
 
+    const signedPsbt = useBtcJsStore().get!.Psbt.fromHex(signed)
+
+    // console.log({
+    //   validate00: btcHelpers.validate(signedPsbt, [0], exchangePubKey),
+    //   validate01: btcHelpers.validate(signedPsbt, [0], selfPubKey),
+    //   validate10: btcHelpers.validate(signedPsbt, [1], exchangePubKey),
+    //   validate11: btcHelpers.validate(signedPsbt, [1], selfPubKey),
+    //   validate20: btcHelpers.validate(signedPsbt, [2], exchangePubKey),
+    //   validate21: btcHelpers.validate(signedPsbt, [2], selfPubKey),
+    //   validate41: btcHelpers.validate(signedPsbt, [4], selfPubKey),
+    // })
+    // signedPsbt
+    //   .finalizeInput(0)
+    //   .finalizeInput(1)
+    //   .finalizeInput(2)
+    //   .finalizeInput(4)
+
+    console.log({ signedPsbt })
+    // const tx = signedPsbt.extractTransaction()
+    // console.log({ tx })
     // notify api to update order state
+    // const res = await window.unisat.pushPsbt(signedPsbt.toHex())
+    // console.log({ res })
     mutateFinishReward({
       orderId: props.reward.orderId,
       psbtRaw: signed,

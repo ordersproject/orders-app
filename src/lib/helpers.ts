@@ -99,6 +99,8 @@ export async function change({
     hash: paymentUtxo.txId,
     index: paymentUtxo.outputIndex,
     witnessUtxo: tx.outs[paymentUtxo.outputIndex],
+    sighashType:
+      btcjs.Transaction.SIGHASH_SINGLE | btcjs.Transaction.SIGHASH_ANYONECANPAY,
   }
   if (pubKey) {
     paymentInput.tapInternalPubkey = pubKey

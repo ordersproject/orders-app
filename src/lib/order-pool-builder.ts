@@ -194,21 +194,20 @@ export async function buildClaimPsbt({
   // Add release output
   claim.addOutput(releasePsbt.txOutputs[0])
 
+  console.log({ rewardPsbt })
   // Add reward input (already fully signed)
-  // claim.addInput({
-  //   hash: rewardPsbt.txInputs[0].hash,
-  //   index: rewardPsbt.txInputs[0].index,
-  //   witnessUtxo: rewardPsbt.data.inputs[0].witnessUtxo,
-  //   finalScriptWitness: rewardPsbt.data.inputs[0].finalScriptWitness,
-  //   // sighashType:
-  //   // btcjs.Transaction.SIGHASH_SINGLE | btcjs.Transaction.SIGHASH_ANYONECANPAY,
-  // })
+  claim.addInput({
+    hash: rewardPsbt.txInputs[0].hash,
+    index: rewardPsbt.txInputs[0].index,
+    witnessUtxo: rewardPsbt.data.inputs[0].witnessUtxo,
+    finalScriptWitness: rewardPsbt.data.inputs[0].finalScriptWitness,
+    // partialSig: releasePsbt.data.inputs[0].partialSig,
+    // sighashType:
+    //   btcjs.Transaction.SIGHASH_SINGLE | btcjs.Transaction.SIGHASH_ANYONECANPAY,
+  })
 
-  // // build reward output
-  // claim.addOutput({
-  //   address: useAddressStore().get!,
-  //   value: rewardPsbt.txOutputs[0].value,
-  // })
+  // build reward output
+  claim.addOutput(rewardPsbt.txOutputs[0])
 
   // Add change output
   await change({ psbt: claim, isMs: true })
