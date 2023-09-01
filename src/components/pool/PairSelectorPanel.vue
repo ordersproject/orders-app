@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, provide } from 'vue'
+import { computed, inject, provide } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useRoute } from 'vue-router'
 
@@ -14,10 +14,7 @@ import { prettyCoinDisplay } from '@/lib/formatters'
 
 import PoolPairSelect from '@/components/pool/PoolPairSelect.vue'
 
-const route = useRoute()
-const pairRaw = route.params?.pair as string | undefined
-const selectedPair = pairRaw ? selectPair(pairRaw) : defaultPair
-provide(selectedPoolPairKey, selectedPair)
+const selectedPair = inject(selectedPoolPairKey, defaultPair)
 
 // pair info
 const { data: pairInfo } = useQuery(

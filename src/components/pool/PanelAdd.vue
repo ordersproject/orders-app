@@ -29,6 +29,7 @@ import OrderConfirmationModal from './PoolConfirmationModal.vue'
 const addressStore = useAddressStore()
 const networkStore = useNetworkStore()
 const selectedPair = inject(selectedPoolPairKey, defaultPair)
+console.log({ selectedPair, selectedPoolPairKey })
 
 const { data: myPoolableBrc20s } = useQuery({
   queryKey: [

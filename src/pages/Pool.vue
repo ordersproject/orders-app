@@ -1,6 +1,20 @@
 <script lang="ts" setup>
+import { useRoute } from 'vue-router'
+import { provide } from 'vue'
+
+import {
+  defaultPair,
+  selectPair,
+  selectedPoolPairKey,
+} from '@/data/trading-pairs'
+
 import PoolPairSelectorPanel from '@/components/pool/PairSelectorPanel.vue'
 import PoolOperationPanel from '@/components/pool/OperationPanel.vue'
+
+const route = useRoute()
+const pairRaw = route.params?.pair as string | undefined
+const selectedPair = pairRaw ? selectPair(pairRaw) : defaultPair
+provide(selectedPoolPairKey, selectedPair)
 </script>
 
 <template>
