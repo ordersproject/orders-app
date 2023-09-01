@@ -43,7 +43,7 @@ const { data: marketPrice } = useQuery({
 
 <template>
   <div class="flex flex-col gap-y-4 max-h-[60vh]">
-    <div class="orders-container h-full overflow-y-scroll pr-1">
+    <div class="nicer-scrollbar h-full overflow-y-scroll pr-1">
       <table class="w-full">
         <thead>
           <tr>
@@ -84,16 +84,14 @@ const { data: marketPrice } = useQuery({
     <div class="">
       <el-tooltip :content="`Market Price`" placement="right" effect="light">
         <span
-          :class="
-            ['text-lg', marketPrice ? 'text-green-500' : 'text-zinc-500']
-          "
+          :class="['text-lg', marketPrice ? 'text-green-500' : 'text-zinc-500']"
         >
           {{ marketPrice?.toFixed(8) || '-' }}
         </span>
       </el-tooltip>
     </div>
 
-    <div class="orders-container h-full overflow-y-scroll pr-1">
+    <div class="nicer-scrollbar h-full overflow-y-scroll pr-1">
       <table class="-mt-8 w-full" v-if="bidOrders.length">
         <thead class="invisible">
           <tr class="">
@@ -134,21 +132,5 @@ const { data: marketPrice } = useQuery({
 <style scoped>
 .th {
   @apply pb-2 pt-0 text-left text-sm font-normal text-zinc-500;
-}
-
-.orders-container::-webkit-scrollbar {
-  @apply h-2 w-2;
-}
-
-.orders-container::-webkit-scrollbar-track {
-  @apply rounded-full bg-transparent;
-}
-
-.orders-container::-webkit-scrollbar-thumb {
-  @apply rounded-full bg-zinc-700;
-}
-
-.orders-container::-webkit-scrollbar-thumb:hover {
-  @apply bg-zinc-600;
 }
 </style>
