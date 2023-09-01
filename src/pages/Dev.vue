@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { onMounted } from 'vue'
 
-// import { getUtxos2, getTxHex } from '@/queries/proxy'
+// import { getUtxos, getTxHex } from '@/queries/proxy'
 import { useAddressStore, useBtcJsStore } from '@/store'
 // import * as bip39 from 'bip39'
 import BIP32Factory from 'bip32'
@@ -60,7 +60,7 @@ const createTx = async () => {
   // })
   // const address = useAddressStore().get!
   // // Add payment input
-  // const paymentUtxo = await getUtxos2(address).then((result) => {
+  // const paymentUtxo = await getUtxos(address).then((result) => {
   //   // choose the largest utxo
   //   const utxo = result.reduce((prev, curr) => {
   //     if (prev.satoshis > curr.satoshis) {
@@ -133,7 +133,7 @@ const unlockMs = async () => {
   // }
   // // Add payment input
   // const address = useAddressStore().get!
-  // const paymentUtxo = await getUtxos2(address).then((result) => {
+  // const paymentUtxo = await getUtxos(address).then((result) => {
   //   // choose the largest utxo
   //   const utxo = result.reduce((prev, curr) => {
   //     if (prev.satoshis > curr.satoshis) {

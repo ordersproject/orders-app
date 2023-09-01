@@ -28,7 +28,7 @@ import { useQuery } from '@tanstack/vue-query'
 import btcIcon from '@/assets/btc.svg?url'
 import { prettyBalance, prettyBtcDisplay } from '@/lib/formatters'
 import { sleep } from '@/lib/helpers'
-import {calculateFee } from '@/lib/build-helpers'
+import { calculateFee } from '@/lib/build-helpers'
 import {
   buildAskLimit,
   buildBidLimit,
@@ -1219,7 +1219,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                             :class="
                               checked ? 'text-orange-100' : 'text-zinc-300'
                             "
-                            class="mb-2 text-center text-sm font-bold"
+                            class="mb-2 text-sm font-bold"
                           >
                             {{ feebPlan.title }}
                           </RadioGroupLabel>

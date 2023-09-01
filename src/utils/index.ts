@@ -7,7 +7,7 @@ import {
   DummyUtxo,
   useNetworkStore,
 } from '@/store'
-import { getUtxos2, getTxHex } from '@/queries/proxy'
+import { getUtxos, getTxHex } from '@/queries/proxy'
 import { calculatePsbtFee } from '@/lib/build-helpers'
 import { DUMMY_UTXO_VALUE, EXTREME_FEEB, MIN_FEEB } from '@/data/constants'
 const utils = {
@@ -21,7 +21,7 @@ const utils = {
     const btcjsStore = useBtcJsStore()
     const networkStore = useNetworkStore()
     if (!address) return
-    const candidates = await getUtxos2(address).then((utxos) => {
+    const candidates = await getUtxos(address).then((utxos) => {
       // only take two dummy utxos
       return utxos
         .filter((utxo) => utxo.satoshis === DUMMY_UTXO_VALUE)
@@ -54,7 +54,7 @@ const utils = {
     } else {
       if (checkOnly) return []
 
-      const paymentUtxo = await getUtxos2(address).then((utxos) => {
+      const paymentUtxo = await getUtxos(address).then((utxos) => {
         // only take two dummy utxos
         return utxos
           .filter((utxo) => utxo.satoshis >= DUMMY_UTXO_VALUE * 2 + 1000)

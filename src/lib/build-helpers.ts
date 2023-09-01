@@ -9,7 +9,7 @@ import {
   MIN_FEEB,
   MS_FEEB_MULTIPLIER,
 } from '@/data/constants'
-import { getFeebPlans, getTxHex, getUtxos2 } from '@/queries/proxy'
+import { getFeebPlans, getTxHex, getUtxos } from '@/queries/proxy'
 import { raise } from './helpers'
 import { Output } from 'bitcoinjs-lib/src/transaction'
 
@@ -147,7 +147,7 @@ export async function change({
   const address = useAddressStore().get ?? raise('Not logined.')
 
   // Add payment input
-  const paymentUtxo = await getUtxos2(address).then((result) => {
+  const paymentUtxo = await getUtxos(address).then((result) => {
     // choose the largest utxo
     const utxo = result.reduce((prev, curr) => {
       if (prev.satoshis > curr.satoshis) {
@@ -216,5 +216,6 @@ export async function change({
   return {
     psbt,
     fee,
+    paymentValue: paymentUtxo.satoshis,
   }
 }

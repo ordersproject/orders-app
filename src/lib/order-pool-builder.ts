@@ -8,11 +8,7 @@ import {
   useNetworkStore,
 } from '@/store'
 import { getOneBrc20 } from '@/queries/orders-api'
-import {
-  type SimpleUtxoFromMempool,
-  getTxHex,
-  getUtxos2,
-} from '@/queries/proxy'
+import { type SimpleUtxoFromMempool, getTxHex, getUtxos } from '@/queries/proxy'
 import { type TradingPair } from '@/data/trading-pairs'
 import { raise } from './helpers'
 import { change } from './build-helpers'
@@ -128,25 +124,6 @@ export async function buildAddLiquidity({
     fromAddress: address,
     toAddress: multisigAddress,
   }
-}
-
-export async function buildClaimBtcPsbt({
-  psbt,
-  pubKey,
-}: {
-  psbt: string
-  pubKey: Buffer
-}) {
-  const btcjs = window.bitcoin
-  const address = useAddressStore().get!
-
-  const claim = btcjs.Psbt.fromHex(psbt)
-
-  // Add change output
-  await change({ psbt: claim, pubKey })
-  console.log({ claim })
-
-  return claim
 }
 
 export async function buildClaimPsbt({

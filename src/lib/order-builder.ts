@@ -17,11 +17,7 @@ import {
   getOneBrc20,
   getOneOrder,
 } from '@/queries/orders-api'
-import {
-  getUtxos2,
-  type SimpleUtxoFromMempool,
-  getTxHex,
-} from '@/queries/proxy'
+import { getUtxos, type SimpleUtxoFromMempool, getTxHex } from '@/queries/proxy'
 import { type TradingPair } from '@/data/trading-pairs'
 
 export async function buildAskLimit({
@@ -42,7 +38,7 @@ export async function buildAskLimit({
   // if testnet, we use a cardinal utxo as a fake one
   let ordinalUtxo: SimpleUtxoFromMempool
   if (networkStore.network === 'testnet') {
-    const cardinalUtxo = await getUtxos2(address).then((result) => {
+    const cardinalUtxo = await getUtxos(address).then((result) => {
       // choose the smallest utxo, but bigger than 600
       const smallOne = result.reduce((prev, curr) => {
         if (
@@ -244,63 +240,14 @@ export async function buildBidLimit({
     value: DUMMY_UTXO_VALUE,
   })
 
-  // Step 8: add payment input
-  const paymentUtxo = await getUtxos2(address).then((result) => {
-    // choose the largest utxo
-    const utxo = result.reduce((prev, curr) => {
-      if (prev.satoshis > curr.satoshis) {
-        return prev
-      } else {
-        return curr
-      }
-    })
-    return utxo
-  })
-
-  if (!paymentUtxo) {
-    throw new Error('no utxo')
-  }
-
-  // query rawTx of the utxo
-  const rawTx = await getTxHex(paymentUtxo.txId)
-  // decode rawTx
-  const tx = btcjs.Transaction.fromHex(rawTx)
-
-  // construct input
-  const paymentInput = {
-    hash: paymentUtxo.txId,
-    index: paymentUtxo.outputIndex,
-    witnessUtxo: tx.outs[paymentUtxo.outputIndex],
-    sighashType:
-      btcjs.Transaction.SIGHASH_ALL | btcjs.Transaction.SIGHASH_ANYONECANPAY,
-  }
-
-  bid.addInput(paymentInput)
-  totalInput += paymentInput.witnessUtxo.value
-
-  // Step 9: add change output
+  // Step 8: change
   const feeb = btcNetwork === 'bitcoin' ? 12 : 1
-  const fee = calculatePsbtFee(bid, feeb)
-
-  const totalOutput = bid.txOutputs.reduce(
-    (partialSum, a) => partialSum + a.value,
-    0
-  )
-  // postponer should be integer
-  const spent = total + fee + serviceFee + DUMMY_UTXO_VALUE * 2
-  const using = paymentInput.witnessUtxo.value
-  const changeValue = using - spent
-  if (changeValue < 0) {
-    throw new Error('Insufficient balance')
-  }
-  // const changeValue = totalInput - totalOutput - fee
+  const { fee, paymentValue } = await change({
+    psbt: bid,
+    feeb,
+  })
 
   const totalSpent = total + serviceFee + fee - ordValue
-
-  bid.addOutput({
-    address,
-    value: changeValue,
-  })
 
   return {
     order: bid,
@@ -309,7 +256,7 @@ export async function buildBidLimit({
     feeb,
     networkFee: fee,
     total,
-    using,
+    using: paymentValue,
     fromSymbol: selectedPair.toSymbol, // reversed
     toSymbol: selectedPair.fromSymbol,
     fromValue: total,
@@ -430,7 +377,7 @@ export async function buildBuyTake({
   ]
 
   // // Step 8: add payment input
-  // const paymentUtxo = await getUtxos2(address).then((result) => {
+  // const paymentUtxo = await getUtxos(address).then((result) => {
   //   // choose the largest utxo
   //   const utxo = result.reduce((prev, curr) => {
   //     if (prev.satoshis > curr.satoshis) {
@@ -525,7 +472,7 @@ export async function buildSellTake({
   // if testnet, we use a cardinal utxo as a fake one
   let ordinalUtxo: SimpleUtxoFromMempool
   if (networkStore.network === 'testnet') {
-    const cardinalUtxo = await getUtxos2(address).then((result) => {
+    const cardinalUtxo = await getUtxos(address).then((result) => {
       // choose the smallest utxo, but bigger than 600
       const smallOne = result.reduce((prev, curr) => {
         if (
@@ -704,61 +651,12 @@ export async function buildClaimTake({
     value: DUMMY_UTXO_VALUE,
   })
 
-  // Step 8: add payment input
-  const paymentUtxo = await getUtxos2(address).then((result) => {
-    // choose the largest utxo
-    const utxo = result.reduce((prev, curr) => {
-      if (prev.satoshis > curr.satoshis) {
-        return prev
-      } else {
-        return curr
-      }
-    })
-    return utxo
+  // Step 8: change
+  const feeb = 10
+  await change({
+    psbt: takePsbt,
+    feeb,
   })
-
-  if (!paymentUtxo) {
-    throw new Error('no utxo')
-  }
-
-  // query rawTx of the utxo
-  const rawTx = await getTxHex(paymentUtxo.txId)
-  // decode rawTx
-  const tx = btcjs.Transaction.fromHex(rawTx)
-
-  // construct input
-  const paymentInput = {
-    hash: paymentUtxo.txId,
-    index: paymentUtxo.outputIndex,
-    witnessUtxo: tx.outs[paymentUtxo.outputIndex],
-    sighashType: btcjs.Transaction.SIGHASH_ALL,
-  }
-
-  takePsbt.addInput(paymentInput)
-  totalInput += paymentInput.witnessUtxo.value
-
-  // Step 9: add change output
-  let fee = calculatePsbtFee(takePsbt, MIN_FEEB)
-
-  const totalOutput = takePsbt.txOutputs.reduce(
-    (partialSum, a) => partialSum + a.value,
-    0
-  )
-  const changeValue = totalInput - totalOutput - fee
-  if (changeValue < 0) {
-    throw new Error('Insufficient balance')
-  }
-  // if change is too small, we discard it instead of sending it back to the seller
-  if (changeValue >= DUST_UTXO_VALUE) {
-    takePsbt.addOutput({
-      address,
-      value: changeValue,
-    })
-  } else {
-    fee += changeValue
-  }
-
-  console.log({ takePsbt })
 
   return {
     order: takePsbt,

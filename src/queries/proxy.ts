@@ -7,7 +7,7 @@ export type SimpleUtxoFromMempool = {
   outputIndex: number
   addressType: any
 }
-export const getUtxos2 = async (address: string) => {
+export const getUtxos = async (address: string) => {
   const network = useNetworkStore().network
   if (network === 'livenet') {
     return getUtxosFromYouKnowWhere(address)
