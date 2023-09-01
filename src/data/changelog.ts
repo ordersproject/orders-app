@@ -1,5 +1,15 @@
 const changelog = [
   {
+    version: '0.7.0',
+    emoji: '🃏',
+    date: '2023-09-01',
+    changes: [
+      '(Almost) Final draft of pool feature',
+      'Use a more accurate way to calculate fee',
+      'Add taproot support',
+    ],
+  },
+  {
     version: '0.6.2',
     emoji: '🐊',
     date: '2023-08-24',

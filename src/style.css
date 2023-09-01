@@ -1,3 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.nicer-scrollbar::-webkit-scrollbar {
+  @apply h-2 w-2;
+}
+
+.nicer-scrollbar::-webkit-scrollbar-track {
+  @apply rounded-full bg-transparent;
+}
+
+.nicer-scrollbar::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-zinc-700;
+}
+
+.nicer-scrollbar::-webkit-scrollbar-thumb:hover {
+  @apply bg-zinc-600;
+}

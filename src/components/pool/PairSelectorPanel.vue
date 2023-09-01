@@ -10,9 +10,9 @@ import {
 } from '@/data/trading-pairs'
 import { getOnePoolPair } from '@/queries/pool'
 import { useAddressStore } from '@/store'
+import { prettyCoinDisplay } from '@/lib/formatters'
 
 import PoolPairSelect from '@/components/pool/PoolPairSelect.vue'
-import { prettyCoinDisplay } from '@/lib/helpers'
 
 const route = useRoute()
 const pairRaw = route.params?.pair as string | undefined
