@@ -78,6 +78,13 @@ const tradingPairs = [
     fromIcon: saycLogo,
     toIcon: btcLogo,
   },
+  {
+    id: 10,
+    fromSymbol: 'orxc',
+    toSymbol: 'btc',
+    fromIcon: rdexLogo,
+    toIcon: btcLogo,
+  },
 ] as {
   id: number
   fromSymbol: string

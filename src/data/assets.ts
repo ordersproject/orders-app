@@ -54,6 +54,11 @@ const assets = [
     symbol: 'LGER',
     icon: lgerLogo,
   },
+  {
+    id: 10,
+    symbol: 'ORXC',
+    icon: rdexLogo,
+  },
 ]
 
 export default assets
