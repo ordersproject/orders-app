@@ -91,11 +91,21 @@ const reversePrice = computed(() => {
   if (!selected.value) return 0
 
   // prevent float number precision problem
-  return (
-    Number(selected.value.amount) *
-    (selectedMultiplier.value ? selectedMultiplier.value : 1.5) *
-    (marketPrice.value ? marketPrice.value : 0)
-  ).toFixed(8)
+
+  // round up to 8 decimal places
+  const useMultiplier = selectedMultiplier.value || 1.5
+  const useMarketPrice = marketPrice.value || 0
+  // times together and round up to 8 decimal places
+  const useUnitPrice = new Decimal(useMarketPrice)
+    .times(useMultiplier)
+    .toDecimalPlaces(8, Decimal.ROUND_HALF_CEIL)
+  console.log({
+    useMultiplier,
+    useMarketPrice,
+    useUnitPrice,
+  })
+
+  return useUnitPrice.times(selected.value.amount).toDecimalPlaces(8)
 })
 
 const builtInfo = ref<
