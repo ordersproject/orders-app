@@ -84,6 +84,7 @@ const tradingPairs = [
     toSymbol: 'btc',
     fromIcon: rdexLogo,
     toIcon: btcLogo,
+    hasPool: true,
   },
 ] as {
   id: number
