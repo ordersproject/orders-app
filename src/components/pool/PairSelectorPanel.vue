@@ -72,13 +72,24 @@ const infoMap = computed(() => {
       ),
     },
     {
-      label: 'Your share of the pool',
+      label: `Your ${selectedPair.fromSymbol.toUpperCase()} share of the pool`,
       value:
         Number(pairInfo.value.fromPoolSize) === 0
           ? '-'
           : (
               (Number(pairInfo.value.myFromPoolBalance) /
                 Number(pairInfo.value.fromPoolSize)) *
+              100
+            ).toFixed(4) + '%',
+    },
+    {
+      label: `Your ${selectedPair.toSymbol.toUpperCase()} share of the pool`,
+      value:
+        Number(pairInfo.value.toPoolSize) === 0
+          ? '-'
+          : (
+              (Number(pairInfo.value.myToPoolBalance) /
+                Number(pairInfo.value.toPoolSize)) *
               100
             ).toFixed(4) + '%',
     },

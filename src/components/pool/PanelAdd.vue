@@ -7,6 +7,9 @@ import {
   ListboxLabel,
   ListboxOption,
   ListboxOptions,
+  Switch,
+  SwitchLabel,
+  SwitchGroup,
 } from '@headlessui/vue'
 import { CheckIcon, ChevronsUpDownIcon } from 'lucide-vue-next'
 import { useQuery } from '@tanstack/vue-query'
@@ -20,16 +23,19 @@ import {
   getMarketPrice,
   getOneBrc20,
 } from '@/queries/orders-api'
-import { buildAddLiquidity } from '@/lib/order-pool-builder'
+import {
+  buildAddBrcLiquidity,
+  buildAddBtcLiquidity,
+} from '@/lib/order-pool-builder'
 import { sleep } from '@/lib/helpers'
 import { getMyPooledInscriptions } from '@/queries/pool'
 
 import OrderConfirmationModal from './PoolConfirmationModal.vue'
+import { useStorage } from '@vueuse/core'
 
 const addressStore = useAddressStore()
 const networkStore = useNetworkStore()
 const selectedPair = inject(selectedPoolPairKey, defaultPair)
-console.log({ selectedPair, selectedPoolPairKey })
 
 const { data: myPoolableBrc20s } = useQuery({
   queryKey: [
@@ -85,7 +91,7 @@ const { data: marketPrice } = useQuery({
 const multipliers = [1.5, 1.8, 2]
 const selectedMultiplier = ref(multipliers[0])
 
-const providesBtc = ref(false)
+const providesBtc = useStorage('provides-btc', false)
 
 const reversePrice = computed(() => {
   if (!selected.value) return 0
@@ -99,17 +105,15 @@ const reversePrice = computed(() => {
   const useUnitPrice = new Decimal(useMarketPrice)
     .times(useMultiplier)
     .toDecimalPlaces(8, Decimal.ROUND_HALF_CEIL)
-  console.log({
-    useMultiplier,
-    useMarketPrice,
-    useUnitPrice,
-  })
 
   return useUnitPrice.times(selected.value.amount).toDecimalPlaces(8)
 })
 
 const builtInfo = ref<
-  undefined | Awaited<ReturnType<typeof buildAddLiquidity>>
+  undefined | Awaited<ReturnType<typeof buildAddBrcLiquidity>>
+>()
+const builtBtcInfo = ref<
+  undefined | Awaited<ReturnType<typeof buildAddBtcLiquidity>>
 >()
 const isOpenConfirmationModal = ref(false)
 const isBuilding = ref(false)
@@ -120,7 +124,7 @@ async function submitAdd() {
   isOpenConfirmationModal.value = true
   isBuilding.value = true
 
-  const builtRes = await buildAddLiquidity({
+  const builtBrcRes = await buildAddBrcLiquidity({
     total: new Decimal(reversePrice.value).times(1e8),
     amount: new Decimal(selected.value.amount),
     selectedPair: selectedPair,
@@ -132,11 +136,29 @@ async function submitAdd() {
     builtInfo.value = undefined
   })
 
+  // bidirectional
+  let builtBtcRes: any
+  if (providesBtc.value) {
+    builtBtcRes = await buildAddBtcLiquidity({
+      total: new Decimal(reversePrice.value).times(1e8),
+    }).catch(async (e) => {
+      await sleep(500)
+      console.log(e)
+
+      ElMessage.error(e.message)
+      builtInfo.value = undefined
+    })
+  }
+
   isBuilding.value = false
 
-  if (!builtRes) return
-  builtInfo.value = builtRes
-  console.log({ builtRes })
+  if (!builtBrcRes) return
+  if (providesBtc.value && !builtBtcRes) return
+  builtInfo.value = builtBrcRes
+  if (providesBtc.value) builtBtcInfo.value = builtBtcRes
+
+  // bidirectional
+  console.log({ builtBrcRes, builtBtcRes })
 
   return
 }
@@ -227,7 +249,7 @@ async function submitAdd() {
         </div>
       </Listbox>
 
-      <!-- <SwitchGroup>
+      <SwitchGroup>
         <div class="flex items-center mt-8">
           <Switch
             v-model="providesBtc"
@@ -279,7 +301,7 @@ async function submitAdd() {
             </template>
           </el-popover>
         </div>
-      </SwitchGroup> -->
+      </SwitchGroup>
 
       <transition
         leave-active-class="transition ease-in duration-100"
@@ -441,7 +463,9 @@ async function submitAdd() {
       v-model:is-open="isOpenConfirmationModal"
       v-model:is-building="isBuilding"
       v-model:built-info="builtInfo"
+      v-model:built-btc-info="builtBtcInfo"
       :build-process-tip="buildProcessTip"
+      :selected-multiplier="selectedMultiplier"
     />
   </div>
 </template>

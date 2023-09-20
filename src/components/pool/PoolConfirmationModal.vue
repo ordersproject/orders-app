@@ -6,14 +6,24 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@headlessui/vue'
-import { Loader, ArrowDownIcon, RefreshCcwIcon } from 'lucide-vue-next'
+import {
+  Loader,
+  ArrowDownIcon,
+  RefreshCcwIcon,
+  HelpCircleIcon,
+} from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 
 import { prettyAddress, prettyCoinDisplay } from '@/lib/formatters'
 import { pushAddLiquidity } from '@/queries/pool'
-import { useAddressStore, useCooldownerStore, useNetworkStore } from '@/store'
+import {
+  useAddressStore,
+  useBtcJsStore,
+  useCooldownerStore,
+  useNetworkStore,
+} from '@/store'
 import { DEBUG } from '@/data/constants'
-import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
+import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import assets from '@/data/assets'
 
 const unisat = window.unisat
@@ -29,18 +39,22 @@ const props = defineProps([
   'isOpen',
   'isBuilding',
   'builtInfo',
+  'builtBtcInfo',
   'buildProcessTip',
+  'selectedMultiplier',
 ])
 const emit = defineEmits([
   'update:isOpen',
   'update:isBuilding',
   'update:builtInfo',
+  'update:builtBtcInfo',
 ])
 function clearBuiltInfo() {
   emit('update:builtInfo', undefined)
+  emit('update:builtBtcInfo', undefined)
 }
 
-const selectedPair = inject(selectedPairKey, defaultPair)
+const selectedPair = inject(selectedPoolPairKey, defaultPair)
 
 const balance = ref(0)
 async function updateBalance() {
@@ -69,11 +83,32 @@ function discardOrder() {
 }
 
 async function submitOrder() {
+  console.log({ props })
+
   const builtInfo = toRaw(props.builtInfo)
   try {
+    const toSigns = []
+    toSigns.push(builtInfo.order.toHex())
+    if (props.builtBtcInfo) {
+      toSigns.push(toRaw(props.builtBtcInfo).order.toHex())
+    }
     // 1. sign
-    const signed = await unisat.signPsbt(builtInfo.order.toHex())
-    console.log({ signed })
+    const signedPsbts = await unisat.signPsbts(toSigns, [{}, {}])
+
+    console.log({ signedPsbts })
+
+    // extract btc tx and get its txid
+    const bidirectional = !!props.builtBtcInfo
+    if (bidirectional && signedPsbts.length !== 2) {
+      throw new Error('Invalid signed psbts')
+    }
+    let btcTxOutputLocation: string = ''
+    if (bidirectional) {
+      const btcjs = useBtcJsStore().get!
+      const btcTx = btcjs.Psbt.fromHex(signedPsbts[1]).extractTransaction()
+      const btcTxid = btcTx.getId()
+      btcTxOutputLocation = btcTxid + '_0'
+    }
 
     let pushRes: any
     // 2. push
@@ -83,14 +118,16 @@ async function submitOrder() {
         const liquidityOffer: LiquidityOffer = {
           address: addressStore.get!,
           amount: builtInfo.toValue.toNumber(),
-          // psbtRaw: signed.psbt,
+          btcUtxoId: bidirectional ? btcTxOutputLocation : undefined,
+          psbtRaw: bidirectional ? signedPsbts[1] : undefined,
           coinAmount: builtInfo.fromValue.toNumber(),
-          coinPsbtRaw: signed,
+          coinPsbtRaw: signedPsbts[0],
           net: networkStore.network,
           pair: `${selectedPair.fromSymbol.toUpperCase()}_${selectedPair.toSymbol.toUpperCase()}`,
           tick: selectedPair.fromSymbol,
           poolState: 1,
-          poolType: 1,
+          poolType: bidirectional ? 3 : 1,
+          ratio: bidirectional ? props.selectedMultiplier * 10 : undefined,
         }
         pushRes = await pushAddLiquidity(liquidityOffer)
         break
@@ -138,7 +175,10 @@ async function submitOrder() {
     <div class="fixed inset-0 overflow-y-auto text-zinc-300">
       <div class="flex min-h-full items-center justify-center p-4 text-center">
         <DialogPanel
-          class="w-full max-w-lg transform overflow-hidden rounded-2xl bg-zinc-800 p-6 align-middle shadow-lg shadow-orange-200/10 transition-all"
+          :class="[
+            'w-full transform overflow-hidden rounded-2xl bg-zinc-800 p-6 align-middle shadow-lg shadow-orange-200/10 transition-all',
+            builtBtcInfo ? 'max-w-3xl' : 'max-w-lg',
+          ]"
         >
           <DialogTitle class="text-lg">Confirmation</DialogTitle>
 
@@ -155,82 +195,139 @@ async function submitOrder() {
               <div class="flex items-center gap-4">
                 <span class="text-zinc-500">Order Type</span>
                 <span class="font-bold uppercase text-orange-300">
-                  {{ builtInfo.type }}
+                  {{
+                    builtBtcInfo
+                      ? 'bidirectional ' + builtInfo.type
+                      : builtInfo.type
+                  }}
                 </span>
               </div>
 
-              <div class="space-y-2 mt-6">
-                <div class="flex items-center gap-4">
-                  <img
-                    :src="getIconFromSymbol(builtInfo.fromSymbol)"
-                    alt=""
-                    class="h-8 w-8 rounded-full"
-                  />
+              <div
+                :class="[
+                  'mt-8',
+                  builtBtcInfo &&
+                    'grid grid-cols-2 divide-x-2 divide-zinc-900 divide-dashed',
+                ]"
+              >
+                <!-- brc to btc side -->
+                <div :class="['space-y-2', builtBtcInfo && 'pr-4']">
+                  <div
+                    class="flex items-center gap-2 mb-4 justify-center"
+                    v-if="builtBtcInfo"
+                  >
+                    <h3 class="text-center text-orange-300">
+                      {{ builtInfo.fromSymbol.toUpperCase() + ' Liquidity' }}
+                    </h3>
+                    <el-popover
+                      placement="bottom"
+                      :width="400"
+                      trigger="hover"
+                      content="You provide BRC20 liquidity to the pool by signing a PSBT to the multi-sig address. The multi-sig address is controlled by the service provider and the pool participants."
+                      popper-class="!bg-zinc-800 !text-zinc-300 !shadow-lg !shadow-orange-400/10"
+                    >
+                      <template #reference>
+                        <HelpCircleIcon
+                          class="h-4 w-4 text-zinc-400 hover:!text-orange-300"
+                          aria-hidden="true"
+                        />
+                      </template>
+                    </el-popover>
+                  </div>
 
-                  <div class="flex flex-col items-start gap-1">
-                    <span>
-                      {{
-                        prettyCoinDisplay(
-                          builtInfo.fromValue,
-                          builtInfo.fromSymbol
-                        )
-                      }}
-                    </span>
-                    <span class="text-zinc-500">
-                      {{ prettyAddress(builtInfo.fromAddress) + ' (You)' }}
-                    </span>
+                  <div class="flex items-center gap-4">
+                    <img
+                      :src="getIconFromSymbol(builtInfo.fromSymbol)"
+                      alt=""
+                      class="h-8 w-8 rounded-full"
+                    />
+
+                    <div class="flex flex-col items-start gap-1">
+                      <span>
+                        {{
+                          prettyCoinDisplay(
+                            builtInfo.fromValue,
+                            builtInfo.fromSymbol
+                          )
+                        }}
+                      </span>
+                      <span class="text-zinc-500 text-left">
+                        {{ prettyAddress(builtInfo.fromAddress) + ' (You)' }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="ml-1">
+                    <ArrowDownIcon class="h-6 w-6 text-zinc-300" />
+                  </div>
+
+                  <div class="flex items-center gap-4">
+                    <img
+                      :src="getIconFromSymbol(builtInfo.toSymbol)"
+                      alt=""
+                      class="h-8 w-8 rounded-full"
+                    />
+                    <div class="flex flex-col items-start gap-1">
+                      <span>
+                        {{
+                          prettyCoinDisplay(
+                            builtInfo.toValue,
+                            builtInfo.toSymbol
+                          )
+                        }}
+                      </span>
+                      <span class="text-zinc-500 text-left">
+                        {{
+                          prettyAddress(builtInfo.toAddress) +
+                          ' (MultiSig Address)'
+                        }}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <div class="ml-1">
-                  <ArrowDownIcon class="h-6 w-6 text-zinc-300" />
-                </div>
+                <!-- btc to brc side -->
+                <div class="space-y-2 pl-4" v-if="builtBtcInfo">
+                  <div class="flex items-center gap-2 mb-4 justify-center">
+                    <h3 class="text-center text-orange-300">
+                      {{ 'BTC Liquidity' }}
+                    </h3>
+                    <el-popover
+                      placement="bottom"
+                      :width="400"
+                      trigger="hover"
+                      content="You provide BTC liquidity to the pool by sending BTC to the service address."
+                      popper-class="!bg-zinc-800 !text-zinc-300 !shadow-lg !shadow-orange-400/10"
+                    >
+                      <template #reference>
+                        <HelpCircleIcon
+                          class="h-4 w-4 text-zinc-400 hover:!text-orange-300"
+                          aria-hidden="true"
+                        />
+                      </template>
+                    </el-popover>
+                  </div>
 
-                <div class="flex items-center gap-4">
-                  <img
-                    :src="getIconFromSymbol(builtInfo.toSymbol)"
-                    alt=""
-                    class="h-8 w-8 rounded-full"
-                  />
-                  <div class="flex flex-col items-start gap-1">
-                    <span>
-                      {{
-                        prettyCoinDisplay(builtInfo.toValue, builtInfo.toSymbol)
-                      }}
-                    </span>
-                    <span class="text-zinc-500">
-                      {{
-                        prettyAddress(builtInfo.toAddress) +
-                        ' (MultiSig Address)'
-                      }}
-                    </span>
+                  <div class="flex items-center gap-4">
+                    <img
+                      :src="getIconFromSymbol('BTC')"
+                      alt=""
+                      class="h-8 w-8 rounded-full"
+                    />
+                    <div class="flex flex-col items-start gap-1">
+                      <span>
+                        {{ prettyCoinDisplay(builtBtcInfo.amount, 'btc') }}
+                      </span>
+                      <span class="text-zinc-500 text-left">
+                        {{
+                          prettyAddress(builtInfo.toAddress) +
+                          ' (Service Address)'
+                        }}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-
-              <!-- <div class="mt-8 grid grid-cols-2 gap-4">
-                <div class="col-span-2">
-                  <div class="my-4 w-16 border-t border-zinc-700"></div>
-                </div>
-                <div class="text-left text-zinc-500">Total Price</div>
-                <div class="col-span-1 text-right">
-                  <span>
-                    {{ prettyBtcDisplay(builtInfo.totalPrice) }}
-                  </span>
-                </div>
-
-                <div class="text-left text-zinc-500">Network Fee</div>
-                <div class="col-span-1 text-right">
-                  {{ prettyBtcDisplay(builtInfo.networkFee) }}
-                </div>
-
-                <div class="text-left text-zinc-500">Service Fee</div>
-                <div class="col-span-1 text-right">
-                  <span>
-                    {{ prettyBtcDisplay(builtInfo.serviceFee) }}
-                  </span>
-                </div>
-              </div> -->
             </div>
           </DialogDescription>
 

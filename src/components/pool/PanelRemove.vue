@@ -19,6 +19,7 @@ import {
 import { useAddressStore } from '@/store'
 import { prettyTimestamp } from '@/lib/formatters'
 import { ElMessage } from 'element-plus'
+import Decimal from 'decimal.js'
 
 const queryClient = useQueryClient()
 const selectedPair = inject(selectedPoolPairKey, defaultPair)
@@ -85,16 +86,31 @@ async function submitRemove() {
           <ListboxButton
             class="relative w-full rounded-md bg-zinc-800 py-2 pl-3 pr-10 text-left text-zinc-300 shadow-sm ring-1 ring-inset ring-zinc-700 focus:outline-none focus:ring-2 focus:ring-orange-400 sm:text-sm sm:leading-6"
           >
-            <div v-if="selectedRecord">
-              <span class="text-orange-300">
+            <div v-if="selectedRecord" class="flex items-center gap-4">
+              <span
+                class="text-orange-300"
+                v-if="selectedRecord.poolType === 1"
+              >
                 {{
                   `${
                     selectedRecord.coinAmount
                   } ${selectedRecord.tick.toUpperCase()}`
                 }}
               </span>
-              <span>
-                {{ ` - (${prettyTimestamp(selectedRecord.timestamp)})` }}
+              <span
+                class="text-orange-300"
+                v-else-if="selectedRecord.poolType === 3"
+              >
+                {{
+                  `${
+                    selectedRecord.coinAmount
+                  } ${selectedRecord.tick.toUpperCase()} / ${new Decimal(
+                    selectedRecord.amount
+                  ).dividedBy(1e8)} BTC`
+                }}
+              </span>
+              <span class="text-xs">
+                {{ ` ${prettyTimestamp(selectedRecord.timestamp)}` }}
               </span>
             </div>
             <span v-else>{{ '-' }}</span>
@@ -134,23 +150,38 @@ async function submitRemove() {
                 <li
                   :class="[
                     active ? 'bg-orange-300 text-orange-900' : 'text-zinc-300',
-                    'relative select-none py-2 pl-3 pr-9 flex gap-4 group cursor-pointer',
+                    'relative select-none py-2 pl-3 pr-9 flex gap-4 group cursor-pointer items-center',
                   ]"
                 >
-                  <span class="shrink-0 text-zinc-500">#{{ index + 1 }}</span>
+                  <span class="shrink-0 text-zinc-500 text-xs"
+                    >#{{ index + 1 }}</span
+                  >
                   <div
                     :class="[
                       selected ? 'font-semibold' : 'font-normal',
-                      'block truncate',
+                      'truncate flex items-center justify-between w-full',
                     ]"
                   >
                     <span
                       :class="active ? 'text-orange-900' : 'text-orange-300'"
+                      v-if="record.poolType === 1"
                     >
                       {{ `${record.coinAmount} ${record.tick.toUpperCase()}` }}
                     </span>
-                    <span>
-                      {{ ` - (${prettyTimestamp(record.timestamp)})` }}
+                    <span
+                      :class="active ? 'text-orange-900' : 'text-orange-300'"
+                      v-else-if="record.poolType === 3"
+                    >
+                      {{
+                        `${
+                          record.coinAmount
+                        } ${record.tick.toUpperCase()} / ${new Decimal(
+                          record.amount
+                        ).dividedBy(1e8)} BTC`
+                      }}
+                    </span>
+                    <span class="text-zinc-500 text-xs">
+                      {{ `${prettyTimestamp(record.timestamp)}` }}
                     </span>
                   </div>
 
@@ -158,7 +189,7 @@ async function submitRemove() {
                     v-if="selected"
                     :class="[
                       active ? 'text-white' : 'text-orange-400',
-                      'absolute inset-y-0 right-0 flex items-center pr-4',
+                      'absolute inset-y-0 right-0 flex items-center pr-2',
                     ]"
                   >
                     <CheckIcon class="h-5 w-5" aria-hidden="true" />

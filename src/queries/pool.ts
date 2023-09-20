@@ -123,17 +123,21 @@ type LiquidityOfferParams = {
   coinAmount: number
   coinPsbtRaw: string
   psbtRaw?: string
+  btcUtxoId?: string
+  ratio?: number
   net: 'livenet' | 'testnet'
   pair: string
   tick: string
   poolState: 1
-  poolType: 1
+  poolType: 1 | 3
 }
 export const pushAddLiquidity = async ({
   address,
   amount,
   coinAmount,
+  btcUtxoId,
   coinPsbtRaw,
+  ratio,
   psbtRaw,
   net,
   pair,
@@ -153,7 +157,9 @@ export const pushAddLiquidity = async ({
       address,
       amount,
       coinAmount,
+      btcUtxoId,
       coinPsbtRaw,
+      ratio,
       psbtRaw,
       net,
       pair,
@@ -164,12 +170,13 @@ export const pushAddLiquidity = async ({
   })
 }
 
-export const getPoolPubKey = async () => {
+export const getPoolCredential = async (): Promise<{
+  publicKey: string
+  btcReceiveAddress: string
+}> => {
   const network = 'livenet'
 
-  return await ordersApiFetch(`pool/pair/key?net=${network}`).then(
-    ({ publicKey }: { publicKey: string }) => publicKey
-  )
+  return await ordersApiFetch(`pool/pair/key?net=${network}`)
 }
 
 export type PoolRecord = {
@@ -203,7 +210,7 @@ export const getMyPoolRecords = async ({
     tick,
     address,
     poolState: '1',
-    poolType: '1',
+    poolType: '100',
   })
 
   return await ordersApiFetch(`pool/orders?${params}`).then((res) => {

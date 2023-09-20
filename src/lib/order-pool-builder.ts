@@ -8,18 +8,24 @@ import {
   useNetworkStore,
 } from '@/store'
 import { getOneBrc20 } from '@/queries/orders-api'
-import { type SimpleUtxoFromMempool, getTxHex, getUtxos } from '@/queries/proxy'
+import {
+  type SimpleUtxoFromMempool,
+  getTxHex,
+  getUtxos,
+  getFeebPlans,
+} from '@/queries/proxy'
 import { type TradingPair } from '@/data/trading-pairs'
 import { raise } from './helpers'
 import { change } from './build-helpers'
-import { getPoolPubKey } from '@/queries/pool'
+import { getPoolCredential } from '@/queries/pool'
+import { get } from '@vueuse/core'
 
 async function getBothPubKeys() {
   const selfAddress = useAddressStore().get!
   const credential = useCredentialsStore().getByAddress(selfAddress)
   const selfPubKey = credential?.publicKey ?? raise('no credential')
 
-  const exchangePubKey = await getPoolPubKey()
+  const exchangePubKey = (await getPoolCredential()).publicKey
 
   return {
     selfPubKey,
@@ -38,7 +44,7 @@ export async function generateP2wshPayment() {
   return btcjs.payments.p2wsh({ redeem })
 }
 
-export async function buildAddLiquidity({
+export async function buildAddBrcLiquidity({
   total,
   amount,
   selectedPair,
@@ -123,6 +129,33 @@ export async function buildAddLiquidity({
     toValue: total,
     fromAddress: address,
     toAddress: multisigAddress,
+  }
+}
+
+export async function buildAddBtcLiquidity({ total }: { total: Decimal }) {
+  const networkStore = useNetworkStore()
+  const btcjs = useBtcJsStore().get!
+  const serviceAddress = await getPoolCredential().then((credential) => {
+    return credential.btcReceiveAddress
+  })
+
+  // build psbt
+  const addBtcLiquidity = new btcjs.Psbt({
+    network: btcjs.networks[networkStore.btcNetwork],
+  }).addOutput({
+    address: serviceAddress,
+    value: Number(total),
+  })
+
+  const { fee } = await change({
+    psbt: addBtcLiquidity,
+  })
+
+  return {
+    order: addBtcLiquidity,
+    type: 'add-liquidity (BTC -> BRC20)',
+    amount: total,
+    toAddress: serviceAddress,
   }
 }
 
