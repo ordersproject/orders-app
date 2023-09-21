@@ -20,6 +20,7 @@ import BtcHelpers from '@/lib/btc-helpers'
 import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
 
 import ClaimingOverlay from '@/components/overlays/Claiming.vue'
+import Decimal from 'decimal.js'
 
 const props = defineProps<{
   reward: PoolRecord
@@ -59,36 +60,12 @@ async function submitClaimReward() {
       tick: props.reward.tick,
     })
 
-    // const ECPair = useBtcJsStore().ECPair ?? raise('ECPair not ready')
-    // const signer = ECPair.fromPrivateKey(
-    //   Buffer.from(
-    //     '',
-    //     'hex'
-    //   )
-    // )
-
     const claimPsbt = await buildClaimPsbt({
       btcMsPsbtRaw: claimEssential.psbtRaw,
       ordinalMsPsbtRaw: claimEssential.coinPsbtRaw,
       ordinalReleasePsbtRaw: claimEssential.coinTransferPsbtRaw,
       rewardPsbtRaw: claimEssential.rewardPsbtRaw,
     })
-
-    // claimPsbt
-    //   .signInput(0, signer, [SIGHASH_SINGLE_ANYONECANPAY])
-    //   .signInput(1, signer, [SIGHASH_SINGLE_ANYONECANPAY])
-    //   .signInput(2, signer, [SIGHASH_SINGLE_ANYONECANPAY])
-
-    const exchangePubKey = Buffer.from(
-      '03782f1f1736fbd1048a3b29ac9e7f5ab8c64f0c87d6a0bd671c0d6d67a3181da2',
-      'hex'
-    )
-    // const selfPubKey = Buffer.from(signer.publicKey.toString('hex'), 'hex')
-
-    // console.log({
-    //   pk1: '03782f1f1736fbd1048a3b29ac9e7f5ab8c64f0c87d6a0bd671c0d6d67a3181da2',
-    //   pk2: claimPsbt.data.inputs[3].partialSig![0].pubkey.toString('hex'),
-    // })
 
     type ToSignInput = {
       index: number
@@ -166,31 +143,56 @@ async function submitClaimReward() {
   <ClaimingOverlay v-if="claiming" />
 
   <div class="py-4 mx-4 bg-zinc-950 rounded-lg px-4">
-    <div class="flex items-center justify-between">
-      <h3 class="text-zinc-300">
+    <h3 class="items-center flex justify-between">
+      <span class="text-orange-300" v-if="reward.poolType === 3">
         {{
-          `${
-            reward.coinAmount
-          } ${reward.tick.toUpperCase()} - (${prettyTimestamp(
-            reward.timestamp
-          )})`
+          `${reward.coinAmount} ${reward.tick.toUpperCase()} / ${new Decimal(
+            reward.amount
+          ).dividedBy(1e8)} BTC`
         }}
-      </h3>
-    </div>
+      </span>
+      <span class="text-orange-300" v-else>
+        {{ `${reward.coinAmount} ${reward.tick.toUpperCase()}` }}
+      </span>
+
+      <span class="text-zinc-500 text-sm">
+        {{ `${prettyTimestamp(reward.timestamp)}` }}
+      </span>
+    </h3>
 
     <div class="mt-4 flex items-center justify-between">
-      <div class="">
+      <div class="text-sm space-y-2">
         <div class="flex items-center">
-          <span class="w-20 inline-block text-zinc-500 text-sm">Assets</span>
-          <span>
+          <span class="w-20 inline-block text-zinc-500">Type</span>
+          <span>{{
+            reward.poolType === 3
+              ? 'Bidirectional Liquidity'
+              : 'Unidirectional Liquidity'
+          }}</span>
+        </div>
+
+        <div class="flex items-center">
+          <span class="w-20 inline-block text-zinc-500">Assets</span>
+          <span v-if="reward.poolType === 3">
+            {{
+              `${
+                reward.coinAmount
+              } ${reward.tick.toUpperCase()} / ${new Decimal(
+                reward.amount
+              ).dividedBy(1e8)} BTC`
+            }}
+          </span>
+          <span v-else>
             {{ `${reward.coinAmount} ${reward.tick.toUpperCase()}` }}
           </span>
         </div>
+
         <div class="flex items-center">
-          <span class="w-20 inline-block text-zinc-500 text-sm">Rewards</span>
+          <span class="w-20 inline-block text-zinc-500">Rewards</span>
           <span>
-            -
-            <!-- {{ `${reward.rewards.amount} ${reward.rewards.symbol}` }} -->
+            {{
+              reward.rewardCoinAmount ? `${reward.rewardCoinAmount} RDEX` : '-'
+            }}
           </span>
         </div>
       </div>

@@ -6,6 +6,7 @@ import {
 } from '@/store'
 import { calculatePsbtFee, change } from './build-helpers'
 import {
+  DEBUG,
   DUMMY_UTXO_VALUE,
   DUST_UTXO_VALUE,
   MIN_FEEB,
@@ -220,7 +221,7 @@ export async function buildBidLimit({
   // Step 6: service fee
   const serviceAddress =
     btcNetwork === 'bitcoin' ? SERVICE_LIVENET_ADDRESS : SERVICE_TESTNET_ADDRESS
-  const serviceFee = Math.max(2000, exchangeOutput.value * 0.01)
+  const serviceFee = Math.max(2000, total * 0.01)
   console.log({
     serviceFee,
     serviceAddress,
@@ -241,20 +242,24 @@ export async function buildBidLimit({
   })
 
   // Step 8: change
-  const feeb = btcNetwork === 'bitcoin' ? 12 : 1
-  const { fee, paymentValue } = await change({
+  let useFeeb = DEBUG ? 12 : undefined
+  const extraInputValue = exchangeOutput.value - total
+  const { fee, paymentValue, feeb } = await change({
     psbt: bid,
-    feeb,
+    feeb: useFeeb,
+    extraSize: 68, // baseInput + segwit
+    extraInputValue,
   })
 
-  const totalSpent = total + serviceFee + fee - ordValue
+  const totalSpent = total + serviceFee + fee - ordValue + extraInputValue
+  console.log({ fee, totalSpent })
 
   return {
     order: bid,
     orderId: candidateInfo.orderId,
     type: 'bid',
     feeb,
-    networkFee: fee,
+    networkFee: fee + extraInputValue,
     total,
     using: paymentValue,
     fromSymbol: selectedPair.toSymbol, // reversed

@@ -615,6 +615,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                           <li
                             class="relative flex cursor-pointer items-center justify-end rounded py-2 pl-10 pr-2 transition"
                             :class="active && 'bg-orange-500/20'"
+                            :title="bidCandidate?.poolOrderId"
                           >
                             <span
                               v-if="selected"

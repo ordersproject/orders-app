@@ -9,6 +9,8 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { CheckIcon, ChevronsUpDownIcon } from 'lucide-vue-next'
 import { Ref, computed, inject, ref, watch } from 'vue'
+import { ElMessage } from 'element-plus'
+import Decimal from 'decimal.js'
 
 import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import {
@@ -18,8 +20,6 @@ import {
 } from '@/queries/pool'
 import { useAddressStore } from '@/store'
 import { prettyTimestamp } from '@/lib/formatters'
-import { ElMessage } from 'element-plus'
-import Decimal from 'decimal.js'
 
 const queryClient = useQueryClient()
 const selectedPair = inject(selectedPoolPairKey, defaultPair)
@@ -66,7 +66,6 @@ const { mutate: mutateRemoveLiquidity } = useMutation({
 })
 async function submitRemove() {
   if (!selectedRecord.value) return
-  console.log('here')
 
   mutateRemoveLiquidity({ orderId: selectedRecord.value.orderId })
 }
@@ -213,4 +212,3 @@ async function submitRemove() {
     </form>
   </div>
 </template>
-import { prettyTimestamp } from '@/lib/prettyTimestamp'

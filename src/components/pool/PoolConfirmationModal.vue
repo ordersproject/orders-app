@@ -127,6 +127,7 @@ async function submitOrder() {
           tick: selectedPair.fromSymbol,
           poolState: 1,
           poolType: bidirectional ? 3 : 1,
+          btcPoolMode: bidirectional ? 2 : undefined,
           ratio: bidirectional ? props.selectedMultiplier * 10 : undefined,
         }
         pushRes = await pushAddLiquidity(liquidityOffer)

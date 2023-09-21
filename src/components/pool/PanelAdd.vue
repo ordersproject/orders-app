@@ -57,10 +57,6 @@ const { data: myPoolableBrc20s } = useQuery({
         tick: selectedPair.fromSymbol,
       }),
     ]).then(([allBrc20s, pooledBrc20s]) => {
-      console.log({
-        allBrc20s,
-        pooledBrc20s,
-      })
       // filter out pooled brc20s
       const poolableBrc20s = allBrc20s.transferBalanceList.filter((brc20) => {
         return !pooledBrc20s.some(

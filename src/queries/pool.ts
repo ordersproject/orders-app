@@ -130,6 +130,7 @@ type LiquidityOfferParams = {
   tick: string
   poolState: 1
   poolType: 1 | 3
+  btcPoolMode?: 1 | 2 // 1 for psbt, 2 for custody; default to 2
 }
 export const pushAddLiquidity = async ({
   address,
@@ -144,6 +145,7 @@ export const pushAddLiquidity = async ({
   tick,
   poolState,
   poolType,
+  btcPoolMode,
 }: LiquidityOfferParams) => {
   const { publicKey, signature } = await sign()
 
@@ -166,6 +168,7 @@ export const pushAddLiquidity = async ({
       tick,
       poolState,
       poolType,
+      btcPoolMode,
     }),
   })
 }
@@ -192,9 +195,10 @@ export type PoolRecord = {
   net: 'livenet'
   pair: string
   poolState: 1
-  poolType: 1
+  poolType: 1 | 3
   psbtRaw: string
   tick: string
+  rewardCoinAmount: number
   timestamp: number
 }
 export const getMyPoolRecords = async ({
@@ -231,7 +235,7 @@ export const getMyPoolRewards = async ({
     tick,
     address,
     poolState: '3', // 3 for claimable (used)
-    poolType: '1',
+    poolType: '100',
     sortKey: 'timestamp',
     sortType: '-1',
   })

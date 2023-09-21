@@ -14,7 +14,7 @@ import { raise } from './helpers'
 import { Output } from 'bitcoinjs-lib/src/transaction'
 
 const TX_EMPTY_SIZE = 4 + 1 + 1 + 4
-const TX_INPUT_BASE = 32 + 4 + 1 + 4
+const TX_INPUT_BASE = 32 + 4 + 1 + 4 // 41
 const TX_INPUT_PUBKEYHASH = 107
 const TX_INPUT_SEGWIT = 27
 const TX_INPUT_TAPROOT = 17 // round up 16.5 bytes
@@ -89,14 +89,27 @@ function transactionBytes(inputs: PsbtInput[], outputs: PsbtTxOutput[]) {
   )
 }
 
-export function calcFee(psbt: Psbt, feeRate: number) {
+export function calcFee(
+  psbt: Psbt,
+  feeRate: number,
+  extraSize?: number,
+  extraInputValue?: number
+) {
   const inputs = psbt.data.inputs
   const outputs = psbt.txOutputs
 
-  const bytes = transactionBytes(inputs, outputs)
+  let bytes = transactionBytes(inputs, outputs)
+  if (extraSize) {
+    bytes += extraSize
+  }
   console.log({ bytes })
 
-  return Math.ceil(bytes * feeRate)
+  let fee = Math.ceil(bytes * feeRate)
+  if (extraInputValue) {
+    fee -= extraInputValue
+  }
+
+  return fee
 }
 
 export function calculateFee(feeRate: number, vinLen: number, voutLen: number) {
@@ -137,10 +150,14 @@ export async function change({
   psbt,
   feeb,
   pubKey,
+  extraSize,
+  extraInputValue,
 }: {
   psbt: Psbt
   feeb?: number
   pubKey?: Buffer
+  extraSize?: number
+  extraInputValue?: number
 }) {
   // todo: sighashType
   // check if address is set
@@ -174,6 +191,8 @@ export async function change({
     hash: paymentUtxo.txId,
     index: paymentUtxo.outputIndex,
     witnessUtxo: tx.outs[paymentUtxo.outputIndex],
+    sighashType:
+      btcjs.Transaction.SIGHASH_ALL | btcjs.Transaction.SIGHASH_ANYONECANPAY,
   }
   if (pubKey) {
     paymentInput.tapInternalPubkey = pubKey
@@ -189,7 +208,8 @@ export async function change({
     )) as number
   }
 
-  let fee = calcFee(psbt, feeb)
+  console.log({ extraSize, extraInputValue })
+  let fee = calcFee(psbt, feeb, extraSize, extraInputValue)
   const totalOutput = sumOrNaN(psbt.txOutputs)
   const totalInput = sumOrNaN(
     psbt.data.inputs.map(
@@ -217,5 +237,6 @@ export async function change({
     psbt,
     fee,
     paymentValue: paymentUtxo.satoshis,
+    feeb,
   }
 }

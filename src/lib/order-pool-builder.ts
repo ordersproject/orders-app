@@ -175,7 +175,6 @@ export async function buildClaimPsbt({
   const claim = btcjs.Psbt.fromHex(ordinalMsPsbtRaw)
   const btcPsbt = btcjs.Psbt.fromHex(btcMsPsbtRaw)
   const releasePsbt = btcjs.Psbt.fromHex(ordinalReleasePsbtRaw)
-  const rewardPsbt = btcjs.Psbt.fromHex(rewardPsbtRaw)
 
   // Add BTC input
   claim.addInput({
@@ -204,21 +203,23 @@ export async function buildClaimPsbt({
 
   // Add release output
   claim.addOutput(releasePsbt.txOutputs[0])
+  if (rewardPsbtRaw) {
+    const rewardPsbt = btcjs.Psbt.fromHex(rewardPsbtRaw)
 
-  console.log({ rewardPsbt })
-  // Add reward input (already fully signed)
-  claim.addInput({
-    hash: rewardPsbt.txInputs[0].hash,
-    index: rewardPsbt.txInputs[0].index,
-    witnessUtxo: rewardPsbt.data.inputs[0].witnessUtxo,
-    finalScriptWitness: rewardPsbt.data.inputs[0].finalScriptWitness,
-    // partialSig: releasePsbt.data.inputs[0].partialSig,
-    // sighashType:
-    //   btcjs.Transaction.SIGHASH_SINGLE | btcjs.Transaction.SIGHASH_ANYONECANPAY,
-  })
+    // Add reward input (already fully signed)
+    claim.addInput({
+      hash: rewardPsbt.txInputs[0].hash,
+      index: rewardPsbt.txInputs[0].index,
+      witnessUtxo: rewardPsbt.data.inputs[0].witnessUtxo,
+      finalScriptWitness: rewardPsbt.data.inputs[0].finalScriptWitness,
+      // partialSig: releasePsbt.data.inputs[0].partialSig,
+      // sighashType:
+      //   btcjs.Transaction.SIGHASH_SINGLE | btcjs.Transaction.SIGHASH_ANYONECANPAY,
+    })
 
-  // build reward output
-  claim.addOutput(rewardPsbt.txOutputs[0])
+    // build reward output
+    claim.addOutput(rewardPsbt.txOutputs[0])
+  }
 
   // Add change output
   await change({ psbt: claim })

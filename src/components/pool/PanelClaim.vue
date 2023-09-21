@@ -73,7 +73,7 @@ const { data: poolRewards, isLoading: isLoadingPoolRewards } = useQuery({
         placement="bottom-start"
         :width="400"
         trigger="hover"
-        content="Rewards are available for staked assets and stakes respectively."
+        content="You can earn rewards by providing liquidity to the pool, which will be compensated in RDEX tokens. When you choose to claim your rewards, you simultaneously release your locked liquidity."
         popper-class="!bg-zinc-800 !text-zinc-300 !shadow-lg !shadow-orange-400/10 "
       >
         <template #reference>
