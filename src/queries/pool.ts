@@ -222,7 +222,7 @@ export const getMyPoolRecords = async ({
   })
 }
 
-export const getMyPoolRewards = async ({
+export const getMyUsedPoolRecords = async ({
   address,
   tick,
 }: {
@@ -276,7 +276,7 @@ export const removeLiquidity = async ({ orderId }: { orderId: string }) => {
   })
 }
 
-type ClaimEssential = {
+type ReleaseEssential = {
   coinPsbtRaw: string
   psbtRaw: string
   coinTransferPsbtRaw: string
@@ -286,13 +286,13 @@ type ClaimEssential = {
   orderId: string
   tick: string
 }
-export const getClaimEssential = async ({
+export const getReleaseEssential = async ({
   orderId,
   tick,
 }: {
   orderId: string
   tick: string
-}): Promise<ClaimEssential> => {
+}): Promise<ReleaseEssential> => {
   const network = useNetworkStore().network
   const address = useAddressStore().get!
   const { publicKey, signature } = await sign()
@@ -312,7 +312,7 @@ export const getClaimEssential = async ({
   })
 }
 
-export const submitClaim = async ({
+export const submitRelease = async ({
   orderId,
   psbtRaw,
 }: {

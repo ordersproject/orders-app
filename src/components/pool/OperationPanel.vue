@@ -7,9 +7,10 @@ import { connect } from '@/queries/unisat'
 
 import PanelAdd from './PanelAdd.vue'
 import PanelRemove from './PanelRemove.vue'
+import PanelRelease from './PanelRelease.vue'
 import PanelClaim from './PanelClaim.vue'
 
-const tabLabels = ['Add', 'Remove', 'Claim']
+const tabLabels = ['Add', 'Remove', 'Release', 'Claim']
 
 const loggedIn = ref(!!useAddressStore().get)
 
@@ -23,7 +24,7 @@ async function connectWallet() {
 
 <template>
   <div class="border rounded-xl p-8">
-    <TabGroup v-if="loggedIn" :default-index="0">
+    <TabGroup v-if="loggedIn" :default-index="3">
       <TabList
         class="flex items-center justify-center gap-4"
         v-slot="{ selectedIndex }"
@@ -47,6 +48,10 @@ async function connectWallet() {
 
         <TabPanel class="pt-12">
           <PanelRemove />
+        </TabPanel>
+
+        <TabPanel class="pt-12">
+          <PanelRelease />
         </TabPanel>
 
         <TabPanel class="pt-12">
