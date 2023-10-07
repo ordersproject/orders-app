@@ -16,13 +16,13 @@ const links: {
     path: '/',
   },
   {
-    name: 'Whitelist',
-    path: '/whitelist',
-  },
-  {
     name: 'Pool',
     path: '/pool',
     new: true,
+  },
+  {
+    name: 'Whitelist',
+    path: '/whitelist',
   },
 ]
 

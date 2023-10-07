@@ -84,7 +84,7 @@ const { data: marketPrice } = useQuery({
     }),
 })
 
-const multipliers = [1.5, 1.8, 2]
+const multipliers = [1.2, 1.5, 1.8]
 const selectedMultiplier = ref(multipliers[0])
 
 const providesBtc = useStorage('provides-btc', false)
@@ -304,12 +304,7 @@ async function submitAdd() {
         leave-from-class="opacity-100"
         leave-to-class="opacity-0"
       >
-        <div
-          :class="[
-            'mt-4 grow flex items-start',
-            providesBtc ? 'visible' : 'invisible',
-          ]"
-        >
+        <div class="mt-4 grow flex items-start" v-show="providesBtc">
           <div class="items-center gap-x-4 gap-y-2 grid grid-cols-6 grow">
             <div class="text-zinc-300 col-span-1">BTC</div>
 
@@ -444,7 +439,7 @@ async function submitAdd() {
         </div>
       </transition>
 
-      <div class="flex justify-center">
+      <div class="flex justify-center grow items-end">
         <button
           class="mx-auto bg-orange-300 w-full py-3 text-orange-950 rounded-md disabled:cursor-not-allowed disabled:opacity-30"
           @click.prevent="submitAdd"

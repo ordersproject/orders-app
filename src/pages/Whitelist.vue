@@ -9,7 +9,7 @@ import { buildClaimTake } from '@/lib/order-builder'
 import { getOneClaim, updateClaim } from '@/queries/orders-api'
 import { useAddressStore } from '@/store'
 
-import ClaimingOverlay from '@/components/overlays/Claiming.vue'
+import ClaimingOverlay from '@/components/overlays/Loading.vue'
 
 const router = useRouter()
 const addressStore = useAddressStore()

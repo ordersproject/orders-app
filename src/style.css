@@ -17,3 +17,7 @@
 .nicer-scrollbar::-webkit-scrollbar-thumb:hover {
   @apply bg-zinc-600;
 }
+
+* {
+  transition-duration: 200ms;
+}

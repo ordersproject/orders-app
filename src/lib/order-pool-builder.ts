@@ -8,24 +8,26 @@ import {
   useNetworkStore,
 } from '@/store'
 import { getOneBrc20 } from '@/queries/orders-api'
-import {
-  type SimpleUtxoFromMempool,
-  getTxHex,
-  getUtxos,
-  getFeebPlans,
-} from '@/queries/proxy'
+import { type SimpleUtxoFromMempool, getTxHex } from '@/queries/proxy'
+import { getPoolCredential } from '@/queries/pool'
 import { type TradingPair } from '@/data/trading-pairs'
 import { raise } from './helpers'
 import { change } from './build-helpers'
-import { getPoolCredential } from '@/queries/pool'
-import { get } from '@vueuse/core'
+import {
+  BTC_POOL_MODE,
+  MS_BRC20_UTXO_VALUE,
+  SIGHASH_SINGLE_ANYONECANPAY,
+} from '@/data/constants'
 
-async function getBothPubKeys() {
+async function getBothPubKeys(type: 'btc' | 'brc20' = 'brc20') {
   const selfAddress = useAddressStore().get!
   const credential = useCredentialsStore().getByAddress(selfAddress)
   const selfPubKey = credential?.publicKey ?? raise('no credential')
 
-  const exchangePubKey = (await getPoolCredential()).publicKey
+  const exchangePubKey =
+    type === 'brc20'
+      ? (await getPoolCredential()).publicKey
+      : (await getPoolCredential()).btcPublicKey
 
   return {
     selfPubKey,
@@ -33,10 +35,10 @@ async function getBothPubKeys() {
   }
 }
 
-export async function generateP2wshPayment() {
+export async function generateP2wshPayment(type: 'btc' | 'brc20' = 'brc20') {
   const btcjs = useBtcJsStore().get!
 
-  const { selfPubKey, exchangePubKey } = await getBothPubKeys()
+  const { selfPubKey, exchangePubKey } = await getBothPubKeys(type)
   const pubkeys = [selfPubKey, exchangePubKey].map((hex) =>
     Buffer.from(hex, 'hex')
   )
@@ -112,7 +114,6 @@ export async function buildAddBrcLiquidity({
   // Step 2: Build BTC output for the pool
   const msPayment = await generateP2wshPayment()
   const multisigAddress = msPayment.address ?? raise('no multisig address')
-  console.log({ multisigAddress })
   addLiquidity.addOutput({
     address: multisigAddress,
     value: Number(total),
@@ -133,29 +134,87 @@ export async function buildAddBrcLiquidity({
 }
 
 export async function buildAddBtcLiquidity({ total }: { total: Decimal }) {
+  // There are 2 ways to add BTC liquidity
+  // 1. PSBT mode: Create a transaction to separate the needed amount BTC Utxo from the wallet
+  // then create the PSBT with the Utxo (first output of the previous separate tx) as input and MS address as BRC20 output
+  // 2. Custody mode: Send the BTC to the exchange's service address
+
   const networkStore = useNetworkStore()
   const btcjs = useBtcJsStore().get!
-  const serviceAddress = await getPoolCredential().then((credential) => {
-    return credential.btcReceiveAddress
-  })
 
-  // build psbt
-  const addBtcLiquidity = new btcjs.Psbt({
+  // Custody mode
+  if (BTC_POOL_MODE === 2) {
+    const serviceAddress = await getPoolCredential().then((credential) => {
+      return credential.btcReceiveAddress
+    })
+
+    // build psbt
+    const addBtcLiquidity = new btcjs.Psbt({
+      network: btcjs.networks[networkStore.btcNetwork],
+    }).addOutput({
+      address: serviceAddress,
+      value: Number(total),
+    })
+
+    const { fee } = await change({
+      psbt: addBtcLiquidity,
+    })
+
+    return {
+      order: addBtcLiquidity,
+      type: 'add-liquidity (BTC -> BRC20)',
+      amount: total,
+      toAddress: serviceAddress,
+    }
+  }
+
+  // PSBT mode
+  const address = useAddressStore().get!
+  // 1. build the transaction to separate the needed amount BTC Utxo from the wallet
+  const separatePsbt = new btcjs.Psbt({
     network: btcjs.networks[networkStore.btcNetwork],
   }).addOutput({
-    address: serviceAddress,
+    address,
     value: Number(total),
   })
 
   const { fee } = await change({
-    psbt: addBtcLiquidity,
+    psbt: separatePsbt,
   })
+
+  const msPayment = await generateP2wshPayment('btc')
+  const multisigAddress = msPayment.address ?? raise('no multisig address')
+
+  // 2. create the PSBT with the Utxo (first output of the previous separate tx) as input and MS address as BRC20 output
+  // get separate psbt's tx hash
+  const separateTx = (separatePsbt.data.globalMap.unsignedTx as any).tx
+  console.log({ separateTx })
+  const txHash: string = (separateTx as any).getId()
+  console.log({
+    1: separateTx.getId(),
+    2: separateTx.getHash().toString('hex'),
+    3: separateTx.getHash(true).toString('hex'),
+  })
+  const addBtcLiquidity = new btcjs.Psbt({
+    network: btcjs.networks[networkStore.btcNetwork],
+  })
+    .addInput({
+      hash: txHash,
+      index: 0,
+      witnessUtxo: separatePsbt.txOutputs[0],
+      sighashType: SIGHASH_SINGLE_ANYONECANPAY,
+    })
+    .addOutput({
+      address: multisigAddress,
+      value: MS_BRC20_UTXO_VALUE,
+    })
 
   return {
     order: addBtcLiquidity,
     type: 'add-liquidity (BTC -> BRC20)',
     amount: total,
-    toAddress: serviceAddress,
+    toAddress: multisigAddress,
+    separatePsbt,
   }
 }
 

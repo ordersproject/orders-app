@@ -15,7 +15,7 @@ import { DEBUG, SIGHASH_SINGLE_ANYONECANPAY } from '@/data/constants'
 import { buildReleasePsbt } from '@/lib/order-pool-builder'
 import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
 
-import ReleasingOverlay from '@/components/overlays/Releasing.vue'
+import ReleasingOverlay from '@/components/overlays/Loading.vue'
 
 const props = defineProps<{
   record: PoolRecord

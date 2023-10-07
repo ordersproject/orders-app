@@ -2,7 +2,6 @@ import { ordersApiFetch } from '@/lib/fetch'
 import sign from '@/lib/sign'
 import { useAddressStore, useNetworkStore } from '@/store'
 
-// Pool
 type PoolPair = {
   fromPoolSize: string
   toPoolSize: string
@@ -117,6 +116,9 @@ export const getMyPooledInscriptions = async ({
   })
 }
 
+/**
+ * Add
+ */
 type LiquidityOfferParams = {
   address: string
   amount: number
@@ -176,12 +178,16 @@ export const pushAddLiquidity = async ({
 export const getPoolCredential = async (): Promise<{
   publicKey: string
   btcReceiveAddress: string
+  btcPublicKey: string
 }> => {
   const network = 'livenet'
 
   return await ordersApiFetch(`pool/pair/key?net=${network}`)
 }
 
+/**
+ * Remove
+ */
 export type PoolRecord = {
   orderId: string
   address: string
@@ -276,11 +282,13 @@ export const removeLiquidity = async ({ orderId }: { orderId: string }) => {
   })
 }
 
+/**
+ * Release
+ */
 type ReleaseEssential = {
   coinPsbtRaw: string
   psbtRaw: string
   coinTransferPsbtRaw: string
-  rewardPsbtRaw: string
   rewardCoinAmount: number
   net: 'livenet'
   orderId: string
@@ -330,6 +338,114 @@ export const submitRelease = async ({
     body: JSON.stringify({
       poolOrderId: orderId,
       psbtRaw,
+    }),
+  })
+}
+
+/**
+ * Rewards
+ */
+type RewardsEssential = {
+  totalRewardAmount: number
+  hadClaimRewardAmount: number
+  net: 'livenet'
+  tick: string
+}
+export const getMyRewardsEssential = async ({
+  tick,
+  address,
+}: {
+  tick: string
+  address: string
+}): Promise<RewardsEssential> => {
+  const network = useNetworkStore().network
+  const { publicKey, signature } = await sign()
+
+  const params = new URLSearchParams({
+    tick,
+    address,
+    net: network,
+  })
+
+  return await ordersApiFetch(`pool/reward/info?${params}`, {
+    method: 'GET',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  })
+}
+
+export type RewardsClaimRecord = {
+  address: string
+  orderId: string
+  pair: string
+  rewardCoinAmount: number
+  rewardState: 'pending' | 'finished'
+  tick: string
+  timestamp: number
+}
+export const getMyRewardsClaimRecords = async ({
+  tick,
+}: {
+  tick: string
+}): Promise<RewardsClaimRecord[]> => {
+  const network = useNetworkStore().network
+  const address = useAddressStore().get!
+  const { publicKey, signature } = await sign()
+
+  const params = new URLSearchParams({
+    tick,
+    address,
+    net: network,
+    rewardState: '100',
+  })
+
+  return await ordersApiFetch(`pool/reward/orders?${params}`, {
+    method: 'GET',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  })
+    .then((res) => {
+      return res?.results || []
+    })
+    .then((res) => {
+      return res.map((item: any) => {
+        if (item.rewardState === 3) {
+          item.rewardState = 'finished'
+        } else {
+          item.rewardState = 'pending'
+        }
+
+        return item
+      })
+    })
+}
+
+export const claimReward = async ({
+  rewardAmount,
+  tick,
+}: {
+  rewardAmount: number
+  tick: string
+}) => {
+  const network = useNetworkStore().network
+  const address = useAddressStore().get!
+  const { publicKey, signature } = await sign()
+
+  return await ordersApiFetch(`pool/reward/claim`, {
+    method: 'POST',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+    body: JSON.stringify({
+      net: network,
+      rewardAmount,
+      address,
+      tick,
     }),
   })
 }

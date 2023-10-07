@@ -1,5 +1,15 @@
 const changelog = [
   {
+    version: '0.8.0',
+    emoji: '🐳',
+    date: '2023-10-07',
+    changes: [
+      'Introduce liquidity pool feature',
+      'Add bidirectional liquidity support',
+      'Fix various bugs',
+    ],
+  },
+  {
     version: '0.7.0',
     emoji: '🃏',
     date: '2023-09-01',

@@ -6,6 +6,7 @@ export const DEBUG = true
 
 export const DUMMY_UTXO_VALUE = 600
 export const DUST_UTXO_VALUE = 546
+export const MS_BRC20_UTXO_VALUE = 1000
 
 // feeb
 export const MIN_FEEB = 10
@@ -25,3 +26,6 @@ export const SERVICE_TESTNET_ADDRESS = import.meta.env
   .VITE_SERVICE_TESTNET_ADDRESS
 export const SERVICE_LIVENET_ADDRESS = import.meta.env
   .VITE_SERVICE_LIVENET_ADDRESS
+
+// BTC Liquidity Mode (1 for psbt, 2 for custody)
+export const BTC_POOL_MODE: 1 | 2 = 1

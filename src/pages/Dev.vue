@@ -5,8 +5,6 @@ import { onMounted } from 'vue'
 import { useAddressStore, useBtcJsStore } from '@/store'
 // import * as bip39 from 'bip39'
 import BIP32Factory from 'bip32'
-// import { ECPairFactory } from 'ecpair'
-// import { generateP2wshPayment } from '@/lib/order-pool-builder'
 
 const btcJsStore = useBtcJsStore()
 

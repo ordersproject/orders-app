@@ -24,7 +24,7 @@ async function connectWallet() {
 
 <template>
   <div class="border rounded-xl p-8">
-    <TabGroup v-if="loggedIn" :default-index="3">
+    <TabGroup v-if="loggedIn" :default-index="0">
       <TabList
         class="flex items-center justify-center gap-4"
         v-slot="{ selectedIndex }"

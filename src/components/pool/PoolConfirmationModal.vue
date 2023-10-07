@@ -6,23 +6,13 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@headlessui/vue'
-import {
-  Loader,
-  ArrowDownIcon,
-  RefreshCcwIcon,
-  HelpCircleIcon,
-} from 'lucide-vue-next'
+import { Loader, ArrowDownIcon, HelpCircleIcon } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 
 import { prettyAddress, prettyCoinDisplay } from '@/lib/formatters'
 import { pushAddLiquidity } from '@/queries/pool'
-import {
-  useAddressStore,
-  useBtcJsStore,
-  useCooldownerStore,
-  useNetworkStore,
-} from '@/store'
-import { DEBUG } from '@/data/constants'
+import { useAddressStore, useBtcJsStore, useNetworkStore } from '@/store'
+import { BTC_POOL_MODE, DEBUG } from '@/data/constants'
 import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import assets from '@/data/assets'
 
@@ -90,20 +80,32 @@ async function submitOrder() {
     const toSigns = []
     toSigns.push(builtInfo.order.toHex())
     if (props.builtBtcInfo) {
+      if (props.builtBtcInfo.separatePsbt) {
+        toSigns.push(props.builtBtcInfo.separatePsbt.toHex())
+      }
       toSigns.push(toRaw(props.builtBtcInfo).order.toHex())
     }
     // 1. sign
-    const signedPsbts = await unisat.signPsbts(toSigns, [{}, {}])
+    const signedPsbts = await unisat.signPsbts(
+      toSigns,
+      toSigns.map(() => {})
+    )
+
+    if (props.builtBtcInfo.separatePsbt) {
+      // push separate psbt
+      const pushSeparateRes = await unisat.pushPsbt(signedPsbts[1])
+      console.log({ pushSeparateRes })
+    }
 
     console.log({ signedPsbts })
 
     // extract btc tx and get its txid
     const bidirectional = !!props.builtBtcInfo
-    if (bidirectional && signedPsbts.length !== 2) {
+    if (bidirectional && signedPsbts.length < 2) {
       throw new Error('Invalid signed psbts')
     }
     let btcTxOutputLocation: string = ''
-    if (bidirectional) {
+    if (bidirectional && BTC_POOL_MODE === 2) {
       const btcjs = useBtcJsStore().get!
       const btcTx = btcjs.Psbt.fromHex(signedPsbts[1]).extractTransaction()
       const btcTxid = btcTx.getId()
@@ -118,8 +120,13 @@ async function submitOrder() {
         const liquidityOffer: LiquidityOffer = {
           address: addressStore.get!,
           amount: builtInfo.toValue.toNumber(),
-          btcUtxoId: bidirectional ? btcTxOutputLocation : undefined,
-          psbtRaw: bidirectional ? signedPsbts[1] : undefined,
+          btcUtxoId:
+            bidirectional && BTC_POOL_MODE === 2
+              ? btcTxOutputLocation
+              : undefined,
+          psbtRaw: bidirectional
+            ? signedPsbts[signedPsbts.length - 1]
+            : undefined,
           coinAmount: builtInfo.fromValue.toNumber(),
           coinPsbtRaw: signedPsbts[0],
           net: networkStore.network,
@@ -127,7 +134,7 @@ async function submitOrder() {
           tick: selectedPair.fromSymbol,
           poolState: 1,
           poolType: bidirectional ? 3 : 1,
-          btcPoolMode: bidirectional ? 2 : undefined,
+          btcPoolMode: bidirectional ? BTC_POOL_MODE : undefined,
           ratio: bidirectional ? props.selectedMultiplier * 10 : undefined,
         }
         pushRes = await pushAddLiquidity(liquidityOffer)

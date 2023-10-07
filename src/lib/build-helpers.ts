@@ -78,21 +78,25 @@ function outputBytes(output: PsbtTxOutput) {
 }
 
 function transactionBytes(inputs: PsbtInput[], outputs: PsbtTxOutput[]) {
-  return (
-    TX_EMPTY_SIZE +
-    inputs.reduce(function (a, x) {
-      return a + inputBytes(x)
-    }, 0) +
-    outputs.reduce(function (a, x) {
-      return a + outputBytes(x)
-    }, 0)
-  )
+  const inputsSize = inputs.reduce(function (a, x) {
+    return a + inputBytes(x)
+  }, 0)
+  const outputsSize = outputs.reduce(function (a, x) {
+    return a + outputBytes(x)
+  }, 0)
+
+  console.log({
+    inputsSize,
+    outputsSize,
+    TX_EMPTY_SIZE,
+  })
+  return TX_EMPTY_SIZE + inputsSize + outputsSize
 }
 
 export function calcFee(
   psbt: Psbt,
   feeRate: number,
-  extraSize?: number,
+  extraSize: number = 31, // 31 is the size of the segwit change output
   extraInputValue?: number
 ) {
   const inputs = psbt.data.inputs
@@ -197,7 +201,6 @@ export async function change({
   if (pubKey) {
     paymentInput.tapInternalPubkey = pubKey
   }
-  console.log({ paymentInput })
 
   psbt.addInput(paymentInput)
 
@@ -208,7 +211,6 @@ export async function change({
     )) as number
   }
 
-  console.log({ extraSize, extraInputValue })
   let fee = calcFee(psbt, feeb, extraSize, extraInputValue)
   const totalOutput = sumOrNaN(psbt.txOutputs)
   const totalInput = sumOrNaN(
