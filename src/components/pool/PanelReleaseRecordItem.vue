@@ -11,7 +11,12 @@ import {
   submitRelease,
 } from '@/queries/pool'
 import { useAddressStore } from '@/store'
-import { DEBUG, SIGHASH_SINGLE_ANYONECANPAY } from '@/data/constants'
+import {
+  DEBUG,
+  SIGHASH_ALL,
+  SIGHASH_ANYONECANPAY,
+  SIGHASH_SINGLE_ANYONECANPAY,
+} from '@/data/constants'
 import { buildReleasePsbt } from '@/lib/order-pool-builder'
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 
@@ -84,7 +89,7 @@ async function submitReleaseRecord() {
       {
         index: 3,
         address: addressStore.get!,
-        sighashTypes: [SIGHASH_SINGLE_ANYONECANPAY],
+        sighashTypes: [SIGHASH_ALL | SIGHASH_ANYONECANPAY],
       },
     ]
     const signed = await window.unisat.signPsbt(releasePsbt.toHex(), {
