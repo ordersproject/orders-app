@@ -117,6 +117,13 @@ const buildProcessTip = ref('Building Transaction...')
 async function submitAdd() {
   if (!selected.value) return
 
+  // check if reversePrice has more than dust value (0.00000546)
+  const reverse = new Decimal(reversePrice.value)
+  if (reverse.lt(0.00000546)) {
+    ElMessage.error('BTC amount is too small to add liquidity.')
+    return
+  }
+
   isOpenConfirmationModal.value = true
   isBuilding.value = true
 

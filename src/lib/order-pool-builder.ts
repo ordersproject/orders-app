@@ -8,7 +8,7 @@ import {
   useNetworkStore,
 } from '@/store'
 import { getOneBrc20 } from '@/queries/orders-api'
-import { type SimpleUtxoFromMempool, getTxHex } from '@/queries/proxy'
+import { type SimpleUtxoFromMempool, getTxHex, getUtxos } from '@/queries/proxy'
 import { getPoolCredential } from '@/queries/pool'
 import { type TradingPair } from '@/data/trading-pairs'
 import { raise } from './helpers'
@@ -170,34 +170,55 @@ export async function buildAddBtcLiquidity({ total }: { total: Decimal }) {
 
   // PSBT mode
   const address = useAddressStore().get!
-  // 1. build the transaction to separate the needed amount BTC Utxo from the wallet
-  const separatePsbt = new btcjs.Psbt({
-    network: btcjs.networks[networkStore.btcNetwork],
-  }).addOutput({
-    address,
-    value: Number(total),
-  })
 
-  const { fee } = await change({
-    psbt: separatePsbt,
-  })
+  let input
+  let separatePsbt
+  // 0. find out if there is an Utxo with exactly the right amount
+  // if so, use it directly instead of separating
+  const utxos = await getUtxos(address)
+  const exactUtxo = utxos.find((utxo) => utxo.satoshis === Number(total))
+  if (exactUtxo) {
+    // fetch preTx
+    const rawTx = await getTxHex(exactUtxo.txId)
+    // decode rawTx
+    const preTx = btcjs.Transaction.fromHex(rawTx)
+    const detail = preTx.outs[exactUtxo.outputIndex]
 
-  const msPayment = await generateP2wshPayment('btc')
-  const multisigAddress = msPayment.address ?? raise('no multisig address')
+    input = {
+      hash: exactUtxo.txId,
+      index: exactUtxo.outputIndex,
+      witnessUtxo: detail,
+      sighashType: SIGHASH_SINGLE_ANYONECANPAY,
+    }
+  } else {
+    // 1. build the transaction to separate the needed amount BTC Utxo from the wallet
+    separatePsbt = new btcjs.Psbt({
+      network: btcjs.networks[networkStore.btcNetwork],
+    }).addOutput({
+      address,
+      value: Number(total),
+    })
 
-  // 2. create the PSBT with the Utxo (first output of the previous separate tx) as input and MS address as BRC20 output
-  // get separate psbt's tx hash
-  const separateTx = (separatePsbt.data.globalMap.unsignedTx as any).tx
-  const txHash: string = (separateTx as any).getId()
-  const addBtcLiquidity = new btcjs.Psbt({
-    network: btcjs.networks[networkStore.btcNetwork],
-  })
-    .addInput({
+    await change({ psbt: separatePsbt })
+
+    // 2. create the PSBT with the Utxo (first output of the previous separate tx) as input and MS address as BRC20 output
+    // get separate psbt's tx hash
+    const separateTx = (separatePsbt.data.globalMap.unsignedTx as any).tx
+    const txHash: string = (separateTx as any).getId()
+    input = {
       hash: txHash,
       index: 0,
       witnessUtxo: separatePsbt.txOutputs[0],
       sighashType: SIGHASH_SINGLE_ANYONECANPAY,
-    })
+    }
+  }
+
+  const msPayment = await generateP2wshPayment('btc')
+  const multisigAddress = msPayment.address ?? raise('no multisig address')
+  const addBtcLiquidity = new btcjs.Psbt({
+    network: btcjs.networks[networkStore.btcNetwork],
+  })
+    .addInput(input)
     .addOutput({
       address: multisigAddress,
       value: MS_BRC20_UTXO_VALUE,
