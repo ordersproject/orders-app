@@ -12,7 +12,7 @@ import {
   SwitchGroup,
 } from '@headlessui/vue'
 import { CheckIcon, ChevronsUpDownIcon } from 'lucide-vue-next'
-import { useQuery } from '@tanstack/vue-query'
+import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import Decimal from 'decimal.js'
 
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
@@ -33,13 +33,14 @@ import { getMyPooledInscriptions } from '@/queries/pool'
 import OrderConfirmationModal from './PoolConfirmationModal.vue'
 import { useStorage } from '@vueuse/core'
 
+const queryClient = useQueryClient()
 const addressStore = useAddressStore()
 const networkStore = useNetworkStore()
 const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
 
-const { data: myPoolableBrc20s } = useQuery({
+const { data: poolableBrc20s } = useQuery({
   queryKey: [
-    'myPoolableBrc20s',
+    'poolableBrc20s',
     {
       address: addressStore.get,
       network: networkStore.network,
@@ -158,6 +159,13 @@ async function submitAdd() {
 
   return
 }
+
+async function onConfirm() {
+  queryClient.invalidateQueries({ queryKey: ['poolableBrc20s'] })
+  queryClient.invalidateQueries({ queryKey: ['poolRecords'] })
+  // cancel select state
+  selected.value = undefined
+}
 </script>
 
 <template>
@@ -198,10 +206,10 @@ async function submitAdd() {
           >
             <ListboxOptions
               class="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-zinc-800 py-1 text-base shadow-lg ring-1 ring-zinc-700 ring-inset focus:outline-none sm:text-sm"
-              v-if="typeof myPoolableBrc20s === 'object'"
+              v-if="typeof poolableBrc20s === 'object'"
             >
               <ListboxOption
-                v-if="myPoolableBrc20s.length === 0"
+                v-if="poolableBrc20s.length === 0"
                 :disabled="true"
                 class="text-right text-zinc-500 text-sm py-2 px-4"
               >
@@ -210,7 +218,7 @@ async function submitAdd() {
 
               <ListboxOption
                 as="template"
-                v-for="transferable in myPoolableBrc20s"
+                v-for="transferable in poolableBrc20s"
                 :key="transferable.inscriptionId"
                 :value="transferable"
                 v-slot="{ active, selected }"
@@ -457,6 +465,7 @@ async function submitAdd() {
       v-model:built-btc-info="builtBtcInfo"
       :build-process-tip="buildProcessTip"
       :selected-multiplier="selectedMultiplier"
+      @confirm="onConfirm"
     />
   </div>
 </template>

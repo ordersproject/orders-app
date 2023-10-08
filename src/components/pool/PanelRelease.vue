@@ -14,7 +14,7 @@ const enabled = computed(() => !!addressStore.get)
 
 const { data: poolRecords, isLoading: isLoadingPoolRecords } = useQuery({
   queryKey: [
-    'poolRecords',
+    'poolReleasableRecords',
     {
       address: addressStore.get as string,
       tick: selectedPair.fromSymbol,
@@ -35,17 +35,6 @@ const { data: poolRecords, isLoading: isLoadingPoolRecords } = useQuery({
       <h3 class="text-base font-medium leading-6 text-zinc-300">
         My Pool Records
       </h3>
-      <!-- <el-popover
-        placement="bottom-start"
-        :width="400"
-        trigger="hover"
-        content="You can earn records by providing liquidity to the pool, which will be compensated in RDEX tokens. When you choose to claim your records, you simultaneously release your locked liquidity."
-        popper-class="!bg-zinc-800 !text-zinc-300 !shadow-lg !shadow-orange-400/10 "
-      >
-        <template #reference>
-          <HelpCircleIcon class="h-4 w-4 text-zinc-400" aria-hidden="true" />
-        </template>
-      </el-popover> -->
     </div>
 
     <div class="rounded mt-4 grow overflow-y-auto -mx-4 space-y-2">

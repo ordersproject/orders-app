@@ -188,13 +188,7 @@ export async function buildAddBtcLiquidity({ total }: { total: Decimal }) {
   // 2. create the PSBT with the Utxo (first output of the previous separate tx) as input and MS address as BRC20 output
   // get separate psbt's tx hash
   const separateTx = (separatePsbt.data.globalMap.unsignedTx as any).tx
-  console.log({ separateTx })
   const txHash: string = (separateTx as any).getId()
-  console.log({
-    1: separateTx.getId(),
-    2: separateTx.getHash().toString('hex'),
-    3: separateTx.getHash(true).toString('hex'),
-  })
   const addBtcLiquidity = new btcjs.Psbt({
     network: btcjs.networks[networkStore.btcNetwork],
   })

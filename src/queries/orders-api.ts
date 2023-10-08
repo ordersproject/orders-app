@@ -101,6 +101,7 @@ export const getBidCandidateInfo = async ({
     inscriptionNumber,
     coinAmount: String(coinAmount),
     total: String(total),
+    amount: String(total),
     // inscriptionId,
   })
   if (isPool) {

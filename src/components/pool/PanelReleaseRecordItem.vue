@@ -33,7 +33,7 @@ const { mutate: mutateFinishRecord } = useMutation({
     ElMessage.success('Record released')
     queryClient.invalidateQueries({
       queryKey: [
-        'poolRecords',
+        'poolReleasableRecords',
         {
           address: addressStore.get as string,
           tick: selectedPair.fromSymbol,

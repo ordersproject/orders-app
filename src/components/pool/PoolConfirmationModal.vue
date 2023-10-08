@@ -38,6 +38,7 @@ const emit = defineEmits([
   'update:isBuilding',
   'update:builtInfo',
   'update:builtBtcInfo',
+  'confirm',
 ])
 function clearBuiltInfo() {
   emit('update:builtInfo', undefined)
@@ -91,13 +92,10 @@ async function submitOrder() {
       toSigns.map(() => {})
     )
 
-    if (props.builtBtcInfo.separatePsbt) {
+    if (props.builtBtcInfo?.separatePsbt) {
       // push separate psbt
       const pushSeparateRes = await unisat.pushPsbt(signedPsbts[1])
-      console.log({ pushSeparateRes })
     }
-
-    console.log({ signedPsbts })
 
     // extract btc tx and get its txid
     const bidirectional = !!props.builtBtcInfo
@@ -166,6 +164,8 @@ async function submitOrder() {
       // reload
       if (!DEBUG) {
         window.location.reload()
+      } else {
+        emit('confirm')
       }
     },
   })

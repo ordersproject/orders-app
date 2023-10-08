@@ -57,6 +57,7 @@ const { mutate: mutateRemoveLiquidity } = useMutation({
         },
       ],
     })
+    queryClient.invalidateQueries({ queryKey: ['poolableBrc20s'] })
     // reset selected record
     selectedRecord.value = undefined
   },

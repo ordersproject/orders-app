@@ -657,10 +657,8 @@ export async function buildClaimTake({
   })
 
   // Step 8: change
-  const feeb = 10
   await change({
     psbt: takePsbt,
-    feeb,
   })
 
   return {
