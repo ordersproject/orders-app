@@ -82,7 +82,7 @@ async function submitReleaseRecord() {
         sighashTypes: [SIGHASH_SINGLE_ANYONECANPAY],
       },
       {
-        index: 4,
+        index: 3,
         address: addressStore.get!,
         sighashTypes: [SIGHASH_SINGLE_ANYONECANPAY],
       },
