@@ -654,7 +654,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                     class="mt-4 w-full rounded-md py-4 font-bold"
                     :class="
                       canPlaceBidOrder
-                        ? 'bg-orange-300 text-orange-900'
+                        ? 'bg-orange-300 text-orange-950'
                         : 'bg-zinc-700 text-zinc-500'
                     "
                     @click="buildOrder"
@@ -846,7 +846,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                     class="mt-4 w-full rounded-md py-4 font-bold"
                     :class="
                       canPlaceAskOrder
-                        ? 'bg-orange-300 text-orange-900'
+                        ? 'bg-orange-300 text-orange-950'
                         : 'bg-zinc-700 text-zinc-500'
                     "
                     @click="buildOrder"

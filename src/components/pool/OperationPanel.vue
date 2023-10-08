@@ -66,7 +66,7 @@ async function connectWallet() {
       </p>
 
       <button
-        class="py-2 rounded-lg border-2 border-orange-300 px-4 transition hover:border-orange-400 hover:bg-orange-400"
+        class="py-2 rounded-lg border-2 border-orange-300 px-4 transition hover:border-orange-400 hover:bg-orange-300"
         @click="connectWallet"
       >
         Connect Wallet

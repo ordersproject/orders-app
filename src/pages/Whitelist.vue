@@ -191,7 +191,7 @@ async function claim() {
           :class="[
             'w-full rounded-md py-3 font-bold',
             hasClaim
-              ? 'cursor-pointer bg-orange-300 text-orange-900'
+              ? 'cursor-pointer bg-orange-300 text-orange-950'
               : 'cursor-not-allowed bg-zinc-700 text-zinc-500',
           ]"
           :disabled="!hasClaim"

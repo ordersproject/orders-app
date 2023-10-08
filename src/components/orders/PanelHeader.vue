@@ -30,7 +30,7 @@ const inWhitelist = computed(() => {
         class="col-span-2 rounded-md border px-4 py-2 text-sm transition hover:border-orange-300 hover:bg-orange-300 hover:text-white"
         :class="
           isLimitExchangeMode
-            ? 'border-orange-300 bg-orange-300 text-orange-900'
+            ? 'border-orange-300 bg-orange-300 text-orange-950'
             : 'border-zinc-300 text-zinc-300'
         "
         @click="$emit('update:isLimitExchangeMode', !isLimitExchangeMode)"

@@ -149,7 +149,7 @@ async function submitRemove() {
               >
                 <li
                   :class="[
-                    active ? 'bg-orange-300 text-orange-900' : 'text-zinc-300',
+                    active ? 'bg-orange-300 text-orange-950' : 'text-zinc-300',
                     'relative select-none py-2 pl-3 pr-9 flex gap-4 group cursor-pointer items-center',
                   ]"
                 >
@@ -163,13 +163,13 @@ async function submitRemove() {
                     ]"
                   >
                     <span
-                      :class="active ? 'text-orange-900' : 'text-orange-300'"
+                      :class="active ? 'text-orange-950' : 'text-orange-300'"
                       v-if="record.poolType === 1"
                     >
                       {{ `${record.coinAmount} ${record.tick.toUpperCase()}` }}
                     </span>
                     <span
-                      :class="active ? 'text-orange-900' : 'text-orange-300'"
+                      :class="active ? 'text-orange-950' : 'text-orange-300'"
                       v-else-if="record.poolType === 3"
                     >
                       {{

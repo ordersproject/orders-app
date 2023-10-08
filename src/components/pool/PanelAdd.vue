@@ -80,7 +80,6 @@ const { data: marketPrice } = useQuery({
   ],
   queryFn: () =>
     getMarketPrice({ tick: selectedPair.fromSymbol }).then((res) => {
-      if (DEBUG) return 0.00000002 // TODO: remove this
       return res
     }),
 })
@@ -225,7 +224,7 @@ async function onConfirm() {
               >
                 <li
                   :class="[
-                    active ? 'bg-orange-300 text-orange-900' : 'text-zinc-300',
+                    active ? 'bg-orange-300 text-orange-950' : 'text-zinc-300',
                     'relative  select-none py-2 pl-3 pr-9',
                   ]"
                 >
@@ -258,7 +257,7 @@ async function onConfirm() {
           <Switch
             v-model="providesBtc"
             :class="[
-              providesBtc ? 'bg-orange-400' : 'bg-orange-200/10',
+              providesBtc ? 'bg-orange-300' : 'bg-orange-200/10',
               'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 ring-offset-zinc-900',
             ]"
           >
@@ -359,7 +358,7 @@ async function onConfirm() {
                         <li
                           :class="[
                             active
-                              ? 'bg-orange-300 text-orange-900'
+                              ? 'bg-orange-300 text-orange-950'
                               : 'text-zinc-300',
                             'relative select-none py-2 pl-3 pr-9',
                           ]"

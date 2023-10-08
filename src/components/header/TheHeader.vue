@@ -145,7 +145,7 @@ const unisatModalOpen = ref(false)
       </div>
 
       <button
-        class="h-10 rounded-lg border-2 border-orange-300 px-4 transition hover:border-orange-400 hover:bg-orange-400"
+        class="h-10 rounded-lg border-2 border-orange-300 px-4 transition hover:text-orange-950 hover:bg-orange-300"
         @click="connectWallet"
         v-if="!addressStore.get"
       >
