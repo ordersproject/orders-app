@@ -83,8 +83,8 @@ const choosePair = (pairId: number) => {
             ]"
           >
             <div class="flex">
-              <img :src="pair.fromIcon" class="h-6" />
-              <img :src="pair.toIcon" class="-ml-2 h-6" />
+              <img :src="pair.fromIcon" class="h-6 rounded-full" />
+              <img :src="pair.toIcon" class="-ml-2 h-6 rounded-full" />
             </div>
 
             <span
