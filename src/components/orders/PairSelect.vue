@@ -10,13 +10,13 @@ import { inject } from 'vue'
 import { useRouter } from 'vue-router'
 
 import tradingPairs, {
-  defaultPair,
+  defaultPoolPair,
   selectedPairKey,
 } from '@/data/trading-pairs'
 
 const router = useRouter()
 
-const selectedPair = inject(selectedPairKey, defaultPair)
+const selectedPair = inject(selectedPairKey, defaultPoolPair)
 
 const choosePair = (pairId: number) => {
   const pair = tradingPairs.find((pair) => pair.id === pairId)

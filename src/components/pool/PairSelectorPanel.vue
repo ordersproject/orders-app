@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { useRoute } from 'vue-router'
 
 import {
-  defaultPair,
+  defaultPoolPair,
   selectPair,
   selectedPoolPairKey,
 } from '@/data/trading-pairs'
@@ -14,7 +14,7 @@ import { prettyCoinDisplay } from '@/lib/formatters'
 
 import PoolPairSelect from '@/components/pool/PoolPairSelect.vue'
 
-const selectedPair = inject(selectedPoolPairKey, defaultPair)
+const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
 
 // pair info
 const { data: pairInfo } = useQuery(

@@ -2,13 +2,13 @@
 import { useQuery } from '@tanstack/vue-query'
 import { computed, inject } from 'vue'
 
-import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
+import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import { getMyUsedPoolRecords } from '@/queries/pool'
 import { useAddressStore } from '@/store'
 
 import PanelReleaseRecordItem from './PanelReleaseRecordItem.vue'
 
-const selectedPair = inject(selectedPoolPairKey, defaultPair)
+const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
 const addressStore = useAddressStore()
 const enabled = computed(() => !!addressStore.get)
 

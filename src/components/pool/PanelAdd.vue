@@ -15,7 +15,7 @@ import { CheckIcon, ChevronsUpDownIcon } from 'lucide-vue-next'
 import { useQuery } from '@tanstack/vue-query'
 import Decimal from 'decimal.js'
 
-import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
+import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import { useAddressStore, useNetworkStore } from '@/store'
 import { DEBUG } from '@/data/constants'
 import {
@@ -35,7 +35,7 @@ import { useStorage } from '@vueuse/core'
 
 const addressStore = useAddressStore()
 const networkStore = useNetworkStore()
-const selectedPair = inject(selectedPoolPairKey, defaultPair)
+const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
 
 const { data: myPoolableBrc20s } = useQuery({
   queryKey: [

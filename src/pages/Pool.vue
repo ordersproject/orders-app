@@ -3,7 +3,7 @@ import { useRoute } from 'vue-router'
 import { provide } from 'vue'
 
 import {
-  defaultPair,
+  defaultPoolPair,
   selectPair,
   selectedPoolPairKey,
 } from '@/data/trading-pairs'
@@ -13,7 +13,7 @@ import PoolOperationPanel from '@/components/pool/OperationPanel.vue'
 
 const route = useRoute()
 const pairRaw = route.params?.pair as string | undefined
-const selectedPair = pairRaw ? selectPair(pairRaw) : defaultPair
+const selectedPair = pairRaw ? selectPair(pairRaw) : defaultPoolPair
 provide(selectedPoolPairKey, selectedPair)
 </script>
 

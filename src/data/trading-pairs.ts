@@ -100,6 +100,7 @@ export default tradingPairs
 export type TradingPair = (typeof tradingPairs)[0]
 
 export const defaultPair = tradingPairs[0]
+export const defaultPoolPair = tradingPairs.filter((pair) => pair.hasPool)[0]
 
 export const selectPair = (pairRaw?: string) => {
   const route = useRoute()

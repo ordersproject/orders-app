@@ -9,7 +9,7 @@ import { CheckIcon, ChevronRightIcon } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 
 import tradingPairs, {
-  defaultPair,
+  defaultPoolPair,
   selectedPoolPairKey,
 } from '@/data/trading-pairs'
 import { inject } from 'vue'
@@ -17,7 +17,7 @@ import { inject } from 'vue'
 const router = useRouter()
 
 const poolablePairs = tradingPairs.filter((pair) => pair.hasPool)
-const selectedPair = inject(selectedPoolPairKey, defaultPair)
+const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
 
 const choosePair = (pairId: number) => {
   const pair = poolablePairs.find((pair) => pair.id === pairId)

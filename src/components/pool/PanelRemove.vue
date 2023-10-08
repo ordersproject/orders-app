@@ -12,7 +12,7 @@ import { Ref, computed, inject, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import Decimal from 'decimal.js'
 
-import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
+import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import {
   getMyPoolRecords,
   removeLiquidity,
@@ -22,7 +22,7 @@ import { useAddressStore } from '@/store'
 import { prettyTimestamp } from '@/lib/formatters'
 
 const queryClient = useQueryClient()
-const selectedPair = inject(selectedPoolPairKey, defaultPair)
+const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
 const addressStore = useAddressStore()
 const enabled = computed(() => !!addressStore.get)
 

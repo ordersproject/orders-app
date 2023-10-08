@@ -13,7 +13,7 @@ import { prettyAddress, prettyCoinDisplay } from '@/lib/formatters'
 import { pushAddLiquidity } from '@/queries/pool'
 import { useAddressStore, useBtcJsStore, useNetworkStore } from '@/store'
 import { BTC_POOL_MODE, DEBUG } from '@/data/constants'
-import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
+import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import assets from '@/data/assets'
 
 const unisat = window.unisat
@@ -44,7 +44,7 @@ function clearBuiltInfo() {
   emit('update:builtBtcInfo', undefined)
 }
 
-const selectedPair = inject(selectedPoolPairKey, defaultPair)
+const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
 
 const balance = ref(0)
 async function updateBalance() {

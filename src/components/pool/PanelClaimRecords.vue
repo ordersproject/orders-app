@@ -5,12 +5,12 @@ import { ChevronRightIcon } from 'lucide-vue-next'
 import { computed, inject } from 'vue'
 
 import { getMyRewardsClaimRecords } from '@/queries/pool'
-import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
+import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import { useAddressStore } from '@/store'
 
 import PanelClaimRecordItem from '@/components/pool/PanelClaimRecordItem.vue'
 
-const selectedPair = inject(selectedPoolPairKey, defaultPair)
+const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
 const addressStore = useAddressStore()
 
 const { data: records, isLoading: isLoadingRecords } = useQuery({

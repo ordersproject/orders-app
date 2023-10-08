@@ -13,7 +13,7 @@ import {
 import { useAddressStore } from '@/store'
 import { DEBUG, SIGHASH_SINGLE_ANYONECANPAY } from '@/data/constants'
 import { buildReleasePsbt } from '@/lib/order-pool-builder'
-import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
+import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 
 import ReleasingOverlay from '@/components/overlays/Loading.vue'
 
@@ -26,7 +26,7 @@ const addressStore = useAddressStore()
 
 const releasing = ref(false)
 
-const selectedPair = inject(selectedPoolPairKey, defaultPair)
+const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
 const { mutate: mutateFinishRecord } = useMutation({
   mutationFn: submitRelease,
   onSuccess: () => {

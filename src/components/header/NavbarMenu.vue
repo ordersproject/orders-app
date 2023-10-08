@@ -50,7 +50,10 @@ import { VERSION } from '@/data/constants'
           </MenuItem>
 
           <MenuItem :disabled="true">
-            <div class="p-4 text-zinc-500">Version: {{ VERSION }}</div>
+            <div class="flex items-center p-4 justify-between font-normal">
+              <span class="text-zinc-500">Version</span>
+              <span>{{ VERSION }}</span>
+            </div>
           </MenuItem>
         </div>
       </MenuItems>

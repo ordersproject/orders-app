@@ -4,14 +4,14 @@ import { HelpCircleIcon } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import { computed, inject } from 'vue'
 
-import { defaultPair, selectedPoolPairKey } from '@/data/trading-pairs'
+import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import { useAddressStore } from '@/store'
 import { getMyRewardsEssential, claimReward } from '@/queries/pool'
 import { DEBUG } from '@/data/constants'
 
 import ClaimRecords from '@/components/pool/PanelClaimRecords.vue'
 
-const selectedPair = inject(selectedPoolPairKey, defaultPair)
+const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
 const addressStore = useAddressStore()
 
 const { data: rewardsEssential, isLoading: isLoadingRewardsEssential } =
