@@ -89,7 +89,7 @@ async function submitReleaseRecord() {
       {
         index: 3,
         address: addressStore.get!,
-        sighashTypes: [SIGHASH_ALL | SIGHASH_ANYONECANPAY],
+        sighashTypes: [SIGHASH_SINGLE_ANYONECANPAY],
       },
     ]
     const signed = await window.unisat.signPsbt(releasePsbt.toHex(), {
