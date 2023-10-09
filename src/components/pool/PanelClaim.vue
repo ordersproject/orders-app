@@ -108,7 +108,8 @@ async function onClaimReward() {
         <button
           class="rounded bg-orange-300 text-orange-950 px-4 py-1 shadow-md shadow-orange-300/20 text-sm hover:shadow-orange-300/50 disabled:opacity-30 disabled:saturate-50 disabled:shadow-none"
           @click="onClaimReward"
-          :disabled="!rewardsEssential"
+          :disabled="!rewardsEssential || rewardsEssential.total === 0"
+          v-if="rewardsEssential && rewardsEssential.total > 0"
         >
           Claim
         </button>

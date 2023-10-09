@@ -162,14 +162,14 @@ async function submitReleaseRecord() {
           </span>
         </div>
 
-        <div class="flex items-center">
+        <!-- <div class="flex items-center">
           <span class="w-20 inline-block text-zinc-500">Rewards</span>
           <span>
             {{
               record.rewardCoinAmount ? `${record.rewardCoinAmount} RDEX` : '-'
             }}
           </span>
-        </div>
+        </div> -->
       </div>
 
       <button
