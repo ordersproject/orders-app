@@ -255,8 +255,7 @@ export async function buildReleasePsbt({
     witnessUtxo: btcPsbt.data.inputs[0].witnessUtxo,
     witnessScript: btcPsbt.data.inputs[0].witnessScript,
     partialSig: btcPsbt.data.inputs[0].partialSig,
-    sighashType:
-      btcjs.Transaction.SIGHASH_SINGLE | btcjs.Transaction.SIGHASH_ANYONECANPAY,
+    sighashType: SIGHASH_SINGLE_ANYONECANPAY,
   })
 
   // Add BTC output
@@ -269,15 +268,14 @@ export async function buildReleasePsbt({
     witnessUtxo: releasePsbt.data.inputs[0].witnessUtxo,
     partialSig: releasePsbt.data.inputs[0].partialSig,
     witnessScript: releasePsbt.data.inputs[0].witnessScript,
-    sighashType:
-      btcjs.Transaction.SIGHASH_SINGLE | btcjs.Transaction.SIGHASH_ANYONECANPAY,
+    sighashType: SIGHASH_SINGLE_ANYONECANPAY,
   })
 
   // Add release output
   claim.addOutput(releasePsbt.txOutputs[0])
 
   // Add change output
-  await change({ psbt: claim })
+  await change({ psbt: claim, sighashType: SIGHASH_SINGLE_ANYONECANPAY })
 
   return claim
 }

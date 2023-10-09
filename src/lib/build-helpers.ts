@@ -8,6 +8,8 @@ import {
   FEEB_MULTIPLIER,
   MIN_FEEB,
   MS_FEEB_MULTIPLIER,
+  SIGHASH_ALL,
+  SIGHASH_ANYONECANPAY,
 } from '@/data/constants'
 import { getFeebPlans, getTxHex, getUtxos } from '@/queries/proxy'
 import { raise } from './helpers'
@@ -156,14 +158,15 @@ export async function change({
   pubKey,
   extraSize,
   extraInputValue,
+  sighashType = SIGHASH_ALL | SIGHASH_ANYONECANPAY,
 }: {
   psbt: Psbt
   feeb?: number
   pubKey?: Buffer
   extraSize?: number
   extraInputValue?: number
+  sighashType?: number
 }) {
-  // todo: sighashType
   // check if address is set
   const address = useAddressStore().get ?? raise('Not logined.')
 
@@ -195,8 +198,7 @@ export async function change({
     hash: paymentUtxo.txId,
     index: paymentUtxo.outputIndex,
     witnessUtxo: tx.outs[paymentUtxo.outputIndex],
-    sighashType:
-      btcjs.Transaction.SIGHASH_ALL | btcjs.Transaction.SIGHASH_ANYONECANPAY,
+    sighashType,
   }
   if (pubKey) {
     paymentInput.tapInternalPubkey = pubKey
