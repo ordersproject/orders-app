@@ -221,7 +221,8 @@ export async function buildBidLimit({
   // Step 6: service fee
   const serviceAddress =
     btcNetwork === 'bitcoin' ? SERVICE_LIVENET_ADDRESS : SERVICE_TESTNET_ADDRESS
-  const serviceFee = Math.max(2000, total * 0.01)
+  // const serviceFee = Math.max(10_000, total * 0.01)
+  const serviceFee = 10_000
   console.log({
     serviceFee,
     serviceAddress,
@@ -554,13 +555,24 @@ export async function buildSellTake({
     value: total,
   })
 
+  // Step 3: Add service fee
+  const serviceAddress =
+    networkStore.btcNetwork === 'bitcoin'
+      ? SERVICE_LIVENET_ADDRESS
+      : SERVICE_TESTNET_ADDRESS
+  const serviceFee = Math.max(2000, total * 0.025) // 2.5%
+  sell.addOutput({
+    address: serviceAddress,
+    value: serviceFee,
+  })
+
   return {
     order: sell,
     type: 'sell',
     value: ordinalValue,
     totalPrice: 0,
     networkFee: 0,
-    serviceFee: 0,
+    serviceFee,
     totalSpent: 0,
     fromSymbol: selectedPair.fromSymbol,
     toSymbol: selectedPair.toSymbol,
