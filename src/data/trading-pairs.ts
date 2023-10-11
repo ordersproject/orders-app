@@ -27,7 +27,7 @@ const tradingPairs = [
     toSymbol: 'btc',
     fromIcon: ordiLogo,
     toIcon: btcLogo,
-    hasPool: false,
+    hasPool: true,
   },
   {
     id: 3,
@@ -35,6 +35,7 @@ const tradingPairs = [
     toSymbol: 'btc',
     fromIcon: oxbtLogo,
     toIcon: btcLogo,
+    hasPool: true,
   },
   {
     id: 4,
