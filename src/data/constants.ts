@@ -26,6 +26,10 @@ export const SERVICE_TESTNET_ADDRESS = import.meta.env
   .VITE_SERVICE_TESTNET_ADDRESS
 export const SERVICE_LIVENET_ADDRESS = import.meta.env
   .VITE_SERVICE_LIVENET_ADDRESS
+export const SERVICE_LIVENET_BID_ADDRESS = import.meta.env
+  .VITE_SERVICE_LIVENET_BID_ADDRESS
+export const SERVICE_LIVENET_RDEX_ADDRESS = import.meta.env
+  .VITE_SERVICE_LIVENET_RDEX_ADDRESS
 
 // BTC Liquidity Mode (1 for psbt, 2 for custody)
 export const BTC_POOL_MODE: 1 | 2 = 1

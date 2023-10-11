@@ -11,6 +11,8 @@ import {
   DUST_UTXO_VALUE,
   MIN_FEEB,
   SERVICE_LIVENET_ADDRESS,
+  SERVICE_LIVENET_BID_ADDRESS,
+  SERVICE_LIVENET_RDEX_ADDRESS,
   SERVICE_TESTNET_ADDRESS,
 } from '@/data/constants'
 import {
@@ -220,7 +222,9 @@ export async function buildBidLimit({
 
   // Step 6: service fee
   const serviceAddress =
-    btcNetwork === 'bitcoin' ? SERVICE_LIVENET_ADDRESS : SERVICE_TESTNET_ADDRESS
+    btcNetwork === 'bitcoin'
+      ? SERVICE_LIVENET_BID_ADDRESS
+      : SERVICE_TESTNET_ADDRESS
   // const serviceFee = Math.max(10_000, total * 0.01)
   const serviceFee = 10_000
   console.log({
@@ -359,7 +363,9 @@ export async function buildBuyTake({
   } else {
     const serviceAddress =
       btcNetwork === 'bitcoin'
-        ? SERVICE_LIVENET_ADDRESS
+        ? selectedPair.fromSymbol === 'rdex'
+          ? SERVICE_LIVENET_RDEX_ADDRESS
+          : SERVICE_LIVENET_ADDRESS
         : SERVICE_TESTNET_ADDRESS
     serviceFee = Math.max(2000, askPsbt.txOutputs[0].value * 0.01)
     buyPsbt.addOutput({
@@ -558,7 +564,9 @@ export async function buildSellTake({
   // Step 3: Add service fee
   const serviceAddress =
     networkStore.btcNetwork === 'bitcoin'
-      ? SERVICE_LIVENET_ADDRESS
+      ? selectedPair.fromSymbol === 'rdex'
+        ? SERVICE_LIVENET_RDEX_ADDRESS
+        : SERVICE_LIVENET_ADDRESS
       : SERVICE_TESTNET_ADDRESS
   const serviceFee = Math.max(2000, total * 0.025) // 2.5%
   sell.addOutput({
