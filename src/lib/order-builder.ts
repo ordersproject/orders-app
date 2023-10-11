@@ -226,19 +226,16 @@ export async function buildBidLimit({
       ? SERVICE_LIVENET_BID_ADDRESS
       : SERVICE_TESTNET_ADDRESS
   // const serviceFee = Math.max(10_000, total * 0.01)
-  const serviceFee = 10_000
-  console.log({
-    serviceFee,
-    serviceAddress,
-  })
+  const oneServiceFee = 10_000
+  const serviceFee = oneServiceFee * 2
   // add 2 service fee output
   bid.addOutput({
     address: serviceAddress,
-    value: serviceFee,
+    value: oneServiceFee,
   })
   bid.addOutput({
     address: serviceAddress,
-    value: serviceFee,
+    value: oneServiceFee,
   })
 
   // Step 7: add 2 dummies output for future use
