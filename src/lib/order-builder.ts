@@ -14,6 +14,7 @@ import {
   SERVICE_LIVENET_BID_ADDRESS,
   SERVICE_LIVENET_RDEX_ADDRESS,
   SERVICE_TESTNET_ADDRESS,
+  SIGHASH_SINGLE_ANYONECANPAY,
 } from '@/data/constants'
 import {
   getBidCandidateInfo,
@@ -564,17 +565,56 @@ export async function buildSellTake({
   })
 
   // Step 3: Add service fee
+  // This is a little bit different
+  // Instead of adding a service fee output, we add a service fee input, and a change output
+  // This way, we imply that the service fee payed by the seller is instead the difference of the change
   const serviceAddress =
     networkStore.btcNetwork === 'bitcoin'
       ? selectedPair.fromSymbol === 'rdex'
         ? SERVICE_LIVENET_RDEX_ADDRESS
         : SERVICE_LIVENET_ADDRESS
       : SERVICE_TESTNET_ADDRESS
-  const serviceFee = Math.max(2000, total * 0.025) // 2.5%
-  sell.addOutput({
-    address: serviceAddress,
-    value: serviceFee,
+  let serviceFee = Math.max(2000, total * 0.025) // 2.5%
+  // sell.addOutput({
+  //   address: serviceAddress,
+  //   value: serviceFee,
+  // })
+  // fetch a biggest utxo
+  const paymentUtxo = await getUtxos(address).then((result) => {
+    // choose the largest utxo
+    const utxo = result.reduce((prev, curr) => {
+      if (prev.satoshis > curr.satoshis) {
+        return prev
+      } else {
+        return curr
+      }
+    })
+    return utxo
   })
+  // add input
+  const rawPaymentTx = await getTxHex(paymentUtxo.txId)
+  const paymentTx = btcjs.Transaction.fromHex(rawPaymentTx)
+  const paymentInput = {
+    hash: paymentUtxo.txId,
+    index: paymentUtxo.outputIndex,
+    witnessUtxo: paymentTx.outs[paymentUtxo.outputIndex],
+    sighashType: SIGHASH_SINGLE_ANYONECANPAY,
+  }
+  sell.addInput(paymentInput)
+  // add output
+  const changeValue = paymentInput.witnessUtxo.value - serviceFee
+  if (changeValue < 0) {
+    throw new Error('Insufficient balance')
+  }
+  // if change is too small, we discard it instead of sending it back to the seller
+  if (changeValue >= DUST_UTXO_VALUE) {
+    sell.addOutput({
+      address,
+      value: changeValue,
+    })
+  } else {
+    serviceFee += changeValue
+  }
 
   return {
     order: sell,
