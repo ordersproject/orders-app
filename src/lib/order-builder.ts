@@ -574,7 +574,8 @@ export async function buildSellTake({
         ? SERVICE_LIVENET_RDEX_ADDRESS
         : SERVICE_LIVENET_ADDRESS
       : SERVICE_TESTNET_ADDRESS
-  let serviceFee = Math.max(2000, total * 0.025) // 2.5%
+  // let serviceFee = Math.max(2000, total * 0.025) // 2.5%
+  let serviceFee = 16_000
   // sell.addOutput({
   //   address: serviceAddress,
   //   value: serviceFee,
