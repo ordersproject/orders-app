@@ -561,10 +561,10 @@ export async function buildSellTake({
       ? SERVICE_LIVENET_ADDRESS
       : SERVICE_TESTNET_ADDRESS
   const serviceFee = Math.max(2000, total * 0.025) // 2.5%
-  // sell.addOutput({
-  //   address: serviceAddress,
-  //   value: serviceFee,
-  // })
+  sell.addOutput({
+    address: serviceAddress,
+    value: serviceFee,
+  })
 
   return {
     order: sell,
