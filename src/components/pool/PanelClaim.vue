@@ -99,7 +99,7 @@ async function onClaimReward() {
             {{ isLoadingRewardsEssential ? '-' : rewardsEssential?.total }}
           </span>
 
-          <span class="text-sm ml-1">
+          <span class="text-sm ml-1 uppercase">
             {{ selectedPair.fromSymbol }}
           </span>
         </div>
