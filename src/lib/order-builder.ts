@@ -220,7 +220,7 @@ export async function buildBidLimit({
   const exchangeOutput = exchange.txOutputs[0]
   bid.addOutput(exchangeOutput)
 
-  // Step 6: service fee
+  // Step 6: service fee again
   const serviceAddress =
     btcNetwork === 'bitcoin'
       ? SERVICE_LIVENET_BID_ADDRESS
@@ -230,6 +230,11 @@ export async function buildBidLimit({
   console.log({
     serviceFee,
     serviceAddress,
+  })
+  // add 2 service fee output
+  bid.addOutput({
+    address: serviceAddress,
+    value: serviceFee,
   })
   bid.addOutput({
     address: serviceAddress,
