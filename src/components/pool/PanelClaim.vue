@@ -34,6 +34,14 @@ const { data: rewardsEssential, isLoading: isLoadingRewardsEssential } =
     enabled: computed(() => !!addressStore.get),
   })
 
+// hasReleasable
+const hasReleasable = computed(() => {
+  if (!rewardsEssential.value) return false
+
+  return !!rewardsEssential.value?.hasReleasePoolOrderCount
+})
+const emit = defineEmits(['goRelease'])
+
 const queryClient = useQueryClient()
 const { mutate: mutateClaimReward } = useMutation({
   mutationFn: claimReward,
@@ -76,6 +84,27 @@ async function onClaimReward() {
 <template>
   <div class="max-w-xl mx-auto h-[40vh] flex flex-col">
     <div class="">
+      <!-- releasable alert -->
+      <div
+        v-if="hasReleasable"
+        class="text-sm bg-orange-400/10 rounded py-2 px-4 -mx-4 mb-4 flex items-center justify-between gap-4"
+      >
+        <div class="text-orange-300">
+          <p>
+            You have {{ rewardsEssential?.hasReleasePoolOrderCount }} releasable
+            assets.
+          </p>
+          <p>Go release them first to gain more rewards.</p>
+        </div>
+
+        <button
+          class="bg-orange-300 text-orange-950 rounded py-1 px-4"
+          @click="$emit('goRelease')"
+        >
+          Go
+        </button>
+      </div>
+
       <!-- title -->
       <div class="flex items-center gap-4">
         <h3 class="text-sm font-medium leading-6 text-zinc-300">My Rewards</h3>

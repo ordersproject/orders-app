@@ -1,3 +1,4 @@
+import { DEBUG } from '@/data/constants'
 import { ordersApiFetch } from '@/lib/fetch'
 import sign from '@/lib/sign'
 import { useAddressStore, useNetworkStore } from '@/store'
@@ -348,6 +349,7 @@ export const submitRelease = async ({
 type RewardsEssential = {
   totalRewardAmount: number
   hadClaimRewardAmount: number
+  hasReleasePoolOrderCount: number
   net: 'livenet'
   tick: string
 }
@@ -373,6 +375,13 @@ export const getMyRewardsEssential = async ({
       'X-Signature': signature,
       'X-Public-Key': publicKey,
     },
+  }).then((res) => {
+    if (res.HasReleasePoolOrderCount) {
+      res.hasReleasePoolOrderCount = res.HasReleasePoolOrderCount
+      delete res.HasReleasePoolOrderCount
+    }
+
+    return res
   })
 }
 

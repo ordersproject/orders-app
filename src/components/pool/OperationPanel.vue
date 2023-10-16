@@ -1,9 +1,12 @@
 <script lang="ts" setup>
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
-import { ref } from 'vue'
+import { computed, inject, ref } from 'vue'
+import { useQuery } from '@tanstack/vue-query'
 
 import { useAddressStore } from '@/store'
 import { connect } from '@/queries/unisat'
+import { getMyRewardsEssential } from '@/queries/pool'
+import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 
 import PanelAdd from './PanelAdd.vue'
 import PanelRemove from './PanelRemove.vue'
@@ -13,18 +16,49 @@ import PanelClaim from './PanelClaim.vue'
 const tabLabels = ['Add', 'Remove', 'Release', 'Claim']
 
 const loggedIn = ref(!!useAddressStore().get)
-
 async function connectWallet() {
   const address = await connect()
   if (address) {
     loggedIn.value = true
   }
 }
+
+const selectedTab = ref(0)
+function changeTab(index: number) {
+  selectedTab.value = index
+}
+
+const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
+const addressStore = useAddressStore()
+const { data: rewardsEssential } = useQuery({
+  queryKey: [
+    'poolRewardsEssential',
+    { address: addressStore.get as string, tick: selectedPair.fromSymbol },
+  ],
+  queryFn: () =>
+    getMyRewardsEssential({
+      address: addressStore.get as string,
+      tick: selectedPair.fromSymbol,
+    }),
+  enabled: computed(() => !!addressStore.get),
+})
+
+// hasReleasable
+const hasReleasable = computed(() => {
+  if (!rewardsEssential.value) return false
+
+  return !!rewardsEssential.value?.hasReleasePoolOrderCount
+})
 </script>
 
 <template>
   <div class="border rounded-xl p-8">
-    <TabGroup v-if="loggedIn" :default-index="0">
+    <TabGroup
+      v-if="loggedIn"
+      :default-index="0"
+      :selected-index="selectedTab"
+      @change="changeTab"
+    >
       <TabList
         class="flex items-center justify-center gap-4"
         v-slot="{ selectedIndex }"
@@ -38,7 +72,13 @@ async function connectWallet() {
           ]"
           v-for="(label, index) in tabLabels"
         >
-          {{ label }}
+          <span>{{ label }}</span>
+          <span
+            v-if="label === 'Release' && hasReleasable"
+            class="inline-flex items-center rounded-md bg-orange-400/30 px-1.5 py-0.5 text-xs font-medium text-orange-400 -translate-y-2 -translate-x-1 absolute"
+          >
+            {{ rewardsEssential?.hasReleasePoolOrderCount }}
+          </span>
         </Tab>
       </TabList>
       <TabPanels>
@@ -55,7 +95,7 @@ async function connectWallet() {
         </TabPanel>
 
         <TabPanel class="pt-12">
-          <PanelClaim />
+          <PanelClaim @go-release="changeTab(2)" />
         </TabPanel>
       </TabPanels>
     </TabGroup>
