@@ -179,7 +179,7 @@ export async function change({
       } else {
         return curr
       }
-    })
+    }, result[0])
     return utxo
   })
 

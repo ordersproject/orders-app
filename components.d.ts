@@ -30,6 +30,7 @@ declare module '@vue/runtime-core' {
     PanelClaimRewardItem: typeof import('./src/components/pool/PanelClaimRewardItem.vue')['default']
     PanelHeader: typeof import('./src/components/orders/PanelHeader.vue')['default']
     PanelRelease: typeof import('./src/components/pool/PanelRelease.vue')['default']
+    PanelReleaseHistoryItem: typeof import('./src/components/pool/PanelReleaseHistoryItem.vue')['default']
     PanelReleaseRecordItem: typeof import('./src/components/pool/PanelReleaseRecordItem.vue')['default']
     PanelReleaseRewardItem: typeof import('./src/components/pool/PanelReleaseRewardItem.vue')['default']
     PanelRemove: typeof import('./src/components/pool/PanelRemove.vue')['default']

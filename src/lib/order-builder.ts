@@ -589,7 +589,7 @@ export async function buildSellTake({
       } else {
         return curr
       }
-    })
+    }, result[0])
     return utxo
   })
   // add input

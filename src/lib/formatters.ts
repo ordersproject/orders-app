@@ -10,6 +10,10 @@ export const prettyAddress = (address: string, len = 6) => {
   return `${address.slice(0, len)}...${address.slice(-len)}`
 }
 
+export const prettyTxid = (txid: string, len = 6) => {
+  return `${txid.slice(0, len)}...${txid.slice(-len)}`
+}
+
 export const prettyBalance = (balance: number | string) => {
   if (balance === 0 || balance === '0') return '0'
   if (!balance) return '-'

@@ -229,19 +229,45 @@ export const getMyPoolRecords = async ({
   })
 }
 
+export const removeLiquidity = async ({ orderId }: { orderId: string }) => {
+  const network = useNetworkStore().network
+  const { publicKey, signature } = await sign()
+
+  return await ordersApiFetch(`pool/order/update`, {
+    method: 'POST',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+    body: JSON.stringify({
+      net: network,
+      orderId,
+      poolState: 2,
+    }),
+  })
+}
+
+/**
+ * Release
+ */
+export type ReleaseHistory = PoolRecord & {
+  releaseTime: number
+  releaseTx: string
+  releaseTxBlock: number
+}
 export const getMyUsedPoolRecords = async ({
   address,
   tick,
 }: {
   address: string
   tick: string
-}): Promise<PoolRecord[]> => {
+}): Promise<ReleaseHistory[]> => {
   const network = 'livenet'
   const params = new URLSearchParams({
     net: network,
     tick,
     address,
-    poolState: '3', // 3 for claimable (used)
+    poolState: '3', // 3 for releasable (used)
     poolType: '100',
     sortKey: 'timestamp',
     sortType: '-1',
@@ -265,27 +291,42 @@ export const getMyUsedPoolRecords = async ({
     })
 }
 
-export const removeLiquidity = async ({ orderId }: { orderId: string }) => {
-  const network = useNetworkStore().network
-  const { publicKey, signature } = await sign()
-
-  return await ordersApiFetch(`pool/order/update`, {
-    method: 'POST',
-    headers: {
-      'X-Signature': signature,
-      'X-Public-Key': publicKey,
-    },
-    body: JSON.stringify({
-      net: network,
-      orderId,
-      poolState: 2,
-    }),
+export const getMyReleasedRecords = async ({
+  address,
+  tick,
+}: {
+  address: string
+  tick: string
+}): Promise<PoolRecord[]> => {
+  const network = 'livenet'
+  const params = new URLSearchParams({
+    net: network,
+    tick,
+    address,
+    poolState: '4', // 3 for released
+    poolType: '100',
+    sortKey: 'timestamp',
+    sortType: '-1',
   })
+
+  return await ordersApiFetch(`pool/orders?${params}`)
+    .then((res) => {
+      return res?.results || []
+    })
+    .then((res) => {
+      return res.map((item: any) => {
+        item.claimState = 'pending'
+        if (item.multiSigScriptAddressTickAvailableState === 1) {
+          item.claimState = 'ready'
+        }
+
+        delete item.multiSigScriptAddressTickAvailableState
+
+        return item
+      })
+    })
 }
 
-/**
- * Release
- */
 type ReleaseEssential = {
   coinPsbtRaw: string
   psbtRaw: string
