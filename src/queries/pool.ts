@@ -261,7 +261,7 @@ export const getMyUsedPoolRecords = async ({
 }: {
   address: string
   tick: string
-}): Promise<ReleaseHistory[]> => {
+}): Promise<PoolRecord[]> => {
   const network = 'livenet'
   const params = new URLSearchParams({
     net: network,
@@ -297,7 +297,7 @@ export const getMyReleasedRecords = async ({
 }: {
   address: string
   tick: string
-}): Promise<PoolRecord[]> => {
+}): Promise<ReleaseHistory[]> => {
   const network = 'livenet'
   const params = new URLSearchParams({
     net: network,
