@@ -89,19 +89,22 @@ async function onClaimReward() {
         v-if="hasReleasable"
         class="text-sm bg-orange-400/10 rounded py-2 px-4 -mx-4 mb-4 flex items-center justify-between gap-4"
       >
-        <div class="text-orange-300">
+        <div class="text-orange-300 text-xs">
           <p>
-            You have {{ rewardsEssential?.hasReleasePoolOrderCount }} releasable
-            assets.
+            Your liquidity reward has been generated. Please release promptly to
+            claim.
           </p>
-          <p>Go release them first to gain more rewards.</p>
+          <p class="mt-2">
+            Note: Rewards may decrease if not released within 3 days of
+            liquidity being used.
+          </p>
         </div>
 
         <button
           class="bg-orange-300 text-orange-950 rounded py-1 px-4"
           @click="$emit('goRelease')"
         >
-          Go
+          Release
         </button>
       </div>
 

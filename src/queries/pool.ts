@@ -421,6 +421,7 @@ export const getMyRewardsEssential = async ({
       res.hasReleasePoolOrderCount = res.HasReleasePoolOrderCount
       delete res.HasReleasePoolOrderCount
     }
+    // if (DEBUG) res.hasReleasePoolOrderCount = 10
 
     return res
   })
