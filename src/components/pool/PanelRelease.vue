@@ -54,7 +54,9 @@ const { data: releaseHistory, isLoading: isLoadingReleaseHistory } = useQuery({
         <Tab
           :class="[
             'text-sm font-medium leading-6 ',
-            selectedIndex === 0 ? 'text-orange-300' : 'text-zinc-500',
+            selectedIndex === 0
+              ? 'text-orange-300'
+              : 'text-zinc-500 hover:text-zinc-300',
           ]"
         >
           My Pool Records
