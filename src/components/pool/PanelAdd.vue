@@ -11,7 +11,7 @@ import {
   SwitchLabel,
   SwitchGroup,
 } from '@headlessui/vue'
-import { CheckIcon, ChevronsUpDownIcon } from 'lucide-vue-next'
+import { CheckIcon, ChevronsUpDownIcon, HelpCircleIcon } from 'lucide-vue-next'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import Decimal from 'decimal.js'
 
