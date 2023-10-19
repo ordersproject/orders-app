@@ -12,7 +12,7 @@ import {
   SIGHASH_ANYONECANPAY,
 } from '@/data/constants'
 import { getFeebPlans, getTxHex, getUtxos } from '@/queries/proxy'
-import { raise } from './helpers'
+import { getLowestFeeb, raise } from './helpers'
 import { Output } from 'bitcoinjs-lib/src/transaction'
 
 const TX_EMPTY_SIZE = 4 + 1 + 1 + 4
@@ -208,9 +208,7 @@ export async function change({
 
   // Add change output
   if (!feeb) {
-    feeb = (await getFeebPlans({ network: 'livenet' }).then(
-      (plans) => plans[0]?.feeRate || MIN_FEEB
-    )) as number
+    feeb = await getLowestFeeb()
   }
 
   let fee = calcFee(psbt, feeb, extraSize, extraInputValue)
