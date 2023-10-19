@@ -21,6 +21,8 @@ import { buildReleasePsbt } from '@/lib/order-pool-builder'
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 
 import ReleasingOverlay from '@/components/overlays/Loading.vue'
+import { ArrowDownRightIcon } from 'lucide-vue-next'
+import { HelpCircleIcon } from 'lucide-vue-next'
 
 const props = defineProps<{
   record: PoolRecord
@@ -138,7 +140,7 @@ async function submitReleaseRecord() {
     <div class="mt-4 flex items-center justify-between">
       <div class="text-sm space-y-2">
         <div class="flex items-center">
-          <span class="w-20 inline-block text-zinc-500">Type</span>
+          <span class="w-24 inline-block text-zinc-500">Type</span>
           <span>{{
             record.poolType === 3
               ? 'Bidirectional Liquidity'
@@ -147,7 +149,7 @@ async function submitReleaseRecord() {
         </div>
 
         <div class="flex items-center">
-          <span class="w-20 inline-block text-zinc-500">Assets</span>
+          <span class="w-24 inline-block text-zinc-500">Assets</span>
           <span v-if="record.poolType === 3">
             {{
               `${
@@ -160,6 +162,31 @@ async function submitReleaseRecord() {
           <span v-else>
             {{ `${record.coinAmount} ${record.tick.toUpperCase()}` }}
           </span>
+        </div>
+
+        <div class="flex items-center" v-if="record.decreasing">
+          <span class="w-24 inline-block text-zinc-500">Decreasing</span>
+
+          <div class="text-red-400 flex items-center gap-1">
+            <span>{{ record.decreasing + '%' }}</span>
+            <ArrowDownRightIcon class="h-4 w-4" />
+          </div>
+
+          <el-popover
+            placement="bottom"
+            title="What is decreasing?"
+            :width="400"
+            trigger="hover"
+            content="The rewards obtained from this record will be reduced by a certain percentage unless this asset is released."
+            popper-class="!bg-zinc-800 !text-zinc-300 !shadow-lg !shadow-orange-400/10 "
+          >
+            <template #reference>
+              <HelpCircleIcon
+                class="h-4 w-4 text-zinc-300 ml-2"
+                aria-hidden="true"
+              />
+            </template>
+          </el-popover>
         </div>
 
         <!-- <div class="flex items-center">

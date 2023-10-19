@@ -203,6 +203,7 @@ export type PoolRecord = {
   pair: string
   poolState: 1
   poolType: 1 | 3
+  decreasing: number
   psbtRaw: string
   tick: string
   rewardCoinAmount: number
