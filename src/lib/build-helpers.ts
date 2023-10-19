@@ -184,7 +184,7 @@ export async function change({
   })
 
   if (!paymentUtxo) {
-    throw new Error('no utxo')
+    throw new Error('You have no usable BTC utxo')
   }
 
   // query rawTx of the utxo
