@@ -1,6 +1,6 @@
 import changelog from './changelog'
 
-export const VERSION = changelog[0].version + ' (Beta)'
+export const VERSION = changelog[0].version
 export const CHARGE_SERVICE_FEES = false
 export const DEBUG = true
 

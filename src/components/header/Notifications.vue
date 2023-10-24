@@ -65,9 +65,9 @@ function onClearNotifications() {
             <!-- badge showing notifications count -->
             <span
               class="items-center rounded-md bg-red-400/40 px-1.5 font-medium text-red-400 absolute top-0 right-0 translate-x-1 -translate-y-1 text-sm"
-              v-if="notifications && notifications.total > 0"
+              v-if="notifications && notifications.length"
             >
-              {{ notifications.total }}
+              {{ notifications.length }}
             </span>
           </MenuButton>
         </div>
@@ -85,8 +85,8 @@ function onClearNotifications() {
           >
             <MenuItem
               v-slot="{ active }"
-              v-if="notifications && notifications.results.length"
-              v-for="notification in notifications.results"
+              v-if="notifications && notifications.length"
+              v-for="notification in notifications"
               :key="notification.notificationType"
             >
               <div
@@ -121,7 +121,7 @@ function onClearNotifications() {
             <!-- mark as all read button -->
             <MenuItem
               v-slot="{ active }"
-              v-if="notifications && notifications.total > 0"
+              v-if="notifications && notifications.length"
             >
               <div
                 :class="[

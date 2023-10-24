@@ -1,5 +1,14 @@
 const changelog = [
   {
+    version: '1.0.0',
+    emoji: '🎉',
+    date: '2023-10-24',
+    changes: [
+      'Finally, the first version of Orders.Exchange is released!',
+      'Hell yeah!',
+    ],
+  },
+  {
     version: '0.8.0',
     emoji: '🐳',
     date: '2023-10-07',

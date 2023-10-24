@@ -23,17 +23,14 @@ export type Notification = {
 }
 export const getNotifications = async (
   address: string
-): Promise<{
-  total: number
-  results: Notification[]
-}> => {
+): Promise<Notification[]> => {
   const notifications = await ordersApiFetch(
     `common/notification/address?address=${address}`
   )
 
   // console.log({ notifications })
 
-  return notifications
+  return notifications?.results || []
 }
 
 export const clearNotifications = async ({
@@ -43,15 +40,10 @@ export const clearNotifications = async ({
   address: string
   notificationType?: number
 }) => {
-  const { publicKey, signature } = await sign()
   await ordersApiFetch(
     `common/notification/clear?address=${address}&notificationType=${notificationType}`,
     {
       method: 'GET',
-      headers: {
-        'X-Signature': signature,
-        'X-Public-Key': publicKey,
-      },
     }
   )
 

@@ -9,7 +9,7 @@ const links: {
   name: string
   path: string
   new?: boolean
-  comingSoon?: boolean
+  disabled?: boolean
 }[] = [
   {
     name: 'Trade',
@@ -23,6 +23,7 @@ const links: {
   {
     name: 'Whitelist',
     path: '/whitelist',
+    disabled: true,
   },
 ]
 
@@ -52,15 +53,15 @@ function isLinkActive(path: string) {
           isLinkActive(link.path)
             ? 'text-orange-300 underline underline-offset-4 hover:underline-offset-2'
             : 'text-zinc-300',
-          link.comingSoon
+          link.disabled
             ? 'text-zinc-500 cursor-default'
             : 'hover:bg-black hover:text-orange-300',
         ]"
         v-for="link in links"
         :key="link.name"
-        :is="link.comingSoon ? 'span' : 'router-link'"
+        :is="link.disabled ? 'span' : 'router-link'"
         :to="link.path"
-        :title="link.comingSoon ? 'Coming soon' : ''"
+        :title="link.disabled ? 'Coming soon' : ''"
       >
         {{ link.name }}
         <span
