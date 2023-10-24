@@ -442,6 +442,7 @@ const { data: bidCandidates } = useQuery({
     {
       address: addressStore.get,
       network: networkStore.network,
+      symbol: selectedPair.fromSymbol,
     },
   ],
   queryFn: () =>
@@ -626,6 +627,24 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
 
                             <span :class="selected && 'text-orange-300'">
                               {{ bidCandidate.coinAmount }}
+                            </span>
+
+                            <!-- liquidity race status  -->
+                            <span class="relative flex h-2 w-2 ml-4">
+                              <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 blur-xs bg-green-400"
+                                v-if="bidCandidate.bidCount === 0"
+                              ></span>
+                              <span
+                                class="relative inline-flex rounded-full h-2 w-2"
+                                :class="{
+                                  'bg-green-500': bidCandidate.bidCount === 0,
+                                  'bg-yellow-500':
+                                    bidCandidate.bidCount > 0 &&
+                                    bidCandidate.bidCount < 5,
+                                  'bg-red-500': bidCandidate.bidCount >= 5,
+                                }"
+                              ></span>
                             </span>
                           </li>
                         </ListboxOption>
