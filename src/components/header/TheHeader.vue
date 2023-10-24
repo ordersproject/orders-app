@@ -18,6 +18,7 @@ import whitelist from '@/lib/whitelist'
 
 import UnisatModal from './UnisatModal.vue'
 import AssetsDisplay from './AssetsDisplay.vue'
+import Notifications from './Notifications.vue'
 import TheNavbar from './TheNavbar.vue'
 
 const addressStore = useAddressStore()
@@ -83,7 +84,10 @@ const { data: address } = useQuery({
 })
 const enabled = computed(() => !!address.value)
 useQuery({
-  queryKey: ['dummies', { network: networkStore.network }],
+  queryKey: [
+    'dummies',
+    { network: networkStore.network, address: address.value },
+  ],
   queryFn: async () =>
     utils.checkAndSelectDummies({
       checkOnly: true,
@@ -127,7 +131,7 @@ const unisatModalOpen = ref(false)
 
     <div class="flex gap-2">
       <div class="hidden lg:block">
-        <el-tooltip
+        <!-- <el-tooltip
           effect="light"
           placement="bottom"
           :content="`Click to switch to ${
@@ -141,7 +145,7 @@ const unisatModalOpen = ref(false)
           >
             {{ networkStore.network }}
           </button>
-        </el-tooltip>
+        </el-tooltip> -->
       </div>
 
       <button
@@ -152,52 +156,54 @@ const unisatModalOpen = ref(false)
         Connect Wallet
       </button>
 
-      <div
-        class="flex h-10 cursor-pointer items-center divide-x divide-zinc-700 rounded-lg bg-black/90 px-4"
-        v-else
-      >
+      <div v-else class="flex items-center gap-2">
         <div
-          class="lg:flex gap-2 pr-4 hidden"
-          @click="copyAddress"
-          title="copy address"
+          class="flex h-10 cursor-pointer items-center divide-x divide-zinc-700 rounded-lg bg-black/90 px-4"
         >
-          <img class="h-5" :src="unisatIcon" alt="Unisat" />
-          <span class="text-sm text-orange-300">
-            {{ prettyAddress(addressStore.get) }}
-          </span>
+          <div
+            class="lg:flex gap-2 pr-4 hidden"
+            @click="copyAddress"
+            title="copy address"
+          >
+            <img class="h-5" :src="unisatIcon" alt="Unisat" />
+            <span class="text-sm text-orange-300">
+              {{ prettyAddress(addressStore.get) }}
+            </span>
+          </div>
+
+          <AssetsDisplay />
+
+          <!-- ready button -->
+          <div class="pl-4" v-if="!dummiesStore.has">
+            <el-tooltip effect="light" placement="bottom-end">
+              <template #content>
+                <h3 class="my-2 text-sm font-bold text-orange-300">
+                  Create 2 dummies UTXOs to begin
+                </h3>
+                <div
+                  class="mb-2 max-w-sm space-y-2 text-sm leading-relaxed text-zinc-300"
+                >
+                  <p>
+                    When using Orders.Exchange for the first time, it's
+                    necessary to prepare two UTXOs of 600 satoshis as a
+                    prerequisite for the transaction.
+                  </p>
+                  <p>Click to complete this preparation.</p>
+                </div>
+              </template>
+              <ShieldAlertIcon
+                class="h-5 text-red-500"
+                @click="utils.checkAndSelectDummies({})"
+              />
+            </el-tooltip>
+          </div>
+          <div class="pl-4" v-else>
+            <CheckCircle2 class="h-5 text-orange-300" />
+          </div>
         </div>
 
-        <AssetsDisplay />
-
-        <!-- ready button -->
-        <div class="pl-4" v-if="!dummiesStore.has">
-          <el-tooltip effect="light" placement="bottom-end">
-            <template #content>
-              <h3 class="my-2 text-sm font-bold text-orange-300">
-                Create 2 dummies UTXOs to begin
-              </h3>
-              <div
-                class="mb-2 max-w-sm space-y-2 text-sm leading-relaxed text-zinc-300"
-              >
-                <p>
-                  When using Orders.Exchange for the first time, it's necessary
-                  to prepare two UTXOs of 600 satoshis as a prerequisite for the
-                  transaction.
-                </p>
-                <p>Click to complete this preparation.</p>
-              </div>
-            </template>
-            <ShieldAlertIcon
-              class="h-5 text-red-500"
-              @click="utils.checkAndSelectDummies({})"
-            />
-          </el-tooltip>
-        </div>
-        <div class="pl-4" v-else>
-          <CheckCircle2 class="h-5 text-orange-300" />
-        </div>
+        <Notifications />
       </div>
     </div>
   </header>
 </template>
-@/data/constants

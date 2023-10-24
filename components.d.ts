@@ -19,6 +19,7 @@ declare module '@vue/runtime-core' {
     Loading: typeof import('./src/components/overlays/Loading.vue')['default']
     NavbarMenu: typeof import('./src/components/header/NavbarMenu.vue')['default']
     NotAvailable: typeof import('./src/components/overlays/NotAvailable.vue')['default']
+    Notifications: typeof import('./src/components/header/Notifications.vue')['default']
     OperationPanel: typeof import('./src/components/pool/OperationPanel.vue')['default']
     PairSelect: typeof import('./src/components/orders/PairSelect.vue')['default']
     PairSelectorPanel: typeof import('./src/components/pool/PairSelectorPanel.vue')['default']

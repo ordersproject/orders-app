@@ -12,6 +12,7 @@ import PanelAdd from './PanelAdd.vue'
 import PanelRemove from './PanelRemove.vue'
 import PanelRelease from './PanelRelease.vue'
 import PanelClaim from './PanelClaim.vue'
+import { useRoute } from 'vue-router'
 
 const tabLabels = ['Add', 'Remove', 'Release', 'Claim']
 
@@ -26,6 +27,12 @@ async function connectWallet() {
 const selectedTab = ref(0)
 function changeTab(index: number) {
   selectedTab.value = index
+}
+
+const route = useRoute()
+const queryAction = route.query.action as string | undefined
+if (queryAction === 'release') {
+  selectedTab.value = 2
 }
 
 const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)

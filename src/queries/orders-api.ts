@@ -15,6 +15,49 @@ export const login = async () => {
   return loginRes
 }
 
+export type Notification = {
+  notificationCount: number
+  notificationDesc: string
+  notificationTitle: string
+  notificationType: number
+}
+export const getNotifications = async (
+  address: string
+): Promise<{
+  total: number
+  results: Notification[]
+}> => {
+  const notifications = await ordersApiFetch(
+    `common/notification/address?address=${address}`
+  )
+
+  // console.log({ notifications })
+
+  return notifications
+}
+
+export const clearNotifications = async ({
+  address,
+  notificationType = 0,
+}: {
+  address: string
+  notificationType?: number
+}) => {
+  const { publicKey, signature } = await sign()
+  await ordersApiFetch(
+    `common/notification/clear?address=${address}&notificationType=${notificationType}`,
+    {
+      method: 'GET',
+      headers: {
+        'X-Signature': signature,
+        'X-Public-Key': publicKey,
+      },
+    }
+  )
+
+  return 'success'
+}
+
 export const getOrdiBalance = async (
   address: string,
   network: 'livenet' | 'testnet'
