@@ -141,7 +141,7 @@ async function submitReleaseRecord() {
     <div class="mt-4 flex items-center justify-between">
       <div class="text-sm space-y-2">
         <div class="flex items-center">
-          <span class="w-24 inline-block text-zinc-500">Type</span>
+          <span class="w-28 inline-block text-zinc-500">Type</span>
           <span>{{
             record.poolType === 3
               ? 'Bidirectional Liquidity'
@@ -150,7 +150,7 @@ async function submitReleaseRecord() {
         </div>
 
         <div class="flex items-center">
-          <span class="w-24 inline-block text-zinc-500">Assets</span>
+          <span class="w-28 inline-block text-zinc-500">Assets</span>
           <span v-if="record.poolType === 3">
             {{
               `${
@@ -166,7 +166,7 @@ async function submitReleaseRecord() {
         </div>
 
         <div class="flex items-center">
-          <span class="w-24 inline-block text-zinc-500">Rewards</span>
+          <span class="w-28 inline-block text-zinc-500">Est Rewards</span>
           <span>
             {{
               record.rewardAmount
@@ -180,7 +180,7 @@ async function submitReleaseRecord() {
         </div>
 
         <div class="flex items-center" v-if="record.decreasing">
-          <span class="w-24 inline-block text-zinc-500">Decreasing</span>
+          <span class="w-28 inline-block text-zinc-500">Decreasing</span>
 
           <div class="text-red-400 flex items-center gap-1">
             <span>{{ record.decreasing + '%' }}</span>
