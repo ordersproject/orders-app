@@ -77,8 +77,10 @@ export const getBidCandidates = async (
   tick: string,
   isPool: boolean = true
 ): Promise<BidCandidate[]> => {
+  const address = useAddressStore().get as string
   const params = new URLSearchParams({
     net: network,
+    address,
     tick,
     isPool: String(isPool),
   })
