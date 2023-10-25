@@ -133,6 +133,7 @@ export const getBidCandidateInfo = async ({
   psbtRaw: string
   orderId: string
 }> => {
+  const address = useAddressStore().get as string
   const params = new URLSearchParams({
     net: network,
     tick,
@@ -140,6 +141,7 @@ export const getBidCandidateInfo = async ({
     coinAmount: String(coinAmount),
     total: String(total),
     amount: String(total),
+    address,
     // inscriptionId,
   })
   if (isPool) {
