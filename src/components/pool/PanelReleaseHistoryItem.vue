@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import Decimal from 'decimal.js'
+import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue'
+import { computed } from 'vue'
+import { ExternalLinkIcon, ChevronRightIcon } from 'lucide-vue-next'
 
 import { prettyTimestamp, prettyTxid } from '@/lib/formatters'
 import { type ReleaseHistory } from '@/queries/pool'
-import { ExternalLinkIcon } from 'lucide-vue-next'
-import { computed } from 'vue'
+import { POOL_REWARDS_TICK } from '@/data/constants'
 
 const props = defineProps<{
   record: ReleaseHistory
@@ -74,6 +76,82 @@ const status = computed(() => {
           <span>
             {{ prettyTimestamp(record.releaseTime) }}
           </span>
+        </div>
+
+        <div class="flex items-baseline">
+          <span class="w-32 inline-block text-zinc-500 shrink-0">Rewards</span>
+
+          <Disclosure
+            v-if="record.rewardRealAmount"
+            as="div"
+            v-slot="{ open }"
+            class="grow"
+          >
+            <DisclosureButton class="flex items-center gap-2">
+              <span>
+                {{
+                  `${
+                    record.rewardRealAmount
+                  } ${POOL_REWARDS_TICK.toUpperCase()}`
+                }}
+              </span>
+
+              <ChevronRightIcon
+                class="w-4"
+                :class="open && 'rotate-90 transform'"
+              />
+            </DisclosureButton>
+
+            <DisclosurePanel
+              class="text-gray-500 bg-black rounded-md px-2 py-2 space-y-2 mt-0.5"
+            >
+              <div class="">
+                <span>=</span>
+                <span class="inline-flex items-center gap-1 ml-1">
+                  <span>{{ record.rewardAmount }}</span>
+                  <span
+                    class="text-xs bg-zinc-700/30 px-2 py-0.5 rounded text-orange-300"
+                  >
+                    base amount
+                  </span>
+                </span>
+              </div>
+
+              <div class="">
+                <span>*</span>
+                <span class="inline-flex items-center gap-1 ml-1">
+                  <span>(100% - {{ record.decreasing }}%</span>
+                  <span
+                    class="text-xs bg-red-900/30 px-2 py-0.5 rounded text-red-700"
+                  >
+                    decrease % over time
+                  </span>
+                  <span>)</span>
+                </span>
+              </div>
+
+              <div class="">
+                <span>+</span>
+                <span class="inline-flex items-center gap-1 ml-1">
+                  <span>{{ record.rewardExtraAmount }}</span>
+                  <span
+                    class="text-xs bg-cyan-900/30 px-2 py-0.5 rounded text-cyan-700"
+                  >
+                    long standby time bonus
+                  </span>
+                </span>
+              </div>
+            </DisclosurePanel>
+          </Disclosure>
+
+          <span v-else> -</span>
+
+          <!-- <div class="text-xs text-zinc-500">
+              <span
+                >{{ record.rewardAmount }} * (1 -
+                {{ record.decreasing }}%)</span
+              >
+            </div> -->
         </div>
 
         <div class="flex items-center">

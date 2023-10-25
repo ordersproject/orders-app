@@ -49,7 +49,7 @@ const { data: releaseHistory, isLoading: isLoadingReleaseHistory } = useQuery({
 
 <template>
   <div class="max-w-xl mx-auto flex flex-col">
-    <TabGroup>
+    <TabGroup :default-index="0">
       <TabList class="flex items-center gap-8" v-slot="{ selectedIndex }">
         <Tab
           :class="[
@@ -74,7 +74,9 @@ const { data: releaseHistory, isLoading: isLoadingReleaseHistory } = useQuery({
       </TabList>
 
       <TabPanels class="mt-8">
-        <TabPanel class="rounded grow overflow-y-auto -mx-4 space-y-2 h-[40vh]">
+        <TabPanel
+          class="rounded grow overflow-y-auto -mx-4 space-y-2 h-[40vh] nicer-scrollbar"
+        >
           <p v-if="isLoadingPoolRecords" class="text-center pt-4 text-zinc-500">
             Loading...
           </p>
@@ -93,7 +95,9 @@ const { data: releaseHistory, isLoading: isLoadingReleaseHistory } = useQuery({
           />
         </TabPanel>
 
-        <TabPanel class="rounded grow overflow-y-auto -mx-4 space-y-2 h-[40vh]">
+        <TabPanel
+          class="rounded grow overflow-y-auto -mx-4 space-y-2 h-[40vh] nicer-scrollbar"
+        >
           <p
             v-if="isLoadingReleaseHistory"
             class="text-center pt-4 text-zinc-500"

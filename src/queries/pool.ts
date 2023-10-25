@@ -208,6 +208,16 @@ export type PoolRecord = {
   tick: string
   rewardCoinAmount: number
   timestamp: number
+
+  percentage: number
+  percentageExtra: number
+
+  rewardAmount: number
+  rewardRealAmount: number
+  rewardExtraAmount: number
+
+  dealCoinTxBlockState: number
+  dealCoinTxBlock: number
 }
 export const getMyPoolRecords = async ({
   address,
@@ -390,6 +400,7 @@ export const submitRelease = async ({
  */
 type RewardsEssential = {
   totalRewardAmount: number
+  totalRewardExtraAmount: number
   hadClaimRewardAmount: number
   hasReleasePoolOrderCount: number
   net: 'livenet'

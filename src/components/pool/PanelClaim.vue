@@ -28,7 +28,10 @@ const { data: rewardsEssential, isLoading: isLoadingRewardsEssential } =
     select: (data) => {
       return {
         ...data,
-        total: data.totalRewardAmount - data.hadClaimRewardAmount,
+        total:
+          data.totalRewardAmount +
+          data.totalRewardExtraAmount -
+          data.hadClaimRewardAmount,
       }
     },
     enabled: computed(() => !!addressStore.get),

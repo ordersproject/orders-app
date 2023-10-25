@@ -13,6 +13,7 @@ import {
 import { useAddressStore } from '@/store'
 import {
   DEBUG,
+  POOL_REWARDS_TICK,
   SIGHASH_ALL,
   SIGHASH_ANYONECANPAY,
   SIGHASH_SINGLE_ANYONECANPAY,
@@ -164,6 +165,20 @@ async function submitReleaseRecord() {
           </span>
         </div>
 
+        <div class="flex items-center">
+          <span class="w-24 inline-block text-zinc-500">Rewards</span>
+          <span>
+            {{
+              record.rewardAmount
+                ? `${record.rewardAmount} ${POOL_REWARDS_TICK.toUpperCase()}`
+                : '-'
+            }}
+          </span>
+          <span>
+            {{ record.percentage ? ` ${record.percentage} %` : '' }}
+          </span>
+        </div>
+
         <div class="flex items-center" v-if="record.decreasing">
           <span class="w-24 inline-block text-zinc-500">Decreasing</span>
 
@@ -188,15 +203,6 @@ async function submitReleaseRecord() {
             </template>
           </el-popover>
         </div>
-
-        <!-- <div class="flex items-center">
-          <span class="w-20 inline-block text-zinc-500">Rewards</span>
-          <span>
-            {{
-              record.rewardCoinAmount ? `${record.rewardCoinAmount} RDEX` : '-'
-            }}
-          </span>
-        </div> -->
       </div>
 
       <button
