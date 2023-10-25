@@ -10,6 +10,7 @@ import {
 import { getUtxos, getTxHex } from '@/queries/proxy'
 import { calculatePsbtFee } from '@/lib/build-helpers'
 import { DUMMY_UTXO_VALUE, EXTREME_FEEB, MIN_FEEB } from '@/data/constants'
+import { getLowestFeeb } from '@/lib/helpers'
 const utils = {
   checkAndSelectDummies: async ({
     checkOnly = false,
@@ -92,7 +93,7 @@ const utils = {
       dummiesPsbt.addOutput({ address: address, value: DUMMY_UTXO_VALUE })
       dummiesPsbt.addOutput({ address: address, value: DUMMY_UTXO_VALUE })
 
-      const feeb = networkStore.network === 'testnet' ? EXTREME_FEEB : MIN_FEEB
+      const feeb = await getLowestFeeb()
       const fee = calculatePsbtFee(dummiesPsbt, feeb)
 
       const changeValue = paymentUtxo.satoshis - DUMMY_UTXO_VALUE * 2 - fee
