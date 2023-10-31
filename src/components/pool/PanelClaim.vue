@@ -7,7 +7,7 @@ import { computed, inject } from 'vue'
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import { useAddressStore } from '@/store'
 import { getMyRewardsEssential, claimReward } from '@/queries/pool'
-import { DEBUG } from '@/data/constants'
+import { DEBUG, POOL_REWARDS_TICK } from '@/data/constants'
 
 import ClaimRecords from '@/components/pool/PanelClaimRecords.vue'
 
@@ -18,12 +18,12 @@ const { data: rewardsEssential, isLoading: isLoadingRewardsEssential } =
   useQuery({
     queryKey: [
       'poolRewardsEssential',
-      { address: addressStore.get as string, tick: selectedPair.fromSymbol },
+      { address: addressStore.get as string, tick: POOL_REWARDS_TICK },
     ],
     queryFn: () =>
       getMyRewardsEssential({
         address: addressStore.get as string,
-        tick: selectedPair.fromSymbol,
+        tick: POOL_REWARDS_TICK,
       }),
     select: (data) => {
       return {
@@ -55,7 +55,7 @@ const { mutate: mutateClaimReward } = useMutation({
         'poolRewardsEssential',
         {
           address: addressStore.get as string,
-          tick: selectedPair.fromSymbol,
+          tick: POOL_REWARDS_TICK,
         },
       ],
     })
@@ -71,7 +71,7 @@ async function onClaimReward() {
 
     mutateClaimReward({
       rewardAmount: rewardsEssential.value.total,
-      tick: selectedPair.fromSymbol,
+      tick: POOL_REWARDS_TICK,
     })
   } catch (e: any) {
     if (DEBUG) {
@@ -135,7 +135,7 @@ async function onClaimReward() {
           </span>
 
           <span class="text-sm ml-1 uppercase">
-            {{ selectedPair.fromSymbol }}
+            {{ POOL_REWARDS_TICK.toUpperCase() }}
           </span>
         </div>
 
