@@ -16,17 +16,15 @@ import {
   pushBuyTake,
   pushSellTake,
 } from '@/queries/orders-api'
-import { useAddressStore, useCooldownerStore, useNetworkStore } from '@/store'
+import { useAddressStore, useNetworkStore } from '@/store'
 import { DEBUG } from '@/data/constants'
 import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
 import assets from '@/data/assets'
-import { useQueryClient } from '@tanstack/vue-query'
 
 const unisat = window.unisat
 
 const addressStore = useAddressStore()
 const networkStore = useNetworkStore()
-const cooldowner = useCooldownerStore()
 
 const confirmButtonRef = ref<HTMLElement | null>(null)
 const cancelButtonRef = ref<HTMLElement | null>(null)

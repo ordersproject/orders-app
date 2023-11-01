@@ -233,19 +233,19 @@ async function buildOrder() {
   isBuilding.value = true
   let buildRes: any
 
-  if (!dummiesStore.has) {
-    // build dummies first
-    buildProcessTip.value = 'Building dummy UTXOs for the first transaction. '
-    try {
-      await utils.checkAndSelectDummies({})
-    } catch (e: any) {
-      ElMessage.error(e.message)
-      setIsOpen(false)
-      builtInfo.value = undefined
-      isLimitExchangeMode.value = false
-      return
-    }
-  }
+  // if (!dummiesStore.has) {
+  //   // build dummies first
+  //   buildProcessTip.value = 'Building dummy UTXOs for the first transaction. '
+  //   try {
+  //     await utils.checkAndSelectDummies({})
+  //   } catch (e: any) {
+  //     ElMessage.error(e.message)
+  //     setIsOpen(false)
+  //     builtInfo.value = undefined
+  //     isLimitExchangeMode.value = false
+  //     return
+  //   }
+  // }
 
   buildProcessTip.value = 'Building Transaction...'
 
@@ -344,7 +344,7 @@ const isBuilding = ref(false)
 const builtInfo = ref()
 
 // limit exchange mode
-const isLimitExchangeMode = ref(false)
+const isLimitExchangeMode = ref(true)
 const limitExchangeType: Ref<'bid' | 'ask'> = ref('ask')
 const { data: marketPrice } = useQuery({
   queryKey: [

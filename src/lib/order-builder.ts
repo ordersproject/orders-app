@@ -23,6 +23,7 @@ import {
 } from '@/queries/orders-api'
 import { getUtxos, type SimpleUtxoFromMempool, getTxHex } from '@/queries/proxy'
 import { type TradingPair } from '@/data/trading-pairs'
+import { getLowestFeeb } from './helpers'
 
 export async function buildAskLimit({
   total,
@@ -37,7 +38,7 @@ export async function buildAskLimit({
   const btcjs = useBtcJsStore().get!
   const address = useAddressStore().get!
 
-  // 获取地址
+  // Get address
   // Step 1: Get the ordinal utxo as input
   // if testnet, we use a cardinal utxo as a fake one
   let ordinalUtxo: SimpleUtxoFromMempool
@@ -250,7 +251,7 @@ export async function buildBidLimit({
   })
 
   // Step 8: change
-  let useFeeb = DEBUG ? 12 : undefined
+  let useFeeb = await getLowestFeeb()
   const extraInputValue = exchangeOutput.value - total
   const { fee, paymentValue, feeb } = await change({
     psbt: bid,
