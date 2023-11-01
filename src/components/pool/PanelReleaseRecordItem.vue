@@ -166,7 +166,7 @@ async function submitReleaseRecord() {
         </div>
 
         <div class="flex items-center">
-          <span class="w-28 inline-block text-zinc-500">Est Rewards</span>
+          <span class="w-28 inline-block text-zinc-500">Rewards</span>
           <span>
             {{
               record.rewardAmount

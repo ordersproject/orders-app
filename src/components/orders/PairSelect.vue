@@ -42,8 +42,8 @@ const choosePair = (pairId: number) => {
         v-slot="{ open }"
       >
         <div class="flex">
-          <img :src="selectedPair.fromIcon" class="h-6" />
-          <img :src="selectedPair.toIcon" class="-ml-2 h-6" />
+          <img :src="selectedPair.fromIcon" class="h-6 rounded-full" />
+          <img :src="selectedPair.toIcon" class="-ml-2 h-6 rounded-full" />
         </div>
 
         <span class="font-bold uppercase"

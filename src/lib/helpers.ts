@@ -17,3 +17,18 @@ export const getLowestFeeb = async () => {
   // no less than 3
   return Math.max(feeb, 3)
 }
+
+export type BidTxSpec = {
+  inputs: {
+    type: 'dummy' | 'btc' | 'brc'
+    value: number
+    tick?: string
+    address?: string
+  }[]
+  outputs: {
+    type: 'dummy' | 'btc' | 'brc' | 'change'
+    value: number
+    tick?: string
+    address?: string
+  }[]
+}
