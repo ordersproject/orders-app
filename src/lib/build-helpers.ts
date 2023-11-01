@@ -240,5 +240,6 @@ export async function change({
     fee,
     paymentValue: paymentUtxo.satoshis,
     feeb,
+    changeValue,
   }
 }

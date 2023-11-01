@@ -254,7 +254,9 @@ async function buildOrder() {
       if (limitExchangeType.value === 'bid') {
         if (!selectedBidCandidate.value) return
 
-        buildRes = await buildBidLimit({
+        // v2 update: 2-step build
+        // 1. build the schema of the transaction and report the schema to the server
+        const preBuildRes = await buildBidLimit({
           total: Math.round(
             bidExchangePrice.value *
               Number(selectedBidCandidate.value.coinAmount) *
@@ -266,6 +268,10 @@ async function buildOrder() {
           selectedPair,
           poolOrderId: selectedBidCandidate.value.poolOrderId,
         })
+
+        console.log({ preBuildRes })
+
+        return
       } else {
         buildRes = await buildAskLimit({
           total: Math.round(
