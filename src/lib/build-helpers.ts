@@ -159,6 +159,7 @@ export async function change({
   extraSize,
   extraInputValue,
   sighashType = SIGHASH_ALL | SIGHASH_ANYONECANPAY,
+  estimate = false,
 }: {
   psbt: Psbt
   feeb?: number
@@ -166,6 +167,7 @@ export async function change({
   extraSize?: number
   extraInputValue?: number
   sighashType?: number
+  estimate?: boolean
 }) {
   // check if address is set
   const address = useAddressStore().get ?? raise('Not logined.')
@@ -203,6 +205,7 @@ export async function change({
   if (pubKey) {
     paymentInput.tapInternalPubkey = pubKey
   }
+  const paymentUtxoValue = paymentUtxo.satoshis
 
   psbt.addInput(paymentInput)
 
@@ -221,9 +224,17 @@ export async function change({
   )
   const changeValue = totalInput - totalOutput - fee
   console.log({ fee, totalInput, totalOutput, changeValue })
+  console.log({ paymentUtxoValue, changeValue })
 
   if (changeValue < 0) {
     throw new Error('Insufficient balance')
+  }
+
+  if (estimate) {
+    // return the difference，which feans how much we actually paying
+    return {
+      difference: paymentUtxoValue - changeValue,
+    }
   }
 
   if (changeValue >= DUST_UTXO_VALUE) {

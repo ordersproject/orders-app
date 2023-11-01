@@ -211,18 +211,19 @@ export const constructBidPsbt = async ({
     poolOrderId,
     isPool: true,
     bidTxSpec: bidSchema,
+    platformDummy: 1,
   }
-  const candidateInfo = await ordersApiFetch(`order/bid-v2`, {
+  const constructInfo = await ordersApiFetch(`order/bid-v2`, {
     method: 'POST',
     body: JSON.stringify(body),
   })
 
   // validate
-  if (!candidateInfo.psbtRaw) {
+  if (!constructInfo.psbtRaw) {
     throw new Error('Psbt is not provided.')
   }
 
-  return candidateInfo
+  return constructInfo
 }
 
 export type Order = {

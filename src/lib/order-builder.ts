@@ -337,6 +337,58 @@ export async function buildBidLimit({
   const address = useAddressStore().get!
   const isPool = !!selectedPair.hasPool
 
+  // new version of building bid
+  // 1. we define a bid schema, ask api to build the psbt for us
+  const bidSchema: {
+    inputs: {
+      type: 'dummy' | 'brc' | 'brc'
+      value: number
+      tick?: string
+      address?: string
+    }[]
+    outputs: {
+      type: 'dummy' | 'brc' | 'brc' | 'change'
+      value: number
+      tick?: string
+      address?: string
+    }[]
+  } = {
+    inputs: [],
+    outputs: [],
+  }
+  // bidSchema.outputs.push({
+  //   type: 'change',
+  //   value: changeValue,
+  //   address,
+  // })
+
+  // 2. build the transaction with the schema
+  const constructInfo = await constructBidPsbt({
+    network: orderNetwork,
+    tick: selectedPair.fromSymbol,
+    inscriptionId,
+    inscriptionNumber,
+    coinAmount,
+    total,
+    poolOrderId: poolOrderId as string,
+    bidSchema,
+  })
+  console.log({ constructInfo })
+
+  const bid = btcjs.Psbt.fromHex(constructInfo.psbtRaw, {
+    network: btcjs.networks[btcNetwork],
+  })
+  console.log({ bid })
+
+  // 3. estimate how much we have to pay
+  const estimateRes = await change({
+    psbt: bid,
+    estimate: true,
+  })
+  console.log({ estimateRes })
+
+  return
+
   // Step 1. prepare bid from exchange
   const candidateInfo = await getBidCandidateInfo({
     network: orderNetwork,
@@ -353,7 +405,7 @@ export async function buildBidLimit({
     network: btcjs.networks[btcNetwork],
   })
 
-  const bid = new btcjs.Psbt({ network: btcjs.networks[btcNetwork] })
+  // const bid = new btcjs.Psbt({ network: btcjs.networks[btcNetwork] })
   let totalInput = 0
 
   const dummyUtxos = useDummiesStore().get!
@@ -428,49 +480,15 @@ export async function buildBidLimit({
   // Step 8: change
   let useFeeb = await getLowestFeeb()
   const extraInputValue = exchangeOutput.value - total
-  const { fee, paymentValue, feeb, changeValue } = await change({
-    psbt: bid,
-    feeb: useFeeb,
-    extraSize: 68, // baseInput + segwit
-    extraInputValue,
-  })
+  // const { fee, paymentValue, feeb, changeValue } = await change({
+  //   psbt: bid,
+  //   feeb: useFeeb,
+  //   extraSize: 68, // baseInput + segwit
+  //   extraInputValue,
+  //   estimate: true,
+  // })
 
-  const totalSpent = total + serviceFee + fee - ordValue + extraInputValue
-
-  const bidSchema: {
-    inputs: {
-      type: 'dummy' | 'brc' | 'brc'
-      value: number
-      tick?: string
-      address?: string
-    }[]
-    outputs: {
-      type: 'dummy' | 'brc' | 'brc' | 'change'
-      value: number
-      tick?: string
-      address?: string
-    }[]
-  } = {
-    inputs: [],
-    outputs: [],
-  }
-  bidSchema.outputs.push({
-    type: 'change',
-    value: changeValue,
-    address,
-  })
-
-  // 2. build the transaction with the schema
-  const psbt = await constructBidPsbt({
-    network: orderNetwork,
-    tick: selectedPair.fromSymbol,
-    inscriptionId,
-    inscriptionNumber,
-    coinAmount,
-    total,
-    poolOrderId: poolOrderId as string,
-    bidSchema,
-  })
+  // const totalSpent = total + serviceFee + fee! - ordValue + extraInputValue
 
   console.log({ psbt })
 
