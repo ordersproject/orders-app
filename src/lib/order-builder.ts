@@ -17,6 +17,7 @@ import {
   SIGHASH_SINGLE_ANYONECANPAY,
 } from '@/data/constants'
 import {
+  constructBidPsbt,
   getBidCandidateInfo,
   getOneBrc20,
   getOneOrder,
@@ -139,6 +140,180 @@ export async function buildAskLimit({
   }
 }
 
+export async function buildPreBidLimit({
+  total,
+  coinAmount,
+  inscriptionId,
+  inscriptionNumber,
+  selectedPair,
+  poolOrderId,
+}: {
+  total: number
+  coinAmount: number
+  inscriptionId: string
+  inscriptionNumber: string
+  selectedPair: TradingPair
+  poolOrderId?: string
+}) {
+  const networkStore = useNetworkStore()
+  const orderNetwork = networkStore.network
+  const btcNetwork = networkStore.btcNetwork
+  const btcjs = window.bitcoin
+  const address = useAddressStore().get!
+  const isPool = !!selectedPair.hasPool
+
+  const bidSchema: {
+    inputs: {
+      type: 'dummy' | 'brc' | 'brc'
+      value: number
+      tick?: string
+      address?: string
+    }[]
+    outputs: {
+      type: 'dummy' | 'brc' | 'brc' | 'change'
+      value: number
+      tick?: string
+      address?: string
+    }[]
+  } = {
+    inputs: [],
+    outputs: [],
+  }
+
+  // Step 1. prepare bid from exchange
+  const candidateInfo = await getBidCandidateInfo({
+    network: orderNetwork,
+    tick: selectedPair.fromSymbol,
+    inscriptionId,
+    inscriptionNumber,
+    coinAmount,
+    total,
+    isPool,
+    poolOrderId,
+  })
+
+  const exchange = btcjs.Psbt.fromHex(candidateInfo.psbtRaw, {
+    network: btcjs.networks[btcNetwork],
+  })
+
+  const bid = new btcjs.Psbt({ network: btcjs.networks[btcNetwork] })
+
+  let totalInput = 0
+
+  const dummyUtxos = useDummiesStore().get!
+  for (const dummyUtxo of dummyUtxos) {
+    const dummyTx = btcjs.Transaction.fromHex(dummyUtxo.txHex)
+    const dummyInput = {
+      hash: dummyUtxo.txId,
+      index: dummyUtxo.outputIndex,
+      witnessUtxo: dummyTx.outs[dummyUtxo.outputIndex],
+      sighashType:
+        btcjs.Transaction.SIGHASH_ALL | btcjs.Transaction.SIGHASH_ANYONECANPAY,
+    }
+    bid.addInput(dummyInput)
+    bidSchema.inputs.push({
+      type: 'dummy',
+      value: dummyUtxo.satoshis,
+    })
+    totalInput += dummyUtxo.satoshis
+  }
+
+  // Step 3: add placeholder 0-indexed output
+  bid.addOutput({
+    address,
+    value: DUMMY_UTXO_VALUE * 2,
+  })
+  bidSchema.outputs.push({
+    type: 'dummy',
+    value: DUMMY_UTXO_VALUE * 2,
+  })
+
+  // Step 4: add ordinal output
+  const ordValue = exchange.data.inputs[0].witnessUtxo!.value
+  const ordOutput = {
+    address,
+    value: ordValue,
+  }
+  bid.addOutput(ordOutput)
+  bidSchema.outputs.push({
+    type: 'brc',
+    value: ordValue,
+    tick: selectedPair.fromSymbol,
+  })
+
+  // Step 5: add exchange input and output
+  const exchangeInput = {
+    hash: exchange.txInputs[0].hash,
+    index: exchange.txInputs[0].index,
+    witnessUtxo: exchange.data.inputs[0].witnessUtxo,
+    finalScriptWitness: exchange.data.inputs[0].finalScriptWitness,
+  }
+  bid.addInput(exchangeInput)
+  totalInput += exchangeInput.witnessUtxo!.value
+
+  const exchangeOutput = exchange.txOutputs[0]
+  bid.addOutput(exchangeOutput)
+
+  // Step 6: service fee again
+  const serviceAddress =
+    btcNetwork === 'bitcoin'
+      ? SERVICE_LIVENET_BID_ADDRESS
+      : SERVICE_TESTNET_ADDRESS
+  // const serviceFee = Math.max(10_000, total * 0.01)
+  const oneServiceFee = 10_000
+  const serviceFee = oneServiceFee * 2
+  // add 2 service fee output
+  bid.addOutput({
+    address: serviceAddress,
+    value: oneServiceFee,
+  })
+  bid.addOutput({
+    address: serviceAddress,
+    value: oneServiceFee,
+  })
+
+  // Step 7: add 2 dummies output for future use
+  bid.addOutput({
+    address,
+    value: DUMMY_UTXO_VALUE,
+  })
+  bid.addOutput({
+    address,
+    value: DUMMY_UTXO_VALUE,
+  })
+
+  // Step 8: change
+  let useFeeb = DEBUG ? 12 : undefined
+  const extraInputValue = exchangeOutput.value - total
+  const { fee, paymentValue, feeb, changeValue } = await change({
+    psbt: bid,
+    feeb: useFeeb,
+    extraSize: 68, // baseInput + segwit
+    extraInputValue,
+  })
+
+  const totalSpent = total + serviceFee + fee - ordValue + extraInputValue
+  console.log({ fee, totalSpent })
+
+  return {
+    order: bid,
+    orderId: candidateInfo.orderId,
+    type: 'bid',
+    feeb,
+    networkFee: fee + extraInputValue,
+    total,
+    using: paymentValue,
+    fromSymbol: selectedPair.toSymbol, // reversed
+    toSymbol: selectedPair.fromSymbol,
+    fromValue: total,
+    toValue: coinAmount,
+    serviceFee,
+    totalPrice: total,
+    totalSpent,
+    changeValue,
+  }
+}
+
 export async function buildBidLimit({
   total,
   coinAmount,
@@ -252,7 +427,7 @@ export async function buildBidLimit({
   // Step 8: change
   let useFeeb = DEBUG ? 12 : undefined
   const extraInputValue = exchangeOutput.value - total
-  const { fee, paymentValue, feeb } = await change({
+  const { fee, paymentValue, feeb, changeValue } = await change({
     psbt: bid,
     feeb: useFeeb,
     extraSize: 68, // baseInput + segwit
@@ -260,7 +435,43 @@ export async function buildBidLimit({
   })
 
   const totalSpent = total + serviceFee + fee - ordValue + extraInputValue
-  console.log({ fee, totalSpent })
+
+  const bidSchema: {
+    inputs: {
+      type: 'dummy' | 'brc' | 'brc'
+      value: number
+      tick?: string
+      address?: string
+    }[]
+    outputs: {
+      type: 'dummy' | 'brc' | 'brc' | 'change'
+      value: number
+      tick?: string
+      address?: string
+    }[]
+  } = {
+    inputs: [],
+    outputs: [],
+  }
+  bidSchema.outputs.push({
+    type: 'change',
+    value: changeValue,
+    address,
+  })
+
+  // 2. build the transaction with the schema
+  const psbt = await constructBidPsbt({
+    network: orderNetwork,
+    tick: selectedPair.fromSymbol,
+    inscriptionId,
+    inscriptionNumber,
+    coinAmount,
+    total,
+    poolOrderId: poolOrderId as string,
+    bidSchema,
+  })
+
+  console.log({ psbt })
 
   return {
     order: bid,
@@ -277,6 +488,7 @@ export async function buildBidLimit({
     serviceFee,
     totalPrice: total,
     totalSpent,
+    changeValue,
   }
 }
 

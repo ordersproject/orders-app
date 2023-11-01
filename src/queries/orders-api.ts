@@ -162,6 +162,69 @@ export const getBidCandidateInfo = async ({
   return candidateInfo
 }
 
+export const constructBidPsbt = async ({
+  network,
+  tick,
+  inscriptionId,
+  inscriptionNumber,
+  coinAmount,
+  total,
+  poolOrderId,
+  bidSchema,
+}: {
+  network: 'livenet' | 'testnet'
+  tick: string
+  inscriptionId: string
+  inscriptionNumber: string
+  coinAmount: string | number
+  total: number
+  poolOrderId: string
+  bidSchema: {
+    inputs: {
+      type: 'dummy' | 'brc' | 'brc'
+      value: number
+      tick?: string
+      address?: string
+    }[]
+    outputs: {
+      type: 'dummy' | 'brc' | 'brc' | 'change'
+      value: number
+      tick?: string
+      address?: string
+    }[]
+  }
+}): Promise<{
+  net: 'livenet' | 'testnet'
+  tick: string
+  psbtRaw: string
+  orderId: string
+}> => {
+  const address = useAddressStore().get as string
+  const body = {
+    net: network,
+    tick,
+    inscriptionNumber,
+    inscriptionId,
+    coinAmount: String(coinAmount),
+    amount: total,
+    address,
+    poolOrderId,
+    isPool: true,
+    bidTxSpec: bidSchema,
+  }
+  const candidateInfo = await ordersApiFetch(`order/bid-v2`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+
+  // validate
+  if (!candidateInfo.psbtRaw) {
+    throw new Error('Psbt is not provided.')
+  }
+
+  return candidateInfo
+}
+
 export type Order = {
   amount: number
   buyerAddress: string
