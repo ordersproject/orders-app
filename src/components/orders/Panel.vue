@@ -31,7 +31,7 @@ import { sleep } from '@/lib/helpers'
 import { calculateFee } from '@/lib/build-helpers'
 import {
   buildAskLimit,
-  buildBidLimit,
+  buildBidLimitP1,
   buildSellTake,
 } from '@/lib/order-builder'
 import {
@@ -256,7 +256,7 @@ async function buildOrder() {
 
         // v2 update: 2-step build
         // 1. build the schema of the transaction and report the schema to the server
-        const preBuildRes = await buildBidLimit({
+        const preBuildRes = await buildBidLimitP1({
           total: Math.round(
             bidExchangePrice.value *
               Number(selectedBidCandidate.value.coinAmount) *
@@ -268,10 +268,9 @@ async function buildOrder() {
           selectedPair,
           poolOrderId: selectedBidCandidate.value.poolOrderId,
         })
+        buildRes = preBuildRes
 
         console.log({ preBuildRes })
-
-        return
       } else {
         buildRes = await buildAskLimit({
           total: Math.round(

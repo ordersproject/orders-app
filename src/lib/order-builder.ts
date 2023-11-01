@@ -10,6 +10,7 @@ import {
   DUMMY_UTXO_VALUE,
   DUST_UTXO_VALUE,
   MIN_FEEB,
+  ONE_SERVICE_FEE,
   SERVICE_LIVENET_ADDRESS,
   SERVICE_LIVENET_BID_ADDRESS,
   SERVICE_LIVENET_RDEX_ADDRESS,
@@ -143,7 +144,7 @@ export async function buildAskLimit({
   }
 }
 
-export async function buildBidLimit({
+export async function buildBidLimitP1({
   total,
   coinAmount,
   inscriptionId,
@@ -223,7 +224,7 @@ export async function buildBidLimit({
     address,
     value: difference,
   })
-  await change({
+  const { feeb, fee, paymentValue, changeValue } = await change({
     psbt: payPsbt,
   })
   console.log({ payPsbt })
@@ -241,19 +242,20 @@ export async function buildBidLimit({
 
   return {
     order: bid,
+    secondaryOrder: payPsbt,
     orderId: constructInfo.orderId,
     type: 'bid',
     feeb,
-    networkFee: fee + extraInputValue,
+    networkFee: fee,
     total,
     using: paymentValue,
     fromSymbol: selectedPair.toSymbol, // reversed
     toSymbol: selectedPair.fromSymbol,
     fromValue: total,
     toValue: coinAmount,
-    serviceFee,
+    serviceFee: ONE_SERVICE_FEE * 2,
     totalPrice: total,
-    totalSpent,
+    totalSpent: difference,
     changeValue,
   }
 
@@ -358,25 +360,25 @@ export async function buildBidLimit({
 
   // const totalSpent = total + serviceFee + fee! - ordValue + extraInputValue
 
-  console.log({ psbt })
+  // console.log({ psbt })
 
-  return {
-    order: bid,
-    orderId: candidateInfo.orderId,
-    type: 'bid',
-    feeb,
-    networkFee: fee + extraInputValue,
-    total,
-    using: paymentValue,
-    fromSymbol: selectedPair.toSymbol, // reversed
-    toSymbol: selectedPair.fromSymbol,
-    fromValue: total,
-    toValue: coinAmount,
-    serviceFee,
-    totalPrice: total,
-    totalSpent,
-    changeValue,
-  }
+  // return {
+  //   order: bid,
+  //   orderId: candidateInfo.orderId,
+  //   type: 'bid',
+  //   feeb,
+  //   networkFee: fee + extraInputValue,
+  //   total,
+  //   using: paymentValue,
+  //   fromSymbol: selectedPair.toSymbol, // reversed
+  //   toSymbol: selectedPair.fromSymbol,
+  //   fromValue: total,
+  //   toValue: coinAmount,
+  //   serviceFee,
+  //   totalPrice: total,
+  //   totalSpent,
+  //   changeValue,
+  // }
 }
 
 export async function buildBuyTake({

@@ -16,8 +16,13 @@ import {
   pushBuyTake,
   pushSellTake,
 } from '@/queries/orders-api'
-import { useAddressStore, useNetworkStore } from '@/store'
-import { DEBUG } from '@/data/constants'
+import { useAddressStore, useBtcJsStore, useNetworkStore } from '@/store'
+import {
+  DEBUG,
+  SIGHASH_ALL,
+  SIGHASH_ALL_ANYONECANPAY,
+  SIGHASH_ANYONECANPAY,
+} from '@/data/constants'
 import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
 import assets from '@/data/assets'
 
@@ -75,8 +80,96 @@ function discardOrder() {
   clearBuiltInfo()
 }
 
+async function submitBidOrder() {
+  const btcjs = useBtcJsStore().get!
+  const builtInfo = toRaw(props.builtInfo)
+
+  try {
+    // 1. sign secondary order which is used to create the actual utxo to pay for the bid order
+    const payPsbtSigned = await window.unisat.signPsbt(
+      builtInfo.secondaryOrder.toHex()
+    )
+    console.log({ payPsbtSigned })
+    const payPsbt = btcjs.Psbt.fromHex(payPsbtSigned)
+    console.log({ payPsbt })
+
+    // 2. now we can add that utxo to the bid order
+    const bidPsbt = builtInfo.order
+    console.log({ bidPsbt })
+    bidPsbt.addInput({
+      hash: payPsbt.extractTransaction().getId(),
+      index: 0,
+      witnessUtxo: {
+        script: payPsbt.extractTransaction().outs[0].script,
+        value: payPsbt.extractTransaction().outs[0].value,
+      },
+      sighashType: SIGHASH_ALL_ANYONECANPAY,
+    })
+
+    // 3. we sign the bid order
+    const signed = await unisat.signPsbt(bidPsbt.toHex())
+    console.log({ signed })
+
+    return
+
+    // 4. push the bid order to the api
+    const pushRes = await pushBidOrder({
+      psbtRaw: signed,
+      network: networkStore.ordersNetwork,
+      address: addressStore.get!,
+      tick: selectedPair.fromSymbol,
+      feeb: builtInfo.feeb,
+      fee: builtInfo.networkFee,
+      total: builtInfo.total,
+      using: builtInfo.using,
+      orderId: builtInfo.orderId,
+    })
+
+    // 5. if pushRes is not null, we can now push the secondary order to the blockchain
+    if (pushRes) {
+      const res = await window.unisat.pushPsbt(payPsbtSigned)
+    }
+  } catch (err: any) {
+    // if error message contains missingorspent / mempool-conflict, show a more user-friendly message
+    if (
+      err.message.includes('missingorspent') ||
+      err.message.includes('mempool-conflict')
+    ) {
+      ElMessage.error('The order was taken. Please try another one.')
+    } else {
+      ElMessage.error(err.message)
+    }
+    emit('update:isOpen', false)
+    clearBuiltInfo()
+    emit('update:isLimitExchangeMode', false)
+    return
+  }
+
+  // Show success message
+  emit('update:isOpen', false)
+  clearBuiltInfo()
+  emit('update:isLimitExchangeMode', false)
+
+  ElMessage({
+    message: `${builtInfo.type} order completed!`,
+    type: 'success',
+    onClose: () => {
+      // reload
+      if (!DEBUG) {
+        window.location.reload()
+      }
+    },
+  })
+}
+
 async function submitOrder() {
   const builtInfo = toRaw(props.builtInfo)
+
+  // if type if bid, we handle it differently
+  if (builtInfo.type === 'bid') {
+    return submitBidOrder()
+  }
+
   try {
     // 1. sign
     const signed = await unisat.signPsbt(builtInfo.order.toHex())

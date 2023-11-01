@@ -9,6 +9,7 @@ import {
   MIN_FEEB,
   MS_FEEB_MULTIPLIER,
   SIGHASH_ALL,
+  SIGHASH_ALL_ANYONECANPAY,
   SIGHASH_ANYONECANPAY,
 } from '@/data/constants'
 import { getFeebPlans, getTxHex, getUtxos } from '@/queries/proxy'
@@ -158,7 +159,7 @@ export async function change({
   pubKey,
   extraSize,
   extraInputValue,
-  sighashType = SIGHASH_ALL | SIGHASH_ANYONECANPAY,
+  sighashType = SIGHASH_ALL_ANYONECANPAY,
   estimate = false,
 }: {
   psbt: Psbt
@@ -207,6 +208,40 @@ export async function change({
   }
   const paymentUtxoValue = paymentUtxo.satoshis
 
+  if (estimate) {
+    const psbtClone = psbt.clone()
+    psbtClone.addInput(paymentInput)
+
+    // Add change output
+    if (!feeb) {
+      feeb = await getLowestFeeb()
+    }
+
+    let fee = calcFee(psbtClone, feeb, extraSize, extraInputValue)
+    const totalOutput = sumOrNaN(psbtClone.txOutputs)
+    const totalInput = sumOrNaN(
+      psbtClone.data.inputs.map(
+        (input) =>
+          input.witnessUtxo || input.nonWitnessUtxo || raise('Input invalid')
+      )
+    )
+    const changeValue = totalInput - totalOutput - fee
+    console.log({ changeValue })
+
+    if (changeValue < 0) {
+      throw new Error('Insufficient balance')
+    }
+
+    // return the difference，which feans how much we actually paying
+    return {
+      difference: paymentUtxoValue - changeValue,
+      feeb,
+      fee,
+      paymentValue: paymentUtxoValue - changeValue,
+      changeValue: 0,
+    }
+  }
+
   psbt.addInput(paymentInput)
 
   // Add change output
@@ -228,13 +263,6 @@ export async function change({
 
   if (changeValue < 0) {
     throw new Error('Insufficient balance')
-  }
-
-  if (estimate) {
-    // return the difference，which feans how much we actually paying
-    return {
-      difference: paymentUtxoValue - changeValue,
-    }
   }
 
   if (changeValue >= DUST_UTXO_VALUE) {
