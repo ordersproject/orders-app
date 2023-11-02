@@ -221,7 +221,9 @@ async function submitReleaseRecord() {
         {{ record.claimState === 'ready' ? 'Release' : 'Pending' }}
       </button>
 
-      <span class="text-zinc-500 text-xs" v-else>Waiting for next block</span>
+      <span class="text-zinc-500 text-xs" v-else>
+        Waiting for block confirmation
+      </span>
     </div>
   </div>
 </template>
