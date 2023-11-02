@@ -154,9 +154,9 @@ async function submitBidOrder() {
     type: 'success',
     onClose: () => {
       // reload
-      if (!DEBUG) {
-        window.location.reload()
-      }
+      // if (!DEBUG) {
+      window.location.reload()
+      // }
     },
   })
 }
