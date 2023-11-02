@@ -62,7 +62,7 @@ const { data: myBrc20s } = useQuery({
       <Menu as="div" class="relative inline-block text-left">
         <div>
           <MenuButton
-            class="inline-flex w-full items-center justify-center gap-x-1 rounded-md px-3 shadow-sm"
+            class="inline-flex w-full items-center justify-center gap-x-1 rounded-md pl-3 shadow-sm"
           >
             <span>
               {{ prettyCoinDisplay(balance, 'BTC') }}
@@ -115,17 +115,17 @@ const { data: myBrc20s } = useQuery({
               >
                 <div class="text-orange-300 uppercase">{{ brc20.token }}</div>
                 <div class="mt-2 space-y-1 text-xs">
-                  <div class="flex items-center justify-between">
+                  <div class="flex items-center justify-between gap-1">
                     <span class="text-zinc-500">Available</span>
-                    <span>
+                    <span class="text-right">
                       {{
                         prettyCoinDisplay(brc20.availableBalance, brc20.token)
                       }}
                     </span>
                   </div>
-                  <div class="flex items-center justify-between">
+                  <div class="flex items-center justify-between gap-1">
                     <span class="text-zinc-500">Transferable</span>
-                    <span>
+                    <span class="text-right">
                       {{
                         prettyCoinDisplay(brc20.transferBalance, brc20.token)
                       }}

@@ -40,7 +40,7 @@ const status = computed(() => {
       </span>
 
       <span class="text-zinc-500 text-sm">
-        {{ `${prettyTimestamp(record.timestamp)}` }}
+        {{ `${prettyTimestamp(record.dealTime)}` }}
       </span>
     </h3>
 

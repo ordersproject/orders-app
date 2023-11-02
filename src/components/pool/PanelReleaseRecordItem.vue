@@ -134,7 +134,7 @@ async function submitReleaseRecord() {
       </span>
 
       <span class="text-zinc-500 text-sm">
-        {{ `${prettyTimestamp(record.timestamp)}` }}
+        {{ `${prettyTimestamp(record.dealTime)}` }}
       </span>
     </h3>
 
@@ -165,7 +165,7 @@ async function submitReleaseRecord() {
           </span>
         </div>
 
-        <div class="flex items-center">
+        <div class="flex items-center" v-if="record.claimState === 'ready'">
           <span class="w-28 inline-block text-zinc-500">Rewards</span>
           <span>
             {{
@@ -174,8 +174,12 @@ async function submitReleaseRecord() {
                 : '-'
             }}
           </span>
-          <span>
-            {{ record.percentage ? ` ${record.percentage} %` : '' }}
+          <span class="ml-2">
+            {{
+              record.percentage
+                ? ` - ${(record.percentage / 100).toFixed(2)} %`
+                : ''
+            }}
           </span>
         </div>
 
@@ -212,9 +216,12 @@ async function submitReleaseRecord() {
         ]"
         @click.prevent="submitReleaseRecord"
         :disabled="record.claimState !== 'ready'"
+        v-if="record.claimState === 'ready'"
       >
         {{ record.claimState === 'ready' ? 'Release' : 'Pending' }}
       </button>
+
+      <span class="text-zinc-500 text-xs" v-else>Waiting for next block</span>
     </div>
   </div>
 </template>
