@@ -609,3 +609,21 @@ export const updateClaim = async ({
     }),
   })
 }
+
+export const getListingUtxos: () => Promise<
+  {
+    order: string
+    dummyId: string
+    timestamp: number
+  }[]
+> = async () => {
+  const network = 'livenet'
+  const address = useAddressStore().address!
+
+  const utxos = await ordersApiFetch(
+    `order/bid/dummy/${address}?net=${network}`
+  ).then(({ results }) => results || [])
+  console.log({ utxos })
+
+  return utxos
+}

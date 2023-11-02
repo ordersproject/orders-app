@@ -4,7 +4,7 @@ import {
   useDummiesStore,
   useNetworkStore,
 } from '@/store'
-import { calculatePsbtFee, change } from './build-helpers'
+import { calculatePsbtFee, change, exclusiveChange } from './build-helpers'
 import {
   DEBUG,
   DUMMY_UTXO_VALUE,
@@ -213,7 +213,7 @@ export async function buildBidLimitP1({
   // 3. estimate how much we have to pay
 
   const extraInputValue = bid.txOutputs[2].value - total
-  const { difference, fee: bidFee } = await change({
+  const { difference, fee: bidFee } = await exclusiveChange({
     psbt: bid,
     estimate: true,
     extraInputValue,
