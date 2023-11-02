@@ -271,7 +271,7 @@ export async function exclusiveChange({
     feeb = await getLowestFeeb()
   }
 
-  let fee = calcFee(psbt, feeb, extraSize, extraInputValue)
+  let fee = calcFee(psbt, feeb, extraSize)
   const totalOutput = sumOrNaN(psbt.txOutputs)
   const totalInput = sumOrNaN(
     psbt.data.inputs.map(
@@ -409,7 +409,7 @@ export async function change({
     feeb = await getLowestFeeb()
   }
 
-  let fee = calcFee(psbt, feeb, extraSize, extraInputValue)
+  let fee = calcFee(psbt, feeb, extraSize)
   const totalOutput = sumOrNaN(psbt.txOutputs)
   const totalInput = sumOrNaN(
     psbt.data.inputs.map(
