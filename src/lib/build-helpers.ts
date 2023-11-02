@@ -99,8 +99,8 @@ function transactionBytes(inputs: PsbtInput[], outputs: PsbtTxOutput[]) {
 export function calcFee(
   psbt: Psbt,
   feeRate: number,
-  extraSize: number = 31, // 31 is the size of the segwit change output
-  extraInputValue?: number
+  extraSize: number = 31 // 31 is the size of the segwit change output
+  // extraInputValue?: number
 ) {
   const inputs = psbt.data.inputs
   const outputs = psbt.txOutputs
@@ -112,9 +112,9 @@ export function calcFee(
   console.log({ bytes })
 
   let fee = Math.ceil(bytes * feeRate)
-  if (extraInputValue) {
-    fee -= extraInputValue
-  }
+  // if (extraInputValue) {
+  //   fee -= extraInputValue
+  // }
 
   return fee
 }
@@ -217,7 +217,8 @@ export async function change({
       feeb = await getLowestFeeb()
     }
 
-    let fee = calcFee(psbtClone, feeb, extraSize, extraInputValue)
+    let fee = calcFee(psbtClone, feeb, extraSize)
+    console.log({ fee, feeb, extraSize, extraInputValue })
     const totalOutput = sumOrNaN(psbtClone.txOutputs)
     const totalInput = sumOrNaN(
       psbtClone.data.inputs.map(
@@ -225,8 +226,15 @@ export async function change({
           input.witnessUtxo || input.nonWitnessUtxo || raise('Input invalid')
       )
     )
-    const changeValue = totalInput - totalOutput - fee
-    console.log({ changeValue })
+    const changeValue = totalInput - totalOutput - fee + (extraInputValue || 0)
+    console.log({
+      changeValue,
+      totalInput,
+      totalOutput,
+      fee,
+      paymentUtxoValue,
+      difference: paymentUtxoValue - changeValue,
+    })
 
     if (changeValue < 0) {
       throw new Error('Insufficient balance')

@@ -110,8 +110,6 @@ async function submitBidOrder() {
     const signed = await unisat.signPsbt(bidPsbt.toHex())
     console.log({ signed })
 
-    return
-
     // 4. push the bid order to the api
     const pushRes = await pushBidOrder({
       psbtRaw: signed,
@@ -119,11 +117,12 @@ async function submitBidOrder() {
       address: addressStore.get!,
       tick: selectedPair.fromSymbol,
       feeb: builtInfo.feeb,
-      fee: builtInfo.networkFee,
+      fee: builtInfo.mainFee,
       total: builtInfo.total,
       using: builtInfo.using,
       orderId: builtInfo.orderId,
     })
+    console.log({ pushRes })
 
     // 5. if pushRes is not null, we can now push the secondary order to the blockchain
     if (pushRes) {

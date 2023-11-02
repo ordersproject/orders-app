@@ -9,6 +9,7 @@ import {
   DEBUG,
   DUMMY_UTXO_VALUE,
   DUST_UTXO_VALUE,
+  EXTRA_INPUT_MIN_VALUE,
   MIN_FEEB,
   ONE_SERVICE_FEE,
   SERVICE_LIVENET_ADDRESS,
@@ -210,9 +211,12 @@ export async function buildBidLimitP1({
   console.log({ bid })
 
   // 3. estimate how much we have to pay
-  const { difference } = await change({
+
+  const extraInputValue = bid.txOutputs[2].value - total
+  const { difference, fee: bidFee } = await change({
     psbt: bid,
     estimate: true,
+    extraInputValue,
   })
   if (!difference) {
     throw new Error('It seems that we cannot figure out how to pay this bill')
@@ -224,10 +228,20 @@ export async function buildBidLimitP1({
     address,
     value: difference,
   })
-  const { feeb, fee, paymentValue, changeValue } = await change({
+  const {
+    feeb,
+    fee: payFee,
+    paymentValue,
+    changeValue,
+  } = await change({
     psbt: payPsbt,
   })
   console.log({ payPsbt })
+
+  // according to api, extra input should be no less than 600
+  // so we minus the difference from the bidFee to make up upload fee for api
+  const uploadFee = bidFee - (EXTRA_INPUT_MIN_VALUE - extraInputValue)
+  console.log({ uploadFee, extraInputValue })
 
   // 5. ok, now we have a utxo to actually pay the bill
   // we add it to the bid
@@ -246,16 +260,19 @@ export async function buildBidLimitP1({
     orderId: constructInfo.orderId,
     type: 'bid',
     feeb,
-    networkFee: fee,
+    networkFee: payFee + bidFee,
+    mainFee: bidFee,
+    secondaryFee: payFee,
+    uploadFee,
     total,
-    using: paymentValue,
+    using: difference,
     fromSymbol: selectedPair.toSymbol, // reversed
     toSymbol: selectedPair.fromSymbol,
     fromValue: total,
     toValue: coinAmount,
     serviceFee: ONE_SERVICE_FEE * 2,
     totalPrice: total,
-    totalSpent: difference,
+    totalSpent: difference + payFee,
     changeValue,
   }
 
@@ -349,7 +366,7 @@ export async function buildBidLimitP1({
 
   // Step 8: change
   let useFeeb = await getLowestFeeb()
-  const extraInputValue = exchangeOutput.value - total
+  // const extraInputValue = exchangeOutput.value - total
   // const { fee, paymentValue, feeb, changeValue } = await change({
   //   psbt: bid,
   //   feeb: useFeeb,
