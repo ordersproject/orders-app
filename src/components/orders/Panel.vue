@@ -457,7 +457,9 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
 </script>
 
 <template>
-  <div class="rounded-xl border border-zinc-300">
+  <div
+    class="rounded-xl shadow-lg shadow-orange-300/20 border-2 border-orange-200/20"
+  >
     <OrderPanelHeader v-model:is-limit-exchange-mode="isLimitExchangeMode" />
 
     <!-- table -->
@@ -553,7 +555,9 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                     class="cursor-pointer pt-2 text-right text-xs text-zinc-500"
                     v-if="marketPrice"
                     @click="
-                      bidExchangePrice = Number((marketPrice * 0.99).toFixed(8))
+                      bidExchangePrice = Number(
+                        (marketPrice! * 0.99).toFixed(8)
+                      )
                     "
                     title="Use market price"
                   >
@@ -718,7 +722,9 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                     class="cursor-pointer pt-2 text-right text-xs text-zinc-500"
                     v-if="marketPrice"
                     @click="
-                      askExchangePrice = Number((marketPrice * 1.01).toFixed(8))
+                      askExchangePrice = Number(
+                        (marketPrice! * 1.01).toFixed(8)
+                      )
                     "
                     title="Use market price"
                   >

@@ -9,6 +9,8 @@ import tracLogo from '@/assets/trac.png?url'
 import lgerLogo from '@/assets/lger.jpg?url'
 import saycLogo from '@/assets/sayc.jpg?url'
 import fishLogo from '@/assets/fish.jpg?url'
+import catsLogo from '@/assets/cats.jpg?url'
+import btcsLogo from '@/assets/btcs.jpg?url'
 
 import { useRoute } from 'vue-router'
 import { InjectionKey } from 'vue'
@@ -58,6 +60,7 @@ const tradingPairs = [
     toSymbol: 'btc',
     fromIcon: vmpxLogo,
     toIcon: btcLogo,
+    hasPool: true,
   },
   {
     id: 7,
@@ -72,6 +75,7 @@ const tradingPairs = [
     toSymbol: 'btc',
     fromIcon: lgerLogo,
     toIcon: btcLogo,
+    hasPool: true,
   },
   {
     id: 9,
@@ -93,6 +97,22 @@ const tradingPairs = [
     fromSymbol: 'fish',
     toSymbol: 'btc',
     fromIcon: fishLogo,
+    toIcon: btcLogo,
+    hasPool: true,
+  },
+  {
+    id: 12,
+    fromSymbol: 'cats',
+    toSymbol: 'btc',
+    fromIcon: catsLogo,
+    toIcon: btcLogo,
+    hasPool: true,
+  },
+  {
+    id: 13,
+    fromSymbol: 'btcs',
+    toSymbol: 'btc',
+    fromIcon: btcsLogo,
     toIcon: btcLogo,
     hasPool: true,
   },

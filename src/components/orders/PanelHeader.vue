@@ -17,7 +17,7 @@ const inWhitelist = computed(() => {
 
 <template>
   <div
-    class="flex items-center justify-between border-b border-zinc-300 px-4 py-2"
+    class="flex items-center justify-between border-b border-orange-200/40 px-4 py-2"
   >
     <!-- pair select -->
     <div class="col-span-2 flex items-center justify-center gap-2">

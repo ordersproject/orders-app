@@ -59,7 +59,7 @@ const hasReleasable = computed(() => {
 </script>
 
 <template>
-  <div class="border rounded-xl p-8">
+  <div class="border-2 border-orange-200/30 rounded-xl p-8">
     <TabGroup
       v-if="loggedIn"
       :default-index="selectedTab"

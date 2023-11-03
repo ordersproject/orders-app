@@ -217,8 +217,10 @@ export type PoolRecord = {
   rewardExtraAmount: number
 
   dealCoinTxBlockState: number
-  dealCoinTxBlock: number
   dealTime: number
+  dealCoinTxBlock: number
+  calStartBlock: number
+  calEndBlock: number
 }
 export const getMyPoolRecords = async ({
   address,

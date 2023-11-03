@@ -196,43 +196,20 @@ async function submitReleaseRecord() {
             </DisclosureButton>
 
             <DisclosurePanel
-              class="text-gray-500 bg-black rounded-md px-2 py-2 space-y-2 mt-0.5"
+              class="text-gray-500 bg-black rounded-md px-2 py-2 space-y-2 mt-0.5 text-xs"
             >
               <div class="">
-                <span>=</span>
-                <span class="inline-flex items-center gap-1 ml-1">
-                  <span>{{ record.rewardAmount }}</span>
-                  <span
-                    class="text-xs bg-zinc-700/30 px-2 py-0.5 rounded text-orange-300"
-                  >
-                    base amount
-                  </span>
-                </span>
+                <div>Confirm Block Height</div>
+                <div class="text-zinc-300">
+                  {{ record.dealCoinTxBlock }}
+                </div>
               </div>
 
               <div class="">
-                <span>*</span>
-                <span class="inline-flex items-center gap-1 ml-1">
-                  <span>(100% - {{ record.decreasing }}%</span>
-                  <span
-                    class="text-xs bg-red-900/30 px-2 py-0.5 rounded text-red-700"
-                  >
-                    decrease % over time
-                  </span>
-                  <span>)</span>
-                </span>
-              </div>
-
-              <div class="">
-                <span>+</span>
-                <span class="inline-flex items-center gap-1 ml-1">
-                  <span>{{ record.rewardExtraAmount }}</span>
-                  <span
-                    class="text-xs bg-cyan-900/30 px-2 py-0.5 rounded text-cyan-700"
-                  >
-                    long standby time bonus
-                  </span>
-                </span>
+                <div>Distributing across Blocks</div>
+                <div class="text-zinc-300">
+                  {{ record.calStartBlock }} - {{ record.calEndBlock }}
+                </div>
               </div>
             </DisclosurePanel>
           </Disclosure>
