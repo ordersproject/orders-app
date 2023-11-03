@@ -11,6 +11,8 @@ import saycLogo from '@/assets/sayc.jpg?url'
 import fishLogo from '@/assets/fish.jpg?url'
 import catsLogo from '@/assets/cats.jpg?url'
 import btcsLogo from '@/assets/btcs.jpg?url'
+import ibtcLogo from '@/assets/ibtc.jpg?url'
+import biliLogo from '@/assets/bili.jpg?url'
 
 import { useRoute } from 'vue-router'
 import { InjectionKey } from 'vue'
@@ -47,13 +49,13 @@ const tradingPairs = [
   //   fromIcon: satsLogo,
   //   toIcon: btcLogo,
   // },
-  {
-    id: 5,
-    fromSymbol: 'grum',
-    toSymbol: 'btc',
-    fromIcon: grumLogo,
-    toIcon: btcLogo,
-  },
+  // {
+  //   id: 5,
+  //   fromSymbol: 'grum',
+  //   toSymbol: 'btc',
+  //   fromIcon: grumLogo,
+  //   toIcon: btcLogo,
+  // },
   {
     id: 6,
     fromSymbol: 'vmpx',
@@ -69,39 +71,33 @@ const tradingPairs = [
     fromIcon: tracLogo,
     toIcon: btcLogo,
   },
+
   {
     id: 8,
-    fromSymbol: 'lger',
+    fromSymbol: 'btcs',
     toSymbol: 'btc',
-    fromIcon: lgerLogo,
+    fromIcon: btcsLogo,
     toIcon: btcLogo,
     hasPool: true,
   },
   {
     id: 9,
-    fromSymbol: 'sayc',
+    fromSymbol: 'ibtc',
     toSymbol: 'btc',
-    fromIcon: saycLogo,
+    fromIcon: ibtcLogo,
     toIcon: btcLogo,
+    hasPool: true,
   },
   {
     id: 10,
-    fromSymbol: 'orxc',
+    fromSymbol: 'bili',
     toSymbol: 'btc',
-    fromIcon: rdexLogo,
+    fromIcon: biliLogo,
     toIcon: btcLogo,
     hasPool: true,
   },
   {
     id: 11,
-    fromSymbol: 'fish',
-    toSymbol: 'btc',
-    fromIcon: fishLogo,
-    toIcon: btcLogo,
-    hasPool: true,
-  },
-  {
-    id: 12,
     fromSymbol: 'cats',
     toSymbol: 'btc',
     fromIcon: catsLogo,
@@ -109,10 +105,33 @@ const tradingPairs = [
     hasPool: true,
   },
   {
-    id: 13,
-    fromSymbol: 'btcs',
+    id: 12,
+    fromSymbol: 'fish',
     toSymbol: 'btc',
-    fromIcon: btcsLogo,
+    fromIcon: fishLogo,
+    toIcon: btcLogo,
+    hasPool: true,
+  },
+  {
+    id: 3,
+    fromSymbol: 'lger',
+    toSymbol: 'btc',
+    fromIcon: lgerLogo,
+    toIcon: btcLogo,
+    hasPool: true,
+  },
+  {
+    id: 14,
+    fromSymbol: 'sayc',
+    toSymbol: 'btc',
+    fromIcon: saycLogo,
+    toIcon: btcLogo,
+  },
+  {
+    id: 15,
+    fromSymbol: 'orxc',
+    toSymbol: 'btc',
+    fromIcon: rdexLogo,
     toIcon: btcLogo,
     hasPool: true,
   },
