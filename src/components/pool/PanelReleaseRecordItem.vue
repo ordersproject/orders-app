@@ -3,6 +3,12 @@ import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { ElMessage } from 'element-plus'
 import { inject, ref } from 'vue'
 import Decimal from 'decimal.js'
+import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue'
+import {
+  ArrowDownRightIcon,
+  HelpCircleIcon,
+  ChevronRightIcon,
+} from 'lucide-vue-next'
 
 import { prettyTimestamp } from '@/lib/formatters'
 import {
@@ -14,16 +20,12 @@ import { useAddressStore } from '@/store'
 import {
   DEBUG,
   POOL_REWARDS_TICK,
-  SIGHASH_ALL,
-  SIGHASH_ANYONECANPAY,
   SIGHASH_SINGLE_ANYONECANPAY,
 } from '@/data/constants'
 import { buildReleasePsbt } from '@/lib/order-pool-builder'
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 
 import ReleasingOverlay from '@/components/overlays/Loading.vue'
-import { ArrowDownRightIcon } from 'lucide-vue-next'
-import { HelpCircleIcon } from 'lucide-vue-next'
 
 const props = defineProps<{
   record: PoolRecord
@@ -167,20 +169,73 @@ async function submitReleaseRecord() {
 
         <div class="flex items-center" v-if="record.claimState === 'ready'">
           <span class="w-28 inline-block text-zinc-500">Rewards</span>
-          <span>
-            {{
-              record.rewardAmount
-                ? `${record.rewardAmount} ${POOL_REWARDS_TICK.toUpperCase()}`
-                : '-'
-            }}
-          </span>
-          <span class="ml-2">
-            {{
-              record.percentage
-                ? ` - ${(record.percentage / 100).toFixed(2)} %`
-                : ''
-            }}
-          </span>
+
+          <Disclosure as="div" v-slot="{ open }" class="grow">
+            <DisclosureButton class="flex items-center gap-2">
+              <span>
+                {{
+                  record.rewardAmount
+                    ? `${
+                        record.rewardAmount
+                      } ${POOL_REWARDS_TICK.toUpperCase()}`
+                    : '-'
+                }}
+              </span>
+              <span class="ml-2">
+                {{
+                  record.percentage
+                    ? ` - ${(record.percentage / 100).toFixed(2)} %`
+                    : ''
+                }}
+              </span>
+
+              <ChevronRightIcon
+                class="w-4"
+                :class="open && 'rotate-90 transform'"
+              />
+            </DisclosureButton>
+
+            <DisclosurePanel
+              class="text-gray-500 bg-black rounded-md px-2 py-2 space-y-2 mt-0.5"
+            >
+              <div class="">
+                <span>=</span>
+                <span class="inline-flex items-center gap-1 ml-1">
+                  <span>{{ record.rewardAmount }}</span>
+                  <span
+                    class="text-xs bg-zinc-700/30 px-2 py-0.5 rounded text-orange-300"
+                  >
+                    base amount
+                  </span>
+                </span>
+              </div>
+
+              <div class="">
+                <span>*</span>
+                <span class="inline-flex items-center gap-1 ml-1">
+                  <span>(100% - {{ record.decreasing }}%</span>
+                  <span
+                    class="text-xs bg-red-900/30 px-2 py-0.5 rounded text-red-700"
+                  >
+                    decrease % over time
+                  </span>
+                  <span>)</span>
+                </span>
+              </div>
+
+              <div class="">
+                <span>+</span>
+                <span class="inline-flex items-center gap-1 ml-1">
+                  <span>{{ record.rewardExtraAmount }}</span>
+                  <span
+                    class="text-xs bg-cyan-900/30 px-2 py-0.5 rounded text-cyan-700"
+                  >
+                    long standby time bonus
+                  </span>
+                </span>
+              </div>
+            </DisclosurePanel>
+          </Disclosure>
         </div>
 
         <div class="flex items-center" v-if="record.decreasing">
@@ -222,7 +277,7 @@ async function submitReleaseRecord() {
       </button>
 
       <span class="text-zinc-500 text-xs" v-else>
-        Waiting for block confirmation
+        Waiting for block confirm
       </span>
     </div>
   </div>

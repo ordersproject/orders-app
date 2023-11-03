@@ -23,6 +23,7 @@ import TheNavbar from './TheNavbar.vue'
 
 const addressStore = useAddressStore()
 const networkStore = useNetworkStore()
+const dummiesStore = useDummiesStore()
 
 onMounted(async () => {
   if (window.unisat) {
@@ -173,7 +174,7 @@ const unisatModalOpen = ref(false)
           <AssetsDisplay />
 
           <!-- ready button -->
-          <!-- <div class="pl-4" v-if="!dummiesStore.has">
+          <div class="pl-4 ml-4" v-if="!dummiesStore.has">
             <el-tooltip effect="light" placement="bottom-end">
               <template #content>
                 <h3 class="my-2 text-sm font-bold text-orange-300">
@@ -196,9 +197,9 @@ const unisatModalOpen = ref(false)
               />
             </el-tooltip>
           </div>
-          <div class="pl-4" v-else>
+          <div class="pl-4 ml-4" v-else>
             <CheckCircle2 class="h-5 text-orange-300" />
-          </div> -->
+          </div>
         </div>
 
         <Notifications />

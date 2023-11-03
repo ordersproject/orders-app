@@ -38,13 +38,13 @@ const tradingPairs = [
     toIcon: btcLogo,
     hasPool: true,
   },
-  {
-    id: 4,
-    fromSymbol: 'sats',
-    toSymbol: 'btc',
-    fromIcon: satsLogo,
-    toIcon: btcLogo,
-  },
+  // {
+  //   id: 4,
+  //   fromSymbol: 'sats',
+  //   toSymbol: 'btc',
+  //   fromIcon: satsLogo,
+  //   toIcon: btcLogo,
+  // },
   {
     id: 5,
     fromSymbol: 'grum',
