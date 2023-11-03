@@ -254,6 +254,7 @@ export const getOrders = async ({
 }) => {
   const orderType = type === 'ask' ? 1 : 2
   const sortType = sort === 'asc' ? 1 : -1
+  const address = useAddressStore().get as string
 
   const params = new URLSearchParams({
     net: network,
@@ -262,6 +263,7 @@ export const getOrders = async ({
     sortKey: 'coinRatePrice',
     sortType: String(sortType),
     tick,
+    address,
   })
   const orders: Order[] = await ordersApiFetch(`orders?${params}`).then(
     ({ results }) => results
