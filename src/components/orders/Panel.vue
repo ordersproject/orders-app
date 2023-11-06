@@ -613,7 +613,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                           :disabled="true"
                           class="text-right text-zinc-500 text-sm py-2"
                         >
-                          No liquidity currently.
+                          No liquidity provided.
                         </ListboxOption>
                         <ListboxOption
                           v-for="bidCandidate in bidCandidates"
