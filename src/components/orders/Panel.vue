@@ -508,9 +508,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   selectedIndex === 0
                     ? 'bg-green-500 text-white'
                     : 'bg-zinc-700 text-zinc-300',
-                  { 'cursor-not-allowed': !inWhitelist },
                 ]"
-                :disabled="!inWhitelist"
               >
                 Bid
               </Tab>
