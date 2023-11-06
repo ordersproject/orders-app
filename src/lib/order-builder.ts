@@ -4,20 +4,16 @@ import {
   useDummiesStore,
   useNetworkStore,
 } from '@/store'
-import { calculatePsbtFee, change, exclusiveChange } from './build-helpers'
+import { change, exclusiveChange } from './build-helpers'
 import {
-  DEBUG,
   DUMMY_UTXO_VALUE,
   DUST_UTXO_VALUE,
   EXTRA_INPUT_MIN_VALUE,
-  MIN_FEEB,
   ONE_SERVICE_FEE,
   SERVICE_LIVENET_ADDRESS,
   SERVICE_LIVENET_BID_ADDRESS,
   SERVICE_LIVENET_RDEX_ADDRESS,
   SERVICE_TESTNET_ADDRESS,
-  SIGHASH_ALL,
-  SIGHASH_ANYONECANPAY,
   SIGHASH_SINGLE_ANYONECANPAY,
 } from '@/data/constants'
 import {
@@ -145,7 +141,7 @@ export async function buildAskLimit({
   }
 }
 
-export async function buildBidLimitP1({
+export async function buildBidLimit({
   total,
   coinAmount,
   inscriptionId,
@@ -233,7 +229,7 @@ export async function buildBidLimitP1({
     fee: payFee,
     paymentValue,
     changeValue,
-  } = await change({
+  } = await exclusiveChange({
     psbt: payPsbt,
   })
   console.log({ payPsbt })
@@ -562,7 +558,7 @@ export async function buildBuyTake({
   // } else {
   //   fee += changeValue
   // }
-  const { fee } = await change({
+  const { fee } = await exclusiveChange({
     psbt: buyPsbt,
     feeb,
   })
@@ -838,7 +834,7 @@ export async function buildClaimTake({
   })
 
   // Step 8: change
-  await change({
+  await exclusiveChange({
     psbt: takePsbt,
   })
 

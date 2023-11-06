@@ -6,7 +6,6 @@ import satsLogo from '@/assets/sats.jpg?url'
 import grumLogo from '@/assets/grum.png?url'
 import vmpxLogo from '@/assets/vmpx.jpg?url'
 import tracLogo from '@/assets/trac.png?url'
-import lgerLogo from '@/assets/lger.jpg?url'
 import saycLogo from '@/assets/sayc.jpg?url'
 import fishLogo from '@/assets/fish.jpg?url'
 import catsLogo from '@/assets/cats.jpg?url'
@@ -113,28 +112,20 @@ const tradingPairs = [
     hasPool: true,
   },
   {
-    id: 3,
-    fromSymbol: 'lger',
-    toSymbol: 'btc',
-    fromIcon: lgerLogo,
-    toIcon: btcLogo,
-    hasPool: true,
-  },
-  {
     id: 14,
     fromSymbol: 'sayc',
     toSymbol: 'btc',
     fromIcon: saycLogo,
     toIcon: btcLogo,
   },
-  {
-    id: 15,
-    fromSymbol: 'orxc',
-    toSymbol: 'btc',
-    fromIcon: rdexLogo,
-    toIcon: btcLogo,
-    hasPool: true,
-  },
+  // {
+  //   id: 15,
+  //   fromSymbol: 'orxc',
+  //   toSymbol: 'btc',
+  //   fromIcon: rdexLogo,
+  //   toIcon: btcLogo,
+  //   hasPool: true,
+  // },
 ] as {
   id: number
   fromSymbol: string

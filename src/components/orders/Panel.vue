@@ -31,7 +31,7 @@ import { sleep } from '@/lib/helpers'
 import { calculateFee } from '@/lib/build-helpers'
 import {
   buildAskLimit,
-  buildBidLimitP1,
+  buildBidLimit,
   buildSellTake,
 } from '@/lib/order-builder'
 import {
@@ -256,7 +256,7 @@ async function buildOrder() {
 
         // v2 update: 2-step build
         // 1. build the schema of the transaction and report the schema to the server
-        const preBuildRes = await buildBidLimitP1({
+        const preBuildRes = await buildBidLimit({
           total: Math.round(
             bidExchangePrice.value *
               Number(selectedBidCandidate.value.coinAmount) *
@@ -611,7 +611,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                           :disabled="true"
                           class="text-right text-zinc-500 text-sm py-2"
                         >
-                          No liquidity currently.
+                          No liquidity provided.
                         </ListboxOption>
                         <ListboxOption
                           v-for="bidCandidate in bidCandidates"
@@ -639,7 +639,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                             <!-- liquidity race status  -->
                             <span class="relative flex h-2 w-2 ml-4">
                               <span
-                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 blur-xs bg-green-400"
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 blur-xs"
                                 v-if="bidCandidate.bidCount === 0"
                               ></span>
                               <span

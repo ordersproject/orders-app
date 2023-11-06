@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useQueryClient } from '@tanstack/vue-query'
 
 import { DEBUG } from './data/constants'
 import { useBtcJsStore } from './store'
@@ -28,8 +29,6 @@ onMounted(async () => {
   btcJsStore.setECPair(ECPair)
 })
 
-// setup vue-query
-import { useQueryClient } from '@tanstack/vue-query'
 const queryClient = useQueryClient()
 queryClient.setDefaultOptions({
   queries: {

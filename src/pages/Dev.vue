@@ -9,6 +9,7 @@ import BIP32Factory from 'bip32'
 const btcJsStore = useBtcJsStore()
 
 onMounted(async () => {
+  // gotta trigger deploy again
   const btcjs = window.bitcoin
   const secp256k1 = await import('tiny-secp256k1')
   btcjs.initEccLib(secp256k1)

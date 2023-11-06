@@ -216,11 +216,11 @@ async function submitReleaseRecord() {
         </div>
 
         <div class="flex items-center" v-if="record.decreasing">
-          <span class="w-28 inline-block text-zinc-500">Decreasing</span>
+          <span class="w-28 inline-block text-zinc-500">Reward %</span>
 
           <div class="text-red-400 flex items-center gap-1">
             <span>{{ record.decreasing + '%' }}</span>
-            <ArrowDownRightIcon class="h-4 w-4" />
+            <!-- <ArrowDownRightIcon class="h-4 w-4" /> -->
           </div>
 
           <el-popover
