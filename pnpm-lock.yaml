@@ -57,10 +57,10 @@ dependencies:
     specifier: ^2.2.1
     version: 2.2.1
   vue:
-    specifier: ^3.2.47
+    specifier: ^3.3.4
     version: 3.3.4
   vue-router:
-    specifier: '4'
+    specifier: ^4.2.1
     version: 4.2.1(vue@3.3.4)
 
 devDependencies:
@@ -68,7 +68,7 @@ devDependencies:
     specifier: ^0.5.3
     version: 0.5.3(tailwindcss@3.3.2)
   '@vitejs/plugin-vue':
-    specifier: ^4.1.0
+    specifier: ^4.2.3
     version: 4.2.3(vite@4.3.8)(vue@3.3.4)
   autoprefixer:
     specifier: ^10.4.14
@@ -89,7 +89,7 @@ devDependencies:
     specifier: ^3.3.2
     version: 3.3.2
   typescript:
-    specifier: ^5.0.2
+    specifier: ^5.0.4
     version: 5.0.4
   unplugin-auto-import:
     specifier: ^0.16.2
@@ -101,7 +101,7 @@ devDependencies:
     specifier: ^0.24.1
     version: 0.24.1(rollup@3.23.0)(vue@3.3.4)
   vite:
-    specifier: ^4.3.2
+    specifier: ^4.3.8
     version: 4.3.8
   vite-plugin-node-polyfills:
     specifier: ^0.11.3
@@ -113,7 +113,7 @@ devDependencies:
     specifier: ^3.2.2
     version: 3.2.2(vite@4.3.8)
   vue-tsc:
-    specifier: ^1.4.2
+    specifier: ^1.6.5
     version: 1.6.5(typescript@5.0.4)
 
 packages:
@@ -923,7 +923,7 @@ packages:
       postcss: ^8.1.0
     dependencies:
       browserslist: 4.21.5
-      caniuse-lite: 1.0.30001488
+      caniuse-lite: 1.0.30001561
       fraction.js: 4.2.0
       normalize-range: 0.1.2
       picocolors: 1.0.0
@@ -1145,7 +1145,7 @@ packages:
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
     dependencies:
-      caniuse-lite: 1.0.30001488
+      caniuse-lite: 1.0.30001561
       electron-to-chromium: 1.4.402
       node-releases: 2.0.11
       update-browserslist-db: 1.0.11(browserslist@4.21.5)
@@ -1210,8 +1210,8 @@ packages:
     engines: {node: '>= 6'}
     dev: true
 
-  /caniuse-lite@1.0.30001488:
-    resolution: {integrity: sha512-NORIQuuL4xGpIy6iCCQGN4iFjlBXtfKWIenlUuyZJumLRIindLb7wXM+GO8erEhb7vXfcnf4BAg2PrSDN5TNLQ==}
+  /caniuse-lite@1.0.30001561:
+    resolution: {integrity: sha512-NTt0DNoKe958Q0BE0j0c1V9jbUzhBxHIEJy7asmGrpE0yG63KTV7PLHPnK2E1O9RsQrQ081I3NLuXGS6zht3cw==}
     dev: true
 
   /chokidar@3.5.3:
@@ -1226,7 +1226,7 @@ packages:
       normalize-path: 3.0.0
       readdirp: 3.6.0
     optionalDependencies:
-      fsevents: 2.3.2
+      fsevents: 2.3.3
     dev: true
 
   /cipher-base@1.0.4:
@@ -1593,8 +1593,8 @@ packages:
   /fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
 
-  /fsevents@2.3.2:
-    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
+  /fsevents@2.3.3:
+    resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
     requiresBuild: true
@@ -2478,7 +2478,7 @@ packages:
     engines: {node: '>=14.18.0', npm: '>=8.0.0'}
     hasBin: true
     optionalDependencies:
-      fsevents: 2.3.2
+      fsevents: 2.3.3
     dev: true
 
   /run-parallel@1.2.0:
@@ -2958,7 +2958,7 @@ packages:
       postcss: 8.4.23
       rollup: 3.23.0
     optionalDependencies:
-      fsevents: 2.3.2
+      fsevents: 2.3.3
     dev: true
 
   /vm-browserify@1.1.2:
