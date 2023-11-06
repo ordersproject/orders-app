@@ -1,5 +1,11 @@
 const changelog = [
   {
+    version: '1.0.1',
+    emoji: '🏄‍♂️',
+    date: '2023-11-06',
+    changes: ['Do some error message polishing'],
+  },
+  {
     version: '1.0.0',
     emoji: '🎉',
     date: '2023-10-24',

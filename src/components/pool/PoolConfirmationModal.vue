@@ -100,7 +100,9 @@ async function submitOrder() {
     // extract btc tx and get its txid
     const bidirectional = !!props.builtBtcInfo
     if (bidirectional && signedPsbts.length < 2) {
-      throw new Error('Invalid signed psbts')
+      throw new Error(
+        'Invalid signed transation. Please try again or contact customer service for assistance.'
+      )
     }
     let btcTxOutputLocation: string = ''
     if (bidirectional && BTC_POOL_MODE === 2) {

@@ -135,7 +135,9 @@ export function calculateFee(feeRate: number, vinLen: number, voutLen: number) {
 export function calculatePsbtFee(psbt: Psbt, feeRate: number, isMs?: boolean) {
   // clone a new psbt to mock the finalization
   const clonedPsbt = psbt.clone()
-  const address = useAddressStore().get ?? raise('Not logined.')
+  const address =
+    useAddressStore().get ??
+    raise('Please connect to your UniSat wallet first.')
 
   // mock the change output
   clonedPsbt.addOutput({
@@ -175,7 +177,9 @@ export async function exclusiveChange({
   estimate?: boolean
 }) {
   // check if address is set
-  const address = useAddressStore().get ?? raise('Not logined.')
+  const address =
+    useAddressStore().get ??
+    raise('Please connect to your UniSat wallet first.')
 
   // Add payment input
   const listingUtxos = await getListingUtxos()
@@ -201,7 +205,9 @@ export async function exclusiveChange({
   })
 
   if (!paymentUtxo) {
-    throw new Error('You have no usable BTC utxo')
+    throw new Error(
+      'You have no usable You have no usable BTC UTXO. Please deposit more BTC into your address to receive additional UTXO. utxo'
+    )
   }
 
   // query rawTx of the utxo
@@ -237,7 +243,11 @@ export async function exclusiveChange({
     const totalInput = sumOrNaN(
       psbtClone.data.inputs.map(
         (input) =>
-          input.witnessUtxo || input.nonWitnessUtxo || raise('Input invalid')
+          input.witnessUtxo ||
+          input.nonWitnessUtxo ||
+          raise(
+            'Input invalid. Please try again or contact customer service for assistance.'
+          )
       )
     )
     const changeValue = totalInput - totalOutput - fee + (extraInputValue || 0)
@@ -251,7 +261,9 @@ export async function exclusiveChange({
     })
 
     if (changeValue < 0) {
-      throw new Error('Insufficient balance')
+      throw new Error(
+        'Insufficient balance. Please ensure that the address has a sufficient balance and try again.'
+      )
     }
 
     // return the difference，which feans how much we actually paying
@@ -276,7 +288,11 @@ export async function exclusiveChange({
   const totalInput = sumOrNaN(
     psbt.data.inputs.map(
       (input) =>
-        input.witnessUtxo || input.nonWitnessUtxo || raise('Input invalid')
+        input.witnessUtxo ||
+        input.nonWitnessUtxo ||
+        raise(
+          'Input invalid. Please try again or contact customer service for assistance.'
+        )
     )
   )
   const changeValue = totalInput - totalOutput - fee
@@ -284,7 +300,9 @@ export async function exclusiveChange({
   console.log({ paymentUtxoValue, changeValue })
 
   if (changeValue < 0) {
-    throw new Error('Insufficient balance')
+    throw new Error(
+      'Insufficient balance. Please ensure that the address has a sufficient balance and try again.'
+    )
   }
 
   if (changeValue >= DUST_UTXO_VALUE) {
@@ -323,7 +341,9 @@ export async function change({
   estimate?: boolean
 }) {
   // check if address is set
-  const address = useAddressStore().get ?? raise('Not logined.')
+  const address =
+    useAddressStore().get ??
+    raise('Please connect to your UniSat wallet first.')
 
   // Add payment input
   const paymentUtxo = await getUtxos(address).then((result) => {
@@ -339,7 +359,9 @@ export async function change({
   })
 
   if (!paymentUtxo) {
-    throw new Error('You have no usable BTC utxo')
+    throw new Error(
+      'You have no You have no usable BTC UTXO. Please deposit more BTC into your address to receive additional UTXO. BTC utxo'
+    )
   }
 
   // query rawTx of the utxo
@@ -375,7 +397,11 @@ export async function change({
     const totalInput = sumOrNaN(
       psbtClone.data.inputs.map(
         (input) =>
-          input.witnessUtxo || input.nonWitnessUtxo || raise('Input invalid')
+          input.witnessUtxo ||
+          input.nonWitnessUtxo ||
+          raise(
+            'Input invalid. Please try again or contact customer service for assistance.'
+          )
       )
     )
     const changeValue = totalInput - totalOutput - fee + (extraInputValue || 0)
@@ -389,7 +415,9 @@ export async function change({
     })
 
     if (changeValue < 0) {
-      throw new Error('Insufficient balance')
+      throw new Error(
+        'Insufficient balance. Please ensure that the address has a sufficient balance and try again.'
+      )
     }
 
     // return the difference，which feans how much we actually paying
@@ -414,7 +442,11 @@ export async function change({
   const totalInput = sumOrNaN(
     psbt.data.inputs.map(
       (input) =>
-        input.witnessUtxo || input.nonWitnessUtxo || raise('Input invalid')
+        input.witnessUtxo ||
+        input.nonWitnessUtxo ||
+        raise(
+          'Input invalid. Please try again or contact customer service for assistance.'
+        )
     )
   )
   const changeValue = totalInput - totalOutput - fee
@@ -422,7 +454,9 @@ export async function change({
   console.log({ paymentUtxoValue, changeValue })
 
   if (changeValue < 0) {
-    throw new Error('Insufficient balance')
+    throw new Error(
+      'Insufficient balance. Please ensure that the address has a sufficient balance and try again.'
+    )
   }
 
   if (changeValue >= DUST_UTXO_VALUE) {

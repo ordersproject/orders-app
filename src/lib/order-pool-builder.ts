@@ -22,7 +22,11 @@ import {
 async function getBothPubKeys(type: 'btc' | 'brc20' = 'brc20') {
   const selfAddress = useAddressStore().get!
   const credential = useCredentialsStore().getByAddress(selfAddress)
-  const selfPubKey = credential?.publicKey ?? raise('no credential')
+  const selfPubKey =
+    credential?.publicKey ??
+    raise(
+      'No credential. Please try again or contact customer service for assistance.'
+    )
 
   const exchangePubKey =
     type === 'brc20'
@@ -73,7 +77,9 @@ export async function buildAddBrcLiquidity({
     )
   })
   if (!transferable) {
-    throw new Error('No suitable BRC20 tokens')
+    throw new Error(
+      'No suitable BRC20 tokens. Please ensure that you have enough of the inscribed BRC20 tokens.'
+    )
   }
 
   // find out the ordinal utxo
@@ -113,7 +119,11 @@ export async function buildAddBrcLiquidity({
 
   // Step 2: Build BTC output for the pool
   const msPayment = await generateP2wshPayment()
-  const multisigAddress = msPayment.address ?? raise('no multisig address')
+  const multisigAddress =
+    msPayment.address ??
+    raise(
+      'No multisig address. Please try again or contact customer service for assistance.'
+    )
   addLiquidity.addOutput({
     address: multisigAddress,
     value: Number(total),
@@ -214,7 +224,11 @@ export async function buildAddBtcLiquidity({ total }: { total: Decimal }) {
   }
 
   const msPayment = await generateP2wshPayment('btc')
-  const multisigAddress = msPayment.address ?? raise('no multisig address')
+  const multisigAddress =
+    msPayment.address ??
+    raise(
+      'No multisig address. Please try again or contact customer service for assistance.'
+    )
   const addBtcLiquidity = new btcjs.Psbt({
     network: btcjs.networks[networkStore.btcNetwork],
   })

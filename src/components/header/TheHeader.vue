@@ -99,7 +99,7 @@ useQuery({
 
 async function switchNetwork() {
   if (!window.unisat) {
-    ElMessage.warning('Unisat not available')
+    ElMessage.warning('Please install the Unisat wallet extension first.')
     return
   }
 

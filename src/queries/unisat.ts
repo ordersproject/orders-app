@@ -5,8 +5,8 @@ import { login } from './orders-api'
 export const getAddress = async () => {
   if (!window.unisat) {
     return ''
-    ElMessage.warning('Unisat not available')
-    throw new Error('Unisat not available')
+    ElMessage.warning('Please install the Unisat wallet extension first.')
+    throw new Error('Please install the Unisat wallet extension first.')
   }
 
   const addresses = await window.unisat.getAccounts()
@@ -55,8 +55,8 @@ export const connect = async () => {
 
 export const getBalance = async () => {
   if (!window.unisat) {
-    ElMessage.warning('Unisat not available')
-    throw new Error('Unisat not available')
+    ElMessage.warning('Please install the Unisat wallet extension first.')
+    throw new Error('Please install the Unisat wallet extension first.')
   }
 
   const balance: number = await window.unisat

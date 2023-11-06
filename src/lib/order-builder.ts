@@ -76,7 +76,9 @@ export async function buildAskLimit({
       )
     })
     if (!transferable) {
-      throw new Error('No suitable BRC20 tokens')
+      throw new Error(
+        'No suitable BRC20 tokens. Please ensure that you have enough of the inscribed BRC20 tokens.'
+      )
     }
 
     // find out the ordinal utxo
@@ -215,7 +217,9 @@ export async function buildBidLimit({
     extraInputValue,
   })
   if (!difference) {
-    throw new Error('It seems that we cannot figure out how to pay this bill')
+    throw new Error(
+      'Change calculation failed, please contact customer service.'
+    )
   }
 
   // 4. construct a tx to split such a utxo with the value of difference
@@ -547,7 +551,7 @@ export async function buildBuyTake({
   // )
   // const changeValue = totalInput - totalOutput - fee
   // if (changeValue < 0) {
-  //   throw new Error('Insufficient balance')
+  //   throw new Error('Insufficient balance. Please ensure that the address has a sufficient balance and try again.')
   // }
   // // if change is too small, we discard it instead of sending it back to the seller
   // if (changeValue >= DUST_UTXO_VALUE) {
@@ -633,7 +637,9 @@ export async function buildSellTake({
       )
     })
     if (!transferable) {
-      throw new Error('No suitable BRC20 tokens')
+      throw new Error(
+        'No suitable BRC20 tokens. Please ensure that you have enough of the inscribed BRC20 tokens.'
+      )
     }
 
     // find out the ordinal utxo
@@ -719,7 +725,9 @@ export async function buildSellTake({
   // add output
   const changeValue = paymentInput.witnessUtxo.value - serviceFee
   if (changeValue < 0) {
-    throw new Error('Insufficient balance')
+    throw new Error(
+      'Insufficient balance. Please ensure that the address has a sufficient balance and try again.'
+    )
   }
   // if change is too small, we discard it instead of sending it back to the seller
   if (changeValue >= DUST_UTXO_VALUE) {
