@@ -641,7 +641,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                             <!-- liquidity race status  -->
                             <span class="relative flex h-2 w-2 ml-4">
                               <span
-                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 blur-xs bg-green-400"
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 blur-xs"
                                 v-if="bidCandidate.bidCount === 0"
                               ></span>
                               <span
