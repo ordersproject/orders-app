@@ -31,7 +31,7 @@ import { sleep } from '@/lib/helpers'
 import { calculateFee } from '@/lib/build-helpers'
 import {
   buildAskLimit,
-  buildBidLimitP1,
+  buildBidLimit,
   buildSellTake,
 } from '@/lib/order-builder'
 import {
@@ -256,7 +256,7 @@ async function buildOrder() {
 
         // v2 update: 2-step build
         // 1. build the schema of the transaction and report the schema to the server
-        const preBuildRes = await buildBidLimitP1({
+        const preBuildRes = await buildBidLimit({
           total: Math.round(
             bidExchangePrice.value *
               Number(selectedBidCandidate.value.coinAmount) *
