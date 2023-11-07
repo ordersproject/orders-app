@@ -436,6 +436,12 @@ export async function buildBuyTake({
 
   // Step 1: add 2 dummy inputs
   const dummyUtxos = dummiesStore.get!
+  console.log({ dummyUtxos })
+  if (!dummyUtxos) {
+    throw new Error(
+      'Your account does not have 2 dummy UTXOs to proceed the transaction. Please click the top-right shield button to do the preparation.'
+    )
+  }
   for (const dummyUtxo of dummyUtxos) {
     const dummyTx = btcjs.Transaction.fromHex(dummyUtxo.txHex)
     const dummyInput = {

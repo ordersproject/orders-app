@@ -458,7 +458,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
 
 <template>
   <div
-    class="rounded-xl shadow-lg shadow-orange-300/20 border-2 border-orange-200/20"
+    class="rounded-xl shadow-lg shadow-orange-300/10 border-2 border-orange-200/20 hover:shadow-orange-300/20"
   >
     <OrderPanelHeader v-model:is-limit-exchange-mode="isLimitExchangeMode" />
 
