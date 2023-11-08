@@ -185,7 +185,7 @@ async function onConfirm() {
         <ListboxLabel
           class="block text-base font-medium leading-6 text-zinc-300 uppercase col-span-1"
         >
-          {{ selectedPair.fromSymbol }}
+          ${{ selectedPair.fromSymbol }}
         </ListboxLabel>
 
         <div class="relative col-span-5">
@@ -219,7 +219,7 @@ async function onConfirm() {
                 :disabled="true"
                 class="text-right text-zinc-500 text-sm py-2 px-4"
               >
-                No poolable {{ selectedPair.fromSymbol.toUpperCase() }}
+                No poolable ${{ selectedPair.fromSymbol.toUpperCase() }}
               </ListboxOption>
 
               <ListboxOption

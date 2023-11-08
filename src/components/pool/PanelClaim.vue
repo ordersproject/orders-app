@@ -135,7 +135,7 @@ async function onClaimReward() {
           </span>
 
           <span class="text-sm ml-1 uppercase">
-            {{ POOL_REWARDS_TICK.toUpperCase() }}
+            ${{ POOL_REWARDS_TICK.toUpperCase() }}
           </span>
         </div>
 

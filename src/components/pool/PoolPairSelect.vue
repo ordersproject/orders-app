@@ -48,7 +48,7 @@ const choosePair = (pairId: number) => {
         </div>
 
         <span class="font-bold uppercase"
-          >{{ selectedPair.fromSymbol }}-{{ selectedPair.toSymbol }}</span
+          >${{ selectedPair.fromSymbol }}-{{ selectedPair.toSymbol }}</span
         >
         <ChevronRightIcon
           :class="[
@@ -95,7 +95,7 @@ const choosePair = (pairId: number) => {
                   selected && 'text-orange-300',
                 ]"
               >
-                {{ pair.fromSymbol }}-{{ pair.toSymbol }}
+                ${{ pair.fromSymbol }}-{{ pair.toSymbol }}
               </span>
             </div>
 

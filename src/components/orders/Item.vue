@@ -62,13 +62,13 @@ async function onCancel() {
         'text-green-500': orderType === 'bid',
       }"
     >
-      <span v-if="isFreeOrder" class="">0.00000000</span>
+      <span v-if="isFreeOrder" class="">0</span>
       <span v-else>
-        {{ prettyBalance(order.coinRatePrice) }}
+        {{ prettyBalance(order.coinRatePrice, true) }}
       </span>
     </td>
-    <td class="td">{{ order.coinAmount }}</td>
-    <td class="td">
+    <td class="td-right">{{ order.coinAmount }}</td>
+    <td class="td-right">
       <template v-if="isFreeOrder">
         <span
           class="rounded bg-green-700/30 px-2 py-1 text-xs font-bold text-green-500"
@@ -77,7 +77,7 @@ async function onCancel() {
         </span>
       </template>
 
-      <span v-else>{{ prettyBalance(order.amount) }}</span>
+      <span v-else>{{ prettyBalance(order.amount, true) }}</span>
     </td>
     <td class="td">
       <div class="flex h-full w-full items-center justify-center">
@@ -94,5 +94,9 @@ async function onCancel() {
 <style scoped>
 .td {
   @apply py-1 text-left font-normal;
+}
+
+.td-right {
+  @apply py-1 text-right font-normal;
 }
 </style>
