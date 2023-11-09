@@ -143,6 +143,7 @@ export const getBidCandidateInfo = async ({
     total: String(total),
     amount: String(total),
     address,
+    switchPrice: '1',
     // inscriptionId,
   })
   if (isPool) {
@@ -213,6 +214,7 @@ export const constructBidPsbt = async ({
     isPool: true,
     bidTxSpec: bidSchema,
     platformDummy: 1,
+    switchPrice: 1,
   }
   const constructInfo = await ordersApiFetch(`order/bid-v2`, {
     method: 'POST',

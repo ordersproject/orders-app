@@ -32,7 +32,7 @@ const status = computed(() => {
         {{
           `${record.coinAmount} ${record.tick.toUpperCase()} / ${new Decimal(
             record.amount
-          ).dividedBy(1e8)} BTC`
+          )} sat`
         }}
       </span>
       <span class="text-orange-300" v-else>
@@ -63,7 +63,7 @@ const status = computed(() => {
                 record.coinAmount
               } ${record.tick.toUpperCase()} / ${new Decimal(
                 record.amount
-              ).dividedBy(1e8)} BTC`
+              )} sat`
             }}
           </span>
           <span v-else>

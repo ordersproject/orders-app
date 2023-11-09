@@ -260,14 +260,21 @@ async function buildOrder() {
     if (isLimitExchangeMode.value) {
       if (limitExchangeType.value === 'bid') {
         if (!selectedBidCandidate.value) return
+        console.log({
+          bidExchangePrice: bidExchangePrice.value,
+          selectedBidCandidate: selectedBidCandidate.value,
+          total: Math.round(
+            bidExchangePrice.value *
+              Number(selectedBidCandidate.value.coinAmount)
+          ),
+        })
 
         // v2 update: 2-step build
         // 1. build the schema of the transaction and report the schema to the server
         const preBuildRes = await buildBidLimit({
           total: Math.round(
             bidExchangePrice.value *
-              Number(selectedBidCandidate.value.coinAmount) *
-              1e8
+              Number(selectedBidCandidate.value.coinAmount)
           ),
           coinAmount: Number(selectedBidCandidate.value.coinAmount),
           inscriptionId: selectedBidCandidate.value.inscriptionId,
@@ -281,7 +288,7 @@ async function buildOrder() {
       } else {
         buildRes = await buildAskLimit({
           total: Math.round(
-            askExchangePrice.value * askLimitBrcAmount.value * 1e8
+            askExchangePrice.value * askLimitBrcAmount.value
           ),
           amount: askLimitBrcAmount.value,
           selectedPair,

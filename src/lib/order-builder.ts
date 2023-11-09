@@ -201,12 +201,10 @@ export async function buildBidLimit({
     poolOrderId: poolOrderId as string,
     bidSchema,
   })
-  console.log({ constructInfo })
 
   const bid = btcjs.Psbt.fromHex(constructInfo.psbtRaw, {
     network: btcjs.networks[btcNetwork],
   })
-  console.log({ bid })
 
   // 3. estimate how much we have to pay
 
@@ -236,12 +234,10 @@ export async function buildBidLimit({
   } = await exclusiveChange({
     psbt: payPsbt,
   })
-  console.log({ payPsbt })
 
   // according to api, extra input should be no less than 600
   // so we minus the difference from the bidFee to make up upload fee for api
   const uploadFee = bidFee - (EXTRA_INPUT_MIN_VALUE - extraInputValue)
-  console.log({ uploadFee, extraInputValue })
 
   // 5. ok, now we have a utxo to actually pay the bill
   // we add it to the bid
@@ -436,7 +432,6 @@ export async function buildBuyTake({
 
   // Step 1: add 2 dummy inputs
   const dummyUtxos = dummiesStore.get!
-  console.log({ dummyUtxos })
   if (!dummyUtxos) {
     throw new Error(
       'Your account does not have 2 dummy UTXOs to proceed the transaction. Please click the top-right shield button to do the preparation.'
@@ -777,7 +772,6 @@ export async function buildClaimTake({
 
   // check if dummies is ready
   if (!dummiesStore.has) {
-    console.log({ d: dummiesStore.get })
     throw new Error(
       'Your account does not have 2 dummy UTXOs to proceed the transaction. Please click the top-right shield button to do the preparation.'
     )

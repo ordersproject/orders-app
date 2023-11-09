@@ -21,7 +21,6 @@ export const prettyBalance = (balance: number | string, useSats = false) => {
 
   if (useSats) return new Decimal(balance)
 
-  // return (Number(balance) / 1e8).toFixed(8)
   return new Decimal(balance).dividedBy(1e8).toFixed(8)
 }
 

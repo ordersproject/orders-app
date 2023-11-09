@@ -46,7 +46,6 @@ type PsbtInput = (typeof Psbt.prototype.data.inputs)[0]
 function inputBytes(input: PsbtInput) {
   // todo: script length
   if (isTaprootInput(input)) {
-    console.log('taproot input')
     return TX_INPUT_BASE + TX_INPUT_TAPROOT
   }
 
