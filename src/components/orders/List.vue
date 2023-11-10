@@ -7,6 +7,7 @@ import { useNetworkStore } from '@/store'
 import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
 
 import OrderItem from './Item.vue'
+import { prettyBalance } from '@/lib/formatters'
 
 const networkStore = useNetworkStore()
 
@@ -48,11 +49,29 @@ const { data: marketPrice } = useQuery({
         <thead>
           <tr>
             <th class="th"></th>
-            <th class="th">Price (BTC)</th>
-            <th class="th">
-              Amount ({{ selectedPair.fromSymbol.toUpperCase() }})
+            <th class="th">Price (sat)</th>
+            <th class="th-right">
+              <div class="flex items-center justify-end">
+                <span>Amount</span>
+                <span class="ml-2">
+                  {{ '$' + selectedPair.fromSymbol.toUpperCase() }}
+                </span>
+                <img
+                  :src="selectedPair.fromIcon"
+                  class="h-4 rounded-full inline ml-1"
+                />
+              </div>
             </th>
-            <th class="th">Total (BTC)</th>
+            <th class="th-right">
+              <div class="flex items-center justify-end">
+                <span>Total</span>
+                <span class="ml-2">(sat)</span>
+                <img
+                  :src="selectedPair.toIcon"
+                  class="h-4 rounded-full inline ml-1"
+                />
+              </div>
+            </th>
             <th class="th"></th>
           </tr>
         </thead>
@@ -64,11 +83,7 @@ const { data: marketPrice } = useQuery({
             :order="order"
             :order-type="'ask'"
             @click="
-              $emit(
-                'useBuyPrice',
-                Number(order.coinRatePrice) / 1e8,
-                order.orderId
-              )
+              $emit('useBuyPrice', Number(order.coinRatePrice), order.orderId)
             "
           />
         </tbody>
@@ -86,7 +101,7 @@ const { data: marketPrice } = useQuery({
         <span
           :class="['text-lg', marketPrice ? 'text-green-500' : 'text-zinc-500']"
         >
-          {{ marketPrice?.toFixed(8) || '-' }}
+          {{ marketPrice ? prettyBalance(marketPrice, true) + ' sats' : '-' }}
         </span>
       </el-tooltip>
     </div>
@@ -96,11 +111,11 @@ const { data: marketPrice } = useQuery({
         <thead class="invisible">
           <tr class="">
             <th class="th"></th>
-            <th class="th">Price (BTC)</th>
+            <th class="th">Price (sat)</th>
             <th class="th">
-              Amount ({{ selectedPair.fromSymbol.toUpperCase() }})
+              Amount ({{ '$' + selectedPair.fromSymbol.toUpperCase() }})
             </th>
-            <th class="th">Total (BTC)</th>
+            <th class="th">Total (sat)</th>
             <th class="th"></th>
           </tr>
         </thead>
@@ -112,11 +127,7 @@ const { data: marketPrice } = useQuery({
             :order="order"
             :order-type="'bid'"
             @click="
-              $emit(
-                'useSellPrice',
-                Number(order.coinRatePrice) / 1e8,
-                order.orderId
-              )
+              $emit('useSellPrice', Number(order.coinRatePrice), order.orderId)
             "
           />
         </tbody>
@@ -132,5 +143,9 @@ const { data: marketPrice } = useQuery({
 <style scoped>
 .th {
   @apply pb-2 pt-0 text-left text-sm font-normal text-zinc-500;
+}
+
+.th-right {
+  @apply pb-2 pt-0 text-right text-sm font-normal text-zinc-500;
 }
 </style>

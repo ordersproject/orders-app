@@ -1,3 +1,4 @@
+import Decimal from 'decimal.js'
 import sign from '../lib/sign'
 import { useAddressStore, useNetworkStore } from '../store'
 import { ordersApiFetch } from '@/lib/fetch'
@@ -142,6 +143,7 @@ export const getBidCandidateInfo = async ({
     total: String(total),
     amount: String(total),
     address,
+    switchPrice: '1',
     // inscriptionId,
   })
   if (isPool) {
@@ -212,6 +214,7 @@ export const constructBidPsbt = async ({
     isPool: true,
     bidTxSpec: bidSchema,
     platformDummy: 1,
+    switchPrice: 1,
   }
   const constructInfo = await ordersApiFetch(`order/bid-v2`, {
     method: 'POST',
@@ -265,11 +268,25 @@ export const getOrders = async ({
     tick,
     address,
   })
-  const orders: Order[] = await ordersApiFetch(`orders?${params}`).then(
-    ({ results }) => results
-  )
+  const orders: Order[] = await ordersApiFetch(`orders?${params}`)
+    .then(({ results }) => results)
+    .then((orders) => {
+      // if orders is empty, return empty array
+      if (!orders) return []
 
-  return orders || []
+      // if order don't have coinRatePrice, calculate it on our own
+      orders.forEach((order: Order) => {
+        if (!order.coinRatePrice) {
+          order.coinRatePrice = new Decimal(
+            order.amount / order.coinAmount
+          ).toNumber()
+        }
+      })
+
+      return orders
+    })
+
+  return orders
 }
 
 type DetailedOrder = Order & { psbtRaw: string }
@@ -318,7 +335,7 @@ export const getMarketPrice = async ({ tick }: { tick: string }) => {
       return theTicker ? Number(theTicker.avgPrice) : 0
     })
 
-  return marketPrice / 1e8
+  return marketPrice
 }
 
 export type Brc20Transferable = {

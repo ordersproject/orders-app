@@ -128,7 +128,7 @@ async function submitAdd() {
   isBuilding.value = true
 
   const builtBrcRes = await buildAddBrcLiquidity({
-    total: new Decimal(reversePrice.value).times(1e8),
+    total: new Decimal(reversePrice.value),
     amount: new Decimal(selected.value.amount),
     selectedPair: selectedPair,
   }).catch(async (e) => {
@@ -143,7 +143,7 @@ async function submitAdd() {
   let builtBtcRes: any
   if (providesBtc.value) {
     builtBtcRes = await buildAddBtcLiquidity({
-      total: new Decimal(reversePrice.value).times(1e8),
+      total: new Decimal(reversePrice.value),
     }).catch(async (e) => {
       await sleep(500)
       console.log(e)
@@ -185,7 +185,7 @@ async function onConfirm() {
         <ListboxLabel
           class="block text-base font-medium leading-6 text-zinc-300 uppercase col-span-1"
         >
-          {{ selectedPair.fromSymbol }}
+          ${{ selectedPair.fromSymbol }}
         </ListboxLabel>
 
         <div class="relative col-span-5">
@@ -219,7 +219,7 @@ async function onConfirm() {
                 :disabled="true"
                 class="text-right text-zinc-500 text-sm py-2 px-4"
               >
-                No poolable {{ selectedPair.fromSymbol.toUpperCase() }}
+                No poolable ${{ selectedPair.fromSymbol.toUpperCase() }}
               </ListboxOption>
 
               <ListboxOption
@@ -320,7 +320,7 @@ async function onConfirm() {
       >
         <div class="mt-4 grow flex items-start" v-show="providesBtc">
           <div class="items-center gap-x-4 gap-y-2 grid grid-cols-6 grow">
-            <div class="text-zinc-300 col-span-1">BTC</div>
+            <div class="text-zinc-300 col-span-1">sat</div>
 
             <div
               class="flex items-center justify-between col-span-5 rounded-md border px-4 py-2 border-zinc-700 text-zinc-300 shadow-sm sm:text-sm sm:leading-6 bg-zinc-800"
@@ -404,7 +404,7 @@ async function onConfirm() {
               <el-popover
                 placement="bottom"
                 trigger="hover"
-                :content="marketPrice ? marketPrice.toFixed(8) + ' BTC' : '-'"
+                :content="marketPrice ? marketPrice + 'sat' : '-'"
               >
                 <template #reference>
                   <span

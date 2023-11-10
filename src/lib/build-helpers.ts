@@ -16,6 +16,7 @@ import { getFeebPlans, getTxHex, getUtxos } from '@/queries/proxy'
 import { getLowestFeeb, raise } from './helpers'
 import { Output } from 'bitcoinjs-lib/src/transaction'
 import { getListingUtxos } from '@/queries/orders-api'
+import { toOutputScript } from 'bitcoinjs-lib/src/address'
 
 const TX_EMPTY_SIZE = 4 + 1 + 1 + 4
 const TX_INPUT_BASE = 32 + 4 + 1 + 4 // 41
@@ -46,7 +47,6 @@ type PsbtInput = (typeof Psbt.prototype.data.inputs)[0]
 function inputBytes(input: PsbtInput) {
   // todo: script length
   if (isTaprootInput(input)) {
-    console.log('taproot input')
     return TX_INPUT_BASE + TX_INPUT_TAPROOT
   }
 
@@ -211,16 +211,21 @@ export async function exclusiveChange({
   }
 
   // query rawTx of the utxo
-  const rawTx = await getTxHex(paymentUtxo.txId)
-  // decode rawTx
-  const btcjs = useBtcJsStore().get!
-  const tx = btcjs.Transaction.fromHex(rawTx)
+  // const rawTx = await getTxHex(paymentUtxo.txId)
+  // // decode rawTx
+  // const btcjs = useBtcJsStore().get!
+  // const tx = btcjs.Transaction.fromHex(rawTx)
 
   // construct input
+  const paymentPrevOutput = toOutputScript(address)
+  const paymentWitnessUtxo = {
+    value: paymentUtxo.satoshis,
+    script: paymentPrevOutput,
+  }
   const paymentInput: any = {
     hash: paymentUtxo.txId,
     index: paymentUtxo.outputIndex,
-    witnessUtxo: tx.outs[paymentUtxo.outputIndex],
+    witnessUtxo: paymentWitnessUtxo,
     sighashType,
   }
   if (pubKey) {

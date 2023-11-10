@@ -55,6 +55,7 @@ import OrderList from './List.vue'
 import OrderConfirmationModal from '../ConfirmationModal.vue'
 import { selectPair, selectedPairKey } from '@/data/trading-pairs'
 import { DEBUG } from '@/data/constants'
+import Decimal from 'decimal.js'
 
 const unisat = window.unisat
 
@@ -126,7 +127,7 @@ const candidateBuyOrders = computed(() => {
   return askOrders.value
     .filter((item) => {
       return (
-        Number(item.coinRatePrice) / 1e8 === useBuyPrice.value &&
+        Number(item.coinRatePrice) === useBuyPrice.value &&
         item.orderId === useBuyOrderId.value
       )
     })
@@ -139,7 +140,7 @@ const candidateSellOrders = computed(() => {
   return bidOrders.value
     .filter((item) => {
       return (
-        Number(item.coinRatePrice) / 1e8 === useSellPrice.value &&
+        Number(item.coinRatePrice) === useSellPrice.value &&
         item.orderId === useSellOrderId.value
       )
     })
@@ -168,6 +169,12 @@ watch(feebPlans, (plans) => {
   selectedFeebPlan.value = plans[1]
 })
 
+const buyTotal = computed(() => {
+  if (!selectedBuyCoinAmount.value) return 0
+
+  return selectedBuyCoinAmount.value * useBuyPrice.value + ' sat'
+})
+
 const buyFees = computed(() => {
   if (!selectedBuyCoinAmount.value) return 0
   if (!selectedFeebPlan.value) return 0
@@ -183,16 +190,16 @@ const sellFees = computed(() => {
 const prettyBuyFees = computed(() => {
   if (!buyFees.value) return '0'
 
-  const feeInBtc = buyFees.value / 1e8
+  const feeInBtc = buyFees.value
 
-  return `≈ ${feeInBtc.toFixed(8)} BTC`
+  return `≈ ${feeInBtc} sat`
 })
 const prettySellFees = computed(() => {
   if (!sellFees.value) return '0'
 
-  const feeInBtc = sellFees.value / 1e8
+  const feeInBtc = sellFees.value
 
-  return `≈ ${feeInBtc.toFixed(8)} BTC`
+  return `≈ ${feeInBtc} sat`
 })
 
 const useBuyPrice = ref(0)
@@ -253,14 +260,21 @@ async function buildOrder() {
     if (isLimitExchangeMode.value) {
       if (limitExchangeType.value === 'bid') {
         if (!selectedBidCandidate.value) return
+        console.log({
+          bidExchangePrice: bidExchangePrice.value,
+          selectedBidCandidate: selectedBidCandidate.value,
+          total: Math.round(
+            bidExchangePrice.value *
+              Number(selectedBidCandidate.value.coinAmount)
+          ),
+        })
 
         // v2 update: 2-step build
         // 1. build the schema of the transaction and report the schema to the server
         const preBuildRes = await buildBidLimit({
           total: Math.round(
             bidExchangePrice.value *
-              Number(selectedBidCandidate.value.coinAmount) *
-              1e8
+              Number(selectedBidCandidate.value.coinAmount)
           ),
           coinAmount: Number(selectedBidCandidate.value.coinAmount),
           inscriptionId: selectedBidCandidate.value.inscriptionId,
@@ -273,9 +287,7 @@ async function buildOrder() {
         console.log({ preBuildRes })
       } else {
         buildRes = await buildAskLimit({
-          total: Math.round(
-            askExchangePrice.value * askLimitBrcAmount.value * 1e8
-          ),
+          total: Math.round(askExchangePrice.value * askLimitBrcAmount.value),
           amount: askLimitBrcAmount.value,
           selectedPair,
         })
@@ -363,9 +375,7 @@ const bidExchangePrice = ref(0)
 const bidTotalExchangePrice = computed(() => {
   if (!!!selectedBidCandidate.value) return '0'
 
-  return (
-    bidExchangePrice.value * Number(selectedBidCandidate.value.coinAmount)
-  ).toFixed(8)
+  return bidExchangePrice.value * Number(selectedBidCandidate.value.coinAmount)
 })
 
 const canPlaceBidOrder = computed(() => {
@@ -384,7 +394,7 @@ const askLimitBrcAmount = computed(() => {
   return Number(selectedAskCandidate.value.amount)
 })
 const askTotalExchangePrice = computed(() => {
-  return (askExchangePrice.value * askLimitBrcAmount.value).toFixed(8)
+  return askExchangePrice.value * askLimitBrcAmount.value
 })
 const canPlaceAskOrder = computed(() => {
   return askExchangePrice.value > 0 && askLimitBrcAmount.value > 0
@@ -537,14 +547,14 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                       <input
                         type="text"
                         class="w-full rounded bg-zinc-700 py-2 pl-2 pr-16 text-right placeholder-zinc-500 outline-none"
-                        placeholder="BTC"
-                        :value="bidExchangePrice.toFixed(8)"
+                        placeholder="sat"
+                        :value="bidExchangePrice"
                         @input="(event: any) => (bidExchangePrice = parseFloat(event.target.value))"
                       />
                       <span
                         class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                       >
-                        BTC
+                        sat
                       </span>
                     </div>
                   </div>
@@ -553,13 +563,13 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                     class="cursor-pointer pt-2 text-right text-xs text-zinc-500"
                     v-if="marketPrice"
                     @click="
-                      bidExchangePrice = Number(
-                        (marketPrice! * 0.99).toFixed(8)
-                      )
+                      bidExchangePrice = new Decimal(marketPrice! * 0.99)
+                        .floor()
+                        .toNumber()
                     "
                     title="Use market price"
                   >
-                    {{ `Market Price: ${marketPrice.toFixed(8)} BTC` }}
+                    {{ `Market Price: ${marketPrice} sat` }}
                   </div>
                 </div>
 
@@ -593,9 +603,9 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                         <span
                           class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                         >
-                          <span class="uppercase">{{
-                            selectedPair.fromSymbol
-                          }}</span>
+                          <span class="uppercase"
+                            >${{ selectedPair.fromSymbol }}</span
+                          >
                           <ChevronsUpDownIcon
                             class="h-5 w-5"
                             aria-hidden="true"
@@ -660,19 +670,18 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   </div>
                 </div>
 
-                <!-- buy -->
                 <div class="mt-36">
                   <div class="flex items-center justify-between text-sm">
                     <span class="text-zinc-500">Total</span>
                     <span class="text-zinc-300">
-                      {{ `${bidTotalExchangePrice} BTC` }}
+                      {{ `${bidTotalExchangePrice} sat` }}
                     </span>
                   </div>
 
                   <div class="mt-2 flex items-center justify-between text-sm">
                     <span class="text-zinc-500">Balance</span>
                     <span class="text-zinc-300">
-                      {{ `${prettyBalance(btcBalance)} BTC` }}
+                      {{ `${prettyBalance(btcBalance, true)} sat` }}
                     </span>
                   </div>
 
@@ -704,14 +713,14 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                       <input
                         type="text"
                         class="w-full rounded bg-zinc-700 py-2 pl-2 pr-16 text-right placeholder-zinc-500 outline-none"
-                        placeholder="BTC"
-                        :value="askExchangePrice.toFixed(8)"
+                        placeholder="sat"
+                        :value="askExchangePrice"
                         @input="(event: any) => (askExchangePrice = parseFloat(event.target.value))"
                       />
                       <span
                         class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                       >
-                        BTC
+                        sat
                       </span>
                     </div>
                   </div>
@@ -720,13 +729,13 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                     class="cursor-pointer pt-2 text-right text-xs text-zinc-500"
                     v-if="marketPrice"
                     @click="
-                      askExchangePrice = Number(
-                        (marketPrice! * 1.01).toFixed(8)
-                      )
+                      askExchangePrice = new Decimal(marketPrice! * 1.01)
+                        .ceil()
+                        .toNumber()
                     "
                     title="Use market price"
                   >
-                    {{ `Market Price: ${marketPrice.toFixed(8)} BTC` }}
+                    {{ `Market Price: ${marketPrice} sat` }}
                   </div>
                 </div>
 
@@ -752,13 +761,13 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                       <input
                         type="text"
                         class="w-full rounded bg-zinc-700 py-2 pl-2 pr-16 text-right placeholder-zinc-500 outline-none"
-                        :placeholder="selectedPair.fromSymbol"
+                        :placeholder="'$' + selectedPair.fromSymbol"
                         v-model.number="askExchangeOrdiAmount"
                       />
                       <span
                         class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400 uppercase"
                       >
-                        {{ selectedPair.fromSymbol }}
+                        ${{ selectedPair.fromSymbol }}
                       </span>
                     </div>
 
@@ -779,7 +788,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                           class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                         >
                           <span class="uppercase">
-                            {{ selectedPair.fromSymbol }}
+                            ${{ selectedPair.fromSymbol }}
                           </span>
                           <ChevronsUpDownIcon
                             class="h-5 w-5"
@@ -841,10 +850,10 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                     class="cursor-pointer pt-2 text-right text-xs text-zinc-500"
                     v-if="networkStore.network === 'testnet'"
                     @click="askExchangeOrdiAmount = ordiBalance || 0"
-                    :title="`Sell all ${selectedPair.fromSymbol.toUpperCase()}`"
+                    :title="`Sell all $${selectedPair.fromSymbol.toUpperCase()}`"
                   >
                     {{
-                      `Balance: ${ordiBalance} ${selectedPair.fromSymbol.toUpperCase()}`
+                      `Balance: ${ordiBalance} $${selectedPair.fromSymbol.toUpperCase()}`
                     }}
                   </div>
                 </div>
@@ -866,7 +875,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   <div class="flex items-center justify-between text-sm">
                     <span class="text-zinc-500">Total</span>
                     <span class="text-zinc-300">
-                      {{ `${askTotalExchangePrice} BTC` }}
+                      {{ `${askTotalExchangePrice} sat` }}
                     </span>
                   </div>
 
@@ -933,14 +942,14 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   <input
                     type="text"
                     class="w-full rounded bg-zinc-700 py-2 pl-2 pr-12 text-right placeholder-zinc-500 outline-none"
-                    placeholder="BTC"
-                    :value="useBuyPrice.toFixed(8)"
+                    placeholder="sat"
+                    :value="useBuyPrice"
                     @input="(event: any) => (useBuyPrice = parseFloat(event.target.value))"
                   />
                   <span
                     class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                   >
-                    BTC
+                    sat
                   </span>
                 </div>
               </div>
@@ -977,9 +986,9 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                     <span
                       class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                     >
-                      <span class="uppercase">{{
-                        selectedPair.fromSymbol
-                      }}</span>
+                      <span class="uppercase"
+                        >${{ selectedPair.fromSymbol }}</span
+                      >
                       <ChevronsUpDownIcon class="h-5 w-5" aria-hidden="true" />
                     </span>
                   </ListboxButton>
@@ -1005,7 +1014,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                           <CheckIcon class="h-5 w-5" aria-hidden="true" />
                         </span>
                         <span class="text-sm text-zinc-500">
-                          {{ (Number(psbt.coinRatePrice) / 1e8).toFixed(8) }}
+                          {{ Number(psbt.coinRatePrice) }} sat
                         </span>
                         <span :class="selected && 'text-orange-300'">
                           {{ psbt.coinAmount }}
@@ -1067,7 +1076,12 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   </div>
                 </RadioGroup>
 
-                <div class="mt-4 flex items-center justify-between text-sm">
+                <div class="mt-8 flex items-center justify-between text-sm">
+                  <span class="text-zinc-500">Total</span>
+                  <span class="text-zinc-300">{{ buyTotal }}</span>
+                </div>
+
+                <div class="flex items-center justify-between text-sm">
                   <span class="text-zinc-500">Fees</span>
                   <span class="text-zinc-300">{{ prettyBuyFees }}</span>
                 </div>
@@ -1082,7 +1096,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   @click="buildOrder"
                   :disabled="!selectedBuyOrders.length"
                 >
-                  Buy {{ selectedPair.fromSymbol.toUpperCase() }}
+                  Buy ${{ selectedPair.fromSymbol.toUpperCase() }}
                 </button>
 
                 <div
@@ -1090,7 +1104,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                 >
                   <span class="text-zinc-500">Available</span>
                   <span class="text-zinc-300">
-                    {{ `${prettyBalance(balance)} BTC` }}
+                    {{ `${prettyBalance(balance, true)} sat` }}
                   </span>
                   <button @click="updateBalance">
                     <RefreshCcwIcon
@@ -1116,14 +1130,14 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   <input
                     type="text"
                     class="w-full rounded bg-zinc-700 py-2 pl-2 pr-12 text-right placeholder-zinc-500 outline-none"
-                    placeholder="BTC"
-                    :value="useSellPrice.toFixed(8)"
+                    placeholder="sat"
+                    :value="useSellPrice"
                     @input="(event: any) => (useSellPrice = parseFloat(event.target.value))"
                   />
                   <span
                     class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                   >
-                    BTC
+                    sat
                   </span>
                 </div>
               </div>
@@ -1160,9 +1174,9 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                     <span
                       class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                     >
-                      <span class="uppercase">{{
-                        selectedPair.fromSymbol
-                      }}</span>
+                      <span class="uppercase"
+                        >${{ selectedPair.fromSymbol }}</span
+                      >
                       <ChevronsUpDownIcon class="h-5 w-5" aria-hidden="true" />
                     </span>
                   </ListboxButton>
@@ -1188,7 +1202,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                           <CheckIcon class="h-5 w-5" aria-hidden="true" />
                         </span>
                         <span class="text-sm text-zinc-500">
-                          {{ (Number(psbt.coinRatePrice) / 1e8).toFixed(8) }}
+                          {{ Number(psbt.coinRatePrice) }} sat
                         </span>
                         <span :class="selected && 'text-orange-300'">
                           {{ psbt.coinAmount }}
@@ -1282,7 +1296,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   @click="buildOrder"
                   :disabled="!selectedSellOrders.length"
                 >
-                  Sell {{ selectedPair.fromSymbol.toUpperCase() }}
+                  Sell ${{ selectedPair.fromSymbol.toUpperCase() }}
                 </button>
 
                 <div

@@ -1,5 +1,13 @@
 const changelog = [
   {
+    version: '1.0.2',
+    emoji: '📚',
+    date: '2023-11-06',
+    changes: [
+      'Switch to satoshis instead of BTC as the default unit for better precision',
+    ],
+  },
+  {
     version: '1.0.1',
     emoji: '🏄‍♂️',
     date: '2023-11-06',

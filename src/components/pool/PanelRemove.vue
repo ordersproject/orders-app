@@ -106,7 +106,7 @@ async function submitRemove() {
                     selectedRecord.coinAmount
                   } ${selectedRecord.tick.toUpperCase()} / ${new Decimal(
                     selectedRecord.amount
-                  ).dividedBy(1e8)} BTC`
+                  )} sat`
                 }}
               </span>
               <span class="text-xs">
@@ -177,7 +177,7 @@ async function submitRemove() {
                           record.coinAmount
                         } ${record.tick.toUpperCase()} / ${new Decimal(
                           record.amount
-                        ).dividedBy(1e8)} BTC`
+                        )} sat`
                       }}
                     </span>
                     <span class="text-zinc-500 text-xs">

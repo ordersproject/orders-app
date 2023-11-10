@@ -44,10 +44,10 @@ const infoMap = computed(() => {
 
   return [
     {
-      label: 'Pooled ' + selectedPair.fromSymbol.toUpperCase(),
+      label: 'Pooled $' + selectedPair.fromSymbol.toUpperCase(),
       value: prettyCoinDisplay(
         pairInfo.value.fromPoolSize,
-        selectedPair.fromSymbol.toUpperCase()
+        '$' + selectedPair.fromSymbol.toUpperCase()
       ),
     },
     {
@@ -58,21 +58,21 @@ const infoMap = computed(() => {
       ),
     },
     {
-      label: `Your LP(${selectedPair.fromSymbol.toUpperCase()}-${selectedPair.toSymbol.toUpperCase()}) ${selectedPair.fromSymbol.toUpperCase()}`,
+      label: `Your LP($${selectedPair.fromSymbol.toUpperCase()}-${selectedPair.toSymbol.toUpperCase()}) $${selectedPair.fromSymbol.toUpperCase()}`,
       value: prettyCoinDisplay(
         pairInfo.value.myFromPoolBalance,
-        selectedPair.fromSymbol.toUpperCase()
+        '$' + selectedPair.fromSymbol.toUpperCase()
       ),
     },
     {
-      label: `Your LP(${selectedPair.fromSymbol.toUpperCase()}-${selectedPair.toSymbol.toUpperCase()}) ${selectedPair.toSymbol.toUpperCase()}`,
+      label: `Your LP($${selectedPair.fromSymbol.toUpperCase()}-${selectedPair.toSymbol.toUpperCase()}) ${selectedPair.toSymbol.toUpperCase()}`,
       value: prettyCoinDisplay(
         pairInfo.value.myToPoolBalance,
         selectedPair.toSymbol.toUpperCase()
       ),
     },
     {
-      label: `Your ${selectedPair.fromSymbol.toUpperCase()} share of the pool`,
+      label: `Your $${selectedPair.fromSymbol.toUpperCase()} share of the pool`,
       value:
         Number(pairInfo.value.fromPoolSize) === 0
           ? '-'
@@ -110,7 +110,7 @@ const infoMap = computed(() => {
         </div>
 
         <h3 class="uppercase text-xl">
-          {{ `LP(${selectedPair.fromSymbol}-${selectedPair.toSymbol})` }}
+          {{ `LP($${selectedPair.fromSymbol}-${selectedPair.toSymbol})` }}
         </h3>
       </div>
 

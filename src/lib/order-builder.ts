@@ -19,12 +19,14 @@ import {
 import {
   constructBidPsbt,
   getBidCandidateInfo,
+  getListingUtxos,
   getOneBrc20,
   getOneOrder,
 } from '@/queries/orders-api'
 import { getUtxos, type SimpleUtxoFromMempool, getTxHex } from '@/queries/proxy'
 import { type TradingPair } from '@/data/trading-pairs'
 import { getLowestFeeb } from './helpers'
+import { toOutputScript } from 'bitcoinjs-lib/src/address'
 
 export async function buildAskLimit({
   total,
@@ -201,12 +203,10 @@ export async function buildBidLimit({
     poolOrderId: poolOrderId as string,
     bidSchema,
   })
-  console.log({ constructInfo })
 
   const bid = btcjs.Psbt.fromHex(constructInfo.psbtRaw, {
     network: btcjs.networks[btcNetwork],
   })
-  console.log({ bid })
 
   // 3. estimate how much we have to pay
 
@@ -236,12 +236,10 @@ export async function buildBidLimit({
   } = await exclusiveChange({
     psbt: payPsbt,
   })
-  console.log({ payPsbt })
 
   // according to api, extra input should be no less than 600
   // so we minus the difference from the bidFee to make up upload fee for api
   const uploadFee = bidFee - (EXTRA_INPUT_MIN_VALUE - extraInputValue)
-  console.log({ uploadFee, extraInputValue })
 
   // 5. ok, now we have a utxo to actually pay the bill
   // we add it to the bid
@@ -436,7 +434,6 @@ export async function buildBuyTake({
 
   // Step 1: add 2 dummy inputs
   const dummyUtxos = dummiesStore.get!
-  console.log({ dummyUtxos })
   if (!dummyUtxos) {
     throw new Error(
       'Your account does not have 2 dummy UTXOs to proceed the transaction. Please click the top-right shield button to do the preparation.'
@@ -702,14 +699,19 @@ export async function buildSellTake({
       : SERVICE_TESTNET_ADDRESS
   // let serviceFee = Math.max(2000, total * 0.025) // 2.5%
   let serviceFee = 16_000
-  // sell.addOutput({
-  //   address: serviceAddress,
-  //   value: serviceFee,
-  // })
+
   // fetch a biggest utxo
+  const listingUtxos = await getListingUtxos()
   const paymentUtxo = await getUtxos(address).then((result) => {
+    const filtered = result.filter((utxo) => {
+      return !listingUtxos.some((listingUtxo) => {
+        const [txId, outputIndex] = listingUtxo.dummyId.split(':')
+        return utxo.txId === txId && utxo.outputIndex === Number(outputIndex)
+      })
+    })
+
     // choose the largest utxo
-    const utxo = result.reduce((prev, curr) => {
+    const utxo = filtered.reduce((prev, curr) => {
       if (prev.satoshis > curr.satoshis) {
         return prev
       } else {
@@ -718,13 +720,23 @@ export async function buildSellTake({
     }, result[0])
     return utxo
   })
+  if (!paymentUtxo) {
+    throw new Error(
+      'You have no usable You have no usable BTC UTXO. Please deposit more BTC into your address to receive additional UTXO. utxo'
+    )
+  }
   // add input
-  const rawPaymentTx = await getTxHex(paymentUtxo.txId)
-  const paymentTx = btcjs.Transaction.fromHex(rawPaymentTx)
+  // const rawPaymentTx = await getTxHex(paymentUtxo.txId)
+  // const paymentTx = btcjs.Transaction.fromHex(rawPaymentTx)
+  const paymentPrevOutput = toOutputScript(address)
+  const paymentWitnessUtxo = {
+    value: paymentUtxo.satoshis,
+    script: paymentPrevOutput,
+  }
   const paymentInput = {
     hash: paymentUtxo.txId,
     index: paymentUtxo.outputIndex,
-    witnessUtxo: paymentTx.outs[paymentUtxo.outputIndex],
+    witnessUtxo: paymentWitnessUtxo,
     sighashType: SIGHASH_SINGLE_ANYONECANPAY,
   }
   sell.addInput(paymentInput)
@@ -777,7 +789,6 @@ export async function buildClaimTake({
 
   // check if dummies is ready
   if (!dummiesStore.has) {
-    console.log({ d: dummiesStore.get })
     throw new Error(
       'Your account does not have 2 dummy UTXOs to proceed the transaction. Please click the top-right shield button to do the preparation.'
     )

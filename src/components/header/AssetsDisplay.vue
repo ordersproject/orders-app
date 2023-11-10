@@ -113,13 +113,16 @@ const { data: myBrc20s } = useQuery({
                   active && 'bg-zinc-950',
                 ]"
               >
-                <div class="text-orange-300 uppercase">{{ brc20.token }}</div>
+                <div class="text-orange-300 uppercase">${{ brc20.token }}</div>
                 <div class="mt-2 space-y-1 text-xs">
                   <div class="flex items-center justify-between gap-1">
                     <span class="text-zinc-500">Available</span>
                     <span class="text-right">
                       {{
-                        prettyCoinDisplay(brc20.availableBalance, brc20.token)
+                        prettyCoinDisplay(
+                          brc20.availableBalance,
+                          '$' + brc20.token
+                        )
                       }}
                     </span>
                   </div>
@@ -127,7 +130,10 @@ const { data: myBrc20s } = useQuery({
                     <span class="text-zinc-500">Transferable</span>
                     <span class="text-right">
                       {{
-                        prettyCoinDisplay(brc20.transferBalance, brc20.token)
+                        prettyCoinDisplay(
+                          brc20.transferBalance,
+                          '$' + brc20.token
+                        )
                       }}
                     </span>
                   </div>

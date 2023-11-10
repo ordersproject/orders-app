@@ -42,14 +42,15 @@ const tradingPairs = [
     toIcon: btcLogo,
     hasPool: true,
   },
-  // {
-  //   id: 4,
-  //   fromSymbol: 'sats',
-  //   toSymbol: 'btc',
-  //   fromIcon: satsLogo,
-  //   toIcon: btcLogo,
-  // hasPool: true,
-  // },
+  {
+    id: 4,
+    fromSymbol: 'sats',
+    toSymbol: 'btc',
+    fromIcon: satsLogo,
+    toIcon: btcLogo,
+    useDecimals: 16,
+    hasPool: true,
+  },
   // {
   //   id: 5,
   //   fromSymbol: 'grum',
@@ -136,6 +137,7 @@ const tradingPairs = [
   toIcon: string
   hasPool?: boolean
   usePool?: boolean
+  useDecimals?: number
 }[]
 
 export default tradingPairs
