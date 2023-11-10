@@ -17,6 +17,7 @@ declare module '@vue/runtime-core' {
     List: typeof import('./src/components/orders/List.vue')['default']
     Loading: typeof import('./src/components/overlays/Loading.vue')['default']
     NavbarMenu: typeof import('./src/components/header/NavbarMenu.vue')['default']
+    NetworkState: typeof import('./src/components/header/NetworkState.vue')['default']
     NotAvailable: typeof import('./src/components/overlays/NotAvailable.vue')['default']
     Notifications: typeof import('./src/components/header/Notifications.vue')['default']
     OperationPanel: typeof import('./src/components/pool/OperationPanel.vue')['default']

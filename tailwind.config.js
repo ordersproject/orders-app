@@ -11,6 +11,7 @@ export default {
       },
       animation: {
         'spin-slow': 'spin 3s linear infinite',
+        'ping-slow': 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite',
         'wiggle-once': 'wiggle 0.5s ease-in-out',
       },
     },

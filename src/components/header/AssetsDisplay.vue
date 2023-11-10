@@ -62,7 +62,7 @@ const { data: myBrc20s } = useQuery({
       <Menu as="div" class="relative inline-block text-left">
         <div>
           <MenuButton
-            class="inline-flex w-full items-center justify-center gap-x-1 rounded-md pl-3 shadow-sm"
+            class="inline-flex w-full items-center justify-center gap-x-1 rounded-md px-3 shadow-sm"
           >
             <span>
               {{ prettyCoinDisplay(balance, 'BTC') }}

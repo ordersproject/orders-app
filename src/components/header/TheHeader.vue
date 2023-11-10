@@ -18,6 +18,7 @@ import whitelist from '@/lib/whitelist'
 
 import UnisatModal from './UnisatModal.vue'
 import AssetsDisplay from './AssetsDisplay.vue'
+import NetworkState from './NetworkState.vue'
 import Notifications from './Notifications.vue'
 import TheNavbar from './TheNavbar.vue'
 
@@ -126,7 +127,7 @@ const unisatModalOpen = ref(false)
 <template>
   <UnisatModal v-model:open="unisatModalOpen" />
 
-  <header class="flex items-center justify-between px-6 py-4">
+  <header class="flex items-center justify-between px-6 py-4 select-none">
     <TheNavbar />
 
     <div class="flex gap-2">
@@ -161,20 +162,22 @@ const unisatModalOpen = ref(false)
           class="flex h-10 cursor-pointer items-center divide-x divide-zinc-700 rounded-lg bg-black/90 px-4"
         >
           <div
-            class="lg:flex gap-2 pr-4 hidden"
+            class="lg:flex gap-2 pr-3 hidden"
             @click="copyAddress"
             title="copy address"
           >
             <img class="h-5" :src="unisatIcon" alt="Unisat" />
             <span class="text-sm text-orange-300">
-              {{ prettyAddress(addressStore.get) }}
+              {{ prettyAddress(addressStore.get, 4) }}
             </span>
           </div>
 
           <AssetsDisplay />
 
+          <NetworkState />
+
           <!-- ready button -->
-          <div class="pl-4 ml-4" v-if="!dummiesStore.has">
+          <div class="pl-3" v-if="!dummiesStore.has">
             <el-tooltip effect="light" placement="bottom-end">
               <template #content>
                 <h3 class="my-2 text-sm font-bold text-orange-300">
@@ -197,7 +200,7 @@ const unisatModalOpen = ref(false)
               />
             </el-tooltip>
           </div>
-          <div class="pl-4 ml-4" v-else>
+          <div class="pl-3" v-else>
             <CheckCircle2 class="h-5 text-orange-300" />
           </div>
         </div>

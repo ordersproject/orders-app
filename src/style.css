@@ -20,4 +20,5 @@
 
 * {
   transition-duration: 100ms;
+  @apply outline-orange-300;
 }

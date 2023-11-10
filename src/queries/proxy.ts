@@ -76,7 +76,17 @@ export const getTxHex = async (txId: string) => {
     headers: {
       'Content-Type': 'application/json',
     },
-  }).then((res) => res.text())
+  })
+    .then((res) => res.text())
+    .then((txHex: string) => {
+      if (txHex === 'Transaction not found') {
+        throw new Error(
+          'Some error happened when finding BTC to pay. Please try again later.'
+        )
+      }
+
+      return txHex
+    })
 
   return txHex
 }

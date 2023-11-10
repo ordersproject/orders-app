@@ -19,12 +19,14 @@ import {
 import {
   constructBidPsbt,
   getBidCandidateInfo,
+  getListingUtxos,
   getOneBrc20,
   getOneOrder,
 } from '@/queries/orders-api'
 import { getUtxos, type SimpleUtxoFromMempool, getTxHex } from '@/queries/proxy'
 import { type TradingPair } from '@/data/trading-pairs'
 import { getLowestFeeb } from './helpers'
+import { toOutputScript } from 'bitcoinjs-lib/src/address'
 
 export async function buildAskLimit({
   total,
@@ -509,60 +511,6 @@ export async function buildBuyTake({
     buyPsbt.txOutputs.length - 2,
     buyPsbt.txOutputs.length - 1,
   ]
-
-  // // Step 8: add payment input
-  // const paymentUtxo = await getUtxos(address).then((result) => {
-  //   // choose the largest utxo
-  //   const utxo = result.reduce((prev, curr) => {
-  //     if (prev.satoshis > curr.satoshis) {
-  //       return prev
-  //     } else {
-  //       return curr
-  //     }
-  //   })
-  //   return utxo
-  // })
-
-  // if (!paymentUtxo) {
-  //   throw new Error('no utxo')
-  // }
-
-  // // query rawTx of the utxo
-  // const rawTx = await getTxHex(paymentUtxo.txId)
-  // // decode rawTx
-  // const tx = btcjs.Transaction.fromHex(rawTx)
-
-  // // construct input
-  // const paymentInput = {
-  //   hash: paymentUtxo.txId,
-  //   index: paymentUtxo.outputIndex,
-  //   witnessUtxo: tx.outs[paymentUtxo.outputIndex],
-  //   sighashType: btcjs.Transaction.SIGHASH_ALL,
-  // }
-
-  // buyPsbt.addInput(paymentInput)
-  // totalInput += paymentInput.witnessUtxo.value
-
-  // // Step 9: add change output
-  // let fee = calculatePsbtFee(buyPsbt, feeb)
-
-  // const totalOutput = buyPsbt.txOutputs.reduce(
-  //   (partialSum, a) => partialSum + a.value,
-  //   0
-  // )
-  // const changeValue = totalInput - totalOutput - fee
-  // if (changeValue < 0) {
-  //   throw new Error('Insufficient balance. Please ensure that the address has a sufficient balance and try again.')
-  // }
-  // // if change is too small, we discard it instead of sending it back to the seller
-  // if (changeValue >= DUST_UTXO_VALUE) {
-  //   buyPsbt.addOutput({
-  //     address,
-  //     value: changeValue,
-  //   })
-  // } else {
-  //   fee += changeValue
-  // }
   const { fee } = await exclusiveChange({
     psbt: buyPsbt,
     feeb,
@@ -697,14 +645,19 @@ export async function buildSellTake({
       : SERVICE_TESTNET_ADDRESS
   // let serviceFee = Math.max(2000, total * 0.025) // 2.5%
   let serviceFee = 16_000
-  // sell.addOutput({
-  //   address: serviceAddress,
-  //   value: serviceFee,
-  // })
+
   // fetch a biggest utxo
+  const listingUtxos = await getListingUtxos()
   const paymentUtxo = await getUtxos(address).then((result) => {
+    const filtered = result.filter((utxo) => {
+      return !listingUtxos.some((listingUtxo) => {
+        const [txId, outputIndex] = listingUtxo.dummyId.split(':')
+        return utxo.txId === txId && utxo.outputIndex === Number(outputIndex)
+      })
+    })
+
     // choose the largest utxo
-    const utxo = result.reduce((prev, curr) => {
+    const utxo = filtered.reduce((prev, curr) => {
       if (prev.satoshis > curr.satoshis) {
         return prev
       } else {
@@ -713,13 +666,23 @@ export async function buildSellTake({
     }, result[0])
     return utxo
   })
+  if (!paymentUtxo) {
+    throw new Error(
+      'You have no usable You have no usable BTC UTXO. Please deposit more BTC into your address to receive additional UTXO. utxo'
+    )
+  }
   // add input
-  const rawPaymentTx = await getTxHex(paymentUtxo.txId)
-  const paymentTx = btcjs.Transaction.fromHex(rawPaymentTx)
+  // const rawPaymentTx = await getTxHex(paymentUtxo.txId)
+  // const paymentTx = btcjs.Transaction.fromHex(rawPaymentTx)
+  const paymentPrevOutput = toOutputScript(address)
+  const paymentWitnessUtxo = {
+    value: paymentUtxo.satoshis,
+    script: paymentPrevOutput,
+  }
   const paymentInput = {
     hash: paymentUtxo.txId,
     index: paymentUtxo.outputIndex,
-    witnessUtxo: paymentTx.outs[paymentUtxo.outputIndex],
+    witnessUtxo: paymentWitnessUtxo,
     sighashType: SIGHASH_SINGLE_ANYONECANPAY,
   }
   sell.addInput(paymentInput)
