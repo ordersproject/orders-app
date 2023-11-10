@@ -24,6 +24,7 @@ const tradingPairs = [
     fromIcon: rdexLogo,
     toIcon: btcLogo,
     hasPool: false,
+    usePool: true,
   },
   {
     id: 2,
@@ -47,6 +48,7 @@ const tradingPairs = [
   //   toSymbol: 'btc',
   //   fromIcon: satsLogo,
   //   toIcon: btcLogo,
+  // hasPool: true,
   // },
   // {
   //   id: 5,
@@ -133,6 +135,7 @@ const tradingPairs = [
   fromIcon: string
   toIcon: string
   hasPool?: boolean
+  usePool?: boolean
 }[]
 
 export default tradingPairs

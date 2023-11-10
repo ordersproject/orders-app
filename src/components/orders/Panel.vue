@@ -440,7 +440,7 @@ const { data: btcBalance } = useQuery({
   },
 })
 
-const usePool = selectedPair.hasPool
+const usePool = selectedPair.hasPool || selectedPair.usePool || false
 const { data: bidCandidates } = useQuery({
   queryKey: [
     'bidCandidates',
