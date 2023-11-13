@@ -12,7 +12,7 @@ import { type SimpleUtxoFromMempool, getTxHex, getUtxos } from '@/queries/proxy'
 import { getPoolCredential } from '@/queries/pool'
 import { type TradingPair } from '@/data/trading-pairs'
 import { raise } from './helpers'
-import { change, exclusiveChange } from './build-helpers'
+import { change, exclusiveChange, safeOutputValue } from './build-helpers'
 import {
   BTC_POOL_MODE,
   MS_BRC20_UTXO_VALUE,
@@ -126,7 +126,7 @@ export async function buildAddBrcLiquidity({
     )
   addLiquidity.addOutput({
     address: multisigAddress,
-    value: Number(total),
+    value: safeOutputValue(total),
   })
 
   return {
@@ -137,7 +137,7 @@ export async function buildAddBrcLiquidity({
     fromSymbol: selectedPair.fromSymbol,
     toSymbol: selectedPair.toSymbol,
     fromValue: amount,
-    toValue: total,
+    toValue: new Decimal(safeOutputValue(total)),
     fromAddress: address,
     toAddress: multisigAddress,
   }
@@ -163,7 +163,7 @@ export async function buildAddBtcLiquidity({ total }: { total: Decimal }) {
       network: btcjs.networks[networkStore.btcNetwork],
     }).addOutput({
       address: serviceAddress,
-      value: Number(total),
+      value: safeOutputValue(total),
     })
 
     const { fee } = await change({
@@ -173,7 +173,7 @@ export async function buildAddBtcLiquidity({ total }: { total: Decimal }) {
     return {
       order: addBtcLiquidity,
       type: 'add-liquidity (BTC -> BRC20)',
-      amount: total,
+      amount: new Decimal(safeOutputValue(total)),
       toAddress: serviceAddress,
     }
   }
@@ -206,7 +206,7 @@ export async function buildAddBtcLiquidity({ total }: { total: Decimal }) {
       network: btcjs.networks[networkStore.btcNetwork],
     }).addOutput({
       address,
-      value: Number(total),
+      value: safeOutputValue(total),
     })
 
     await exclusiveChange({ psbt: separatePsbt })
@@ -241,7 +241,7 @@ export async function buildAddBtcLiquidity({ total }: { total: Decimal }) {
   return {
     order: addBtcLiquidity,
     type: 'add-liquidity (BTC -> BRC20)',
-    amount: total,
+    amount: new Decimal(safeOutputValue(total)),
     toAddress: multisigAddress,
     separatePsbt,
   }

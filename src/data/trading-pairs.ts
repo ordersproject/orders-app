@@ -24,6 +24,7 @@ const tradingPairs = [
     fromIcon: rdexLogo,
     toIcon: btcLogo,
     hasPool: false,
+    usePool: true,
   },
   {
     id: 2,
@@ -48,6 +49,7 @@ const tradingPairs = [
     fromIcon: satsLogo,
     toIcon: btcLogo,
     useDecimals: 16,
+    hasPool: true,
   },
   // {
   //   id: 5,
@@ -134,6 +136,7 @@ const tradingPairs = [
   fromIcon: string
   toIcon: string
   hasPool?: boolean
+  usePool?: boolean
   useDecimals?: number
 }[]
 

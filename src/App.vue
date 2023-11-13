@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useQueryClient } from '@tanstack/vue-query'
+import * as secp256k1 from 'tiny-secp256k1'
 
 import { DEBUG } from './data/constants'
 import { useBtcJsStore } from './store'
@@ -20,7 +21,6 @@ onMounted(async () => {
 
   // initialize btcjs
   const btcjs = window.bitcoin
-  const secp256k1 = await import('tiny-secp256k1')
   btcjs.initEccLib(secp256k1)
   btcJsStore.set(btcjs)
 

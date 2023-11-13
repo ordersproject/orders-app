@@ -102,7 +102,7 @@ const reversePrice = computed(() => {
     .times(useMultiplier)
     .toDecimalPlaces(8, Decimal.ROUND_HALF_CEIL)
 
-  return useUnitPrice.times(selected.value.amount).toDecimalPlaces(8)
+  return useUnitPrice.times(selected.value.amount).round()
 })
 
 const builtInfo = ref<
@@ -137,6 +137,7 @@ async function submitAdd() {
 
     ElMessage.error(e.message)
     builtInfo.value = undefined
+    isOpenConfirmationModal.value = false
   })
 
   // bidirectional
@@ -150,6 +151,7 @@ async function submitAdd() {
 
       ElMessage.error(e.message)
       builtInfo.value = undefined
+      isOpenConfirmationModal.value = false
     })
   }
 

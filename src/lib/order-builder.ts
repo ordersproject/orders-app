@@ -4,7 +4,7 @@ import {
   useDummiesStore,
   useNetworkStore,
 } from '@/store'
-import { change, exclusiveChange } from './build-helpers'
+import { change, exclusiveChange, safeOutputValue } from './build-helpers'
 import {
   DUMMY_UTXO_VALUE,
   DUST_UTXO_VALUE,
@@ -122,7 +122,7 @@ export async function buildAskLimit({
   // Step 2: Build output as what the seller want (BTC)
   ask.addOutput({
     address,
-    value: total,
+    value: safeOutputValue(total),
   })
 
   return {
@@ -137,7 +137,7 @@ export async function buildAskLimit({
     fromSymbol: selectedPair.fromSymbol,
     toSymbol: selectedPair.toSymbol,
     fromValue: amount,
-    toValue: total,
+    toValue: safeOutputValue(total),
     observing: {
       txId: ordinalUtxo.txId,
       outputIndex: ordinalUtxo.outputIndex,
@@ -226,7 +226,7 @@ export async function buildBidLimit({
   const payPsbt = new btcjs.Psbt()
   payPsbt.addOutput({
     address,
-    value: difference,
+    value: safeOutputValue(difference),
   })
   const {
     feeb,
@@ -491,7 +491,9 @@ export async function buildBuyTake({
           ? SERVICE_LIVENET_RDEX_ADDRESS
           : SERVICE_LIVENET_ADDRESS
         : SERVICE_TESTNET_ADDRESS
-    serviceFee = Math.max(2000, askPsbt.txOutputs[0].value * 0.01)
+    serviceFee = safeOutputValue(
+      Math.max(2000, askPsbt.txOutputs[0].value * 0.01)
+    )
     buyPsbt.addOutput({
       address: serviceAddress,
       value: serviceFee,
@@ -630,7 +632,7 @@ export async function buildSellTake({
   // Step 2: Build output as what the seller want (BTC)
   sell.addOutput({
     address,
-    value: total,
+    value: safeOutputValue(total),
   })
 
   // Step 3: Add service fee
@@ -674,7 +676,7 @@ export async function buildSellTake({
   // add input
   // const rawPaymentTx = await getTxHex(paymentUtxo.txId)
   // const paymentTx = btcjs.Transaction.fromHex(rawPaymentTx)
-  const paymentPrevOutput = toOutputScript(address)
+  const paymentPrevOutput = btcjs.address.toOutputScript(address)
   const paymentWitnessUtxo = {
     value: paymentUtxo.satoshis,
     script: paymentPrevOutput,
@@ -697,7 +699,7 @@ export async function buildSellTake({
   if (changeValue >= DUST_UTXO_VALUE) {
     sell.addOutput({
       address,
-      value: changeValue,
+      value: safeOutputValue(changeValue),
     })
   } else {
     serviceFee += changeValue

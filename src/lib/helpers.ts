@@ -1,5 +1,6 @@
 import { MIN_FEEB } from '@/data/constants'
 import { getFeebPlans } from '@/queries/proxy'
+import Decimal from 'decimal.js'
 
 export const sleep = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -16,6 +17,10 @@ export const getLowestFeeb = async () => {
 
   // no less than 3
   return Math.max(feeb, 3)
+}
+
+export const getDecimalLength = (value: number | string | Decimal): number => {
+  return new Decimal(value).dp()
 }
 
 export type BidTxSpec = {
