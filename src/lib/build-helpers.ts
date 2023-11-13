@@ -7,6 +7,7 @@ import {
   DUST_UTXO_VALUE,
   FEEB_MULTIPLIER,
   MIN_FEEB,
+  MS_BRC20_UTXO_VALUE,
   MS_FEEB_MULTIPLIER,
   SIGHASH_ALL,
   SIGHASH_ALL_ANYONECANPAY,
@@ -16,6 +17,7 @@ import { getFeebPlans, getTxHex, getUtxos } from '@/queries/proxy'
 import { getLowestFeeb, raise } from './helpers'
 import { Output } from 'bitcoinjs-lib/src/transaction'
 import { getListingUtxos } from '@/queries/orders-api'
+import Decimal from 'decimal.js'
 
 const TX_EMPTY_SIZE = 4 + 1 + 1 + 4
 const TX_INPUT_BASE = 32 + 4 + 1 + 4 // 41
@@ -231,7 +233,6 @@ export async function exclusiveChange({
   if (pubKey) {
     paymentInput.tapInternalPubkey = pubKey
   }
-  console.log(3)
   const paymentUtxoValue = paymentUtxo.satoshis
 
   if (estimate) {
@@ -314,7 +315,7 @@ export async function exclusiveChange({
   if (changeValue >= DUST_UTXO_VALUE) {
     psbt.addOutput({
       address,
-      value: changeValue,
+      value: safeOutputValue(changeValue),
     })
   } else {
     fee += changeValue
@@ -468,7 +469,7 @@ export async function change({
   if (changeValue >= DUST_UTXO_VALUE) {
     psbt.addOutput({
       address,
-      value: changeValue,
+      value: safeOutputValue(changeValue),
     })
   } else {
     fee += changeValue
@@ -481,4 +482,28 @@ export async function change({
     feeb,
     changeValue,
   }
+}
+
+export function safeOutputValue(value: number | Decimal): number {
+  // if value is less than 1k sats, throw an error
+  if (typeof value === 'number') {
+    if (value < MS_BRC20_UTXO_VALUE) {
+      throw new Error(
+        `The amount you are trying is too small. Maybe try a larger amount.`
+      )
+    }
+  } else {
+    if (value.lessThan(MS_BRC20_UTXO_VALUE)) {
+      throw new Error(
+        `The amount you are trying is too small. Maybe try a larger amount.`
+      )
+    }
+  }
+
+  // make sure value is a whole number
+  if (typeof value === 'number') {
+    return Math.round(value)
+  }
+
+  return value.round().toNumber()
 }

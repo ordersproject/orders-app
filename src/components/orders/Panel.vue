@@ -117,6 +117,10 @@ function changeTakeModeTab(index: number) {
   takeModeTab.value = index
 }
 
+function deviatePrice(price: number, deviator: number): number {
+  return new Decimal(price * deviator).toDP(new Decimal(price).dp()).toNumber()
+}
+
 const selectedBuyOrders: Ref<Order[]> = ref([])
 const selectedSellOrders: Ref<Order[]> = ref([])
 
@@ -375,7 +379,9 @@ const bidExchangePrice = ref(0)
 const bidTotalExchangePrice = computed(() => {
   if (!!!selectedBidCandidate.value) return '0'
 
-  return bidExchangePrice.value * Number(selectedBidCandidate.value.coinAmount)
+  return Math.round(
+    bidExchangePrice.value * Number(selectedBidCandidate.value.coinAmount)
+  )
 })
 
 const canPlaceBidOrder = computed(() => {
@@ -394,7 +400,7 @@ const askLimitBrcAmount = computed(() => {
   return Number(selectedAskCandidate.value.amount)
 })
 const askTotalExchangePrice = computed(() => {
-  return askExchangePrice.value * askLimitBrcAmount.value
+  return Math.round(askExchangePrice.value * askLimitBrcAmount.value)
 })
 const canPlaceAskOrder = computed(() => {
   return askExchangePrice.value > 0 && askLimitBrcAmount.value > 0
@@ -562,11 +568,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   <div
                     class="cursor-pointer pt-2 text-right text-xs text-zinc-500"
                     v-if="marketPrice"
-                    @click="
-                      bidExchangePrice = new Decimal(marketPrice! * 0.99)
-                        .floor()
-                        .toNumber()
-                    "
+                    @click="bidExchangePrice = deviatePrice(marketPrice!, 0.99)"
                     title="Use market price"
                   >
                     {{ `Market Price: ${marketPrice} sat` }}
@@ -728,11 +730,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   <div
                     class="cursor-pointer pt-2 text-right text-xs text-zinc-500"
                     v-if="marketPrice"
-                    @click="
-                      askExchangePrice = new Decimal(marketPrice! * 1.01)
-                        .ceil()
-                        .toNumber()
-                    "
+                    @click="askExchangePrice = deviatePrice(marketPrice!, 1.01)"
                     title="Use market price"
                   >
                     {{ `Market Price: ${marketPrice} sat` }}
