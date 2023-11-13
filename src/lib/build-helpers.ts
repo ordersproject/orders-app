@@ -16,7 +16,6 @@ import { getFeebPlans, getTxHex, getUtxos } from '@/queries/proxy'
 import { getLowestFeeb, raise } from './helpers'
 import { Output } from 'bitcoinjs-lib/src/transaction'
 import { getListingUtxos } from '@/queries/orders-api'
-import { toOutputScript } from 'bitcoinjs-lib/src/address'
 
 const TX_EMPTY_SIZE = 4 + 1 + 1 + 4
 const TX_INPUT_BASE = 32 + 4 + 1 + 4 // 41
@@ -217,7 +216,8 @@ export async function exclusiveChange({
   // const tx = btcjs.Transaction.fromHex(rawTx)
 
   // construct input
-  const paymentPrevOutput = toOutputScript(address)
+  const btcjs = useBtcJsStore().get!
+  const paymentPrevOutput = btcjs.address.toOutputScript(address)
   const paymentWitnessUtxo = {
     value: paymentUtxo.satoshis,
     script: paymentPrevOutput,
@@ -231,6 +231,7 @@ export async function exclusiveChange({
   if (pubKey) {
     paymentInput.tapInternalPubkey = pubKey
   }
+  console.log(3)
   const paymentUtxoValue = paymentUtxo.satoshis
 
   if (estimate) {

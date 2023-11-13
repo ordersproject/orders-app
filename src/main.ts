@@ -21,7 +21,7 @@ const pinia = createPinia()
 
 // wait until bitcoin is loaded then mount the app
 const launchInterval = setInterval(() => {
-  if (window.bitcoin) {
+  if (window.bitcoin && window.ecpair) {
     const app = createApp(App)
     // @ts-ignore
     app.use(router).use(pinia).use(VueQueryPlugin).mount('#app')

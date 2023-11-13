@@ -26,7 +26,6 @@ import {
 import { getUtxos, type SimpleUtxoFromMempool, getTxHex } from '@/queries/proxy'
 import { type TradingPair } from '@/data/trading-pairs'
 import { getLowestFeeb } from './helpers'
-import { toOutputScript } from 'bitcoinjs-lib/src/address'
 
 export async function buildAskLimit({
   total,
@@ -728,7 +727,7 @@ export async function buildSellTake({
   // add input
   // const rawPaymentTx = await getTxHex(paymentUtxo.txId)
   // const paymentTx = btcjs.Transaction.fromHex(rawPaymentTx)
-  const paymentPrevOutput = toOutputScript(address)
+  const paymentPrevOutput = btcjs.address.toOutputScript(address)
   const paymentWitnessUtxo = {
     value: paymentUtxo.satoshis,
     script: paymentPrevOutput,
