@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Ref, computed, ref, watch } from 'vue'
+import { Ref, computed, onMounted, ref, watch } from 'vue'
 import {
   Popover,
   PopoverButton,
@@ -12,12 +12,62 @@ import {
 import { useQuery } from '@tanstack/vue-query'
 import { useNetworkStore } from '@/store'
 import { FeebPlan, getFeebPlans } from '@/queries/proxy'
+import { CheckIcon } from 'lucide-vue-next'
 
+// custom feeb plan
 const customFeebPlan: Ref<FeebPlan> = ref({
   title: 'Custom',
   feeRate: 2,
-  desc: 'Dicide the fee rate you want to use',
+  desc: 'Choose your fee rate',
 })
+onMounted(() => {
+  // load custom feeb from localstorage
+  const customFeeb = localStorage.getItem('customFeeb')
+  if (customFeeb) {
+    customFeebPlan.value.feeRate = Number(customFeeb)
+  }
+})
+function updateCustomFeeb(e: InputEvent) {
+  const target = e.target as HTMLInputElement
+  const value = Number(target.value)
+
+  if (Number.isNaN(value)) return
+
+  customFeebPlan.value.feeRate = value
+  localStorage.setItem('customFeeb', String(value))
+}
+
+// estimate miner fee for every actions
+const actions = [
+  {
+    title: 'Buy',
+  },
+  {
+    title: 'Sell',
+  },
+  {
+    title: 'Ask',
+  },
+  {
+    title: 'Bid',
+  },
+  {
+    title: 'Add BRC Liquidity',
+  },
+  {
+    title: 'Add 2-Way Liquidity',
+  },
+  {
+    title: 'Remove Liquidity',
+  },
+  {
+    title: 'Release',
+  },
+  {
+    title: 'Claim Reward',
+  },
+]
+
 const networkStore = useNetworkStore()
 const { data: feebPlans } = useQuery({
   queryKey: ['feebPlans', { network: networkStore.network }],
@@ -33,7 +83,10 @@ const selectedFeebPlan: Ref<FeebPlan | undefined> = ref()
 watch(feebPlans, (plans) => {
   if (!plans) return
 
-  selectedFeebPlan.value = plans[1]
+  if (!selectedFeebPlan.value) {
+    selectedFeebPlan.value = plans[1]
+    return
+  }
 })
 
 const traffic = computed(() => {
@@ -95,7 +148,11 @@ const trafficColorClass = computed(() => {
 
       <span class="pl-2">Fee</span>
       <span class="text-orange-300 min-w-[32px]">
-        {{ selectedFeebPlan?.title ?? '-' }}
+        {{
+          selectedFeebPlan?.title
+            ? `${selectedFeebPlan.title} ${selectedFeebPlan.feeRate}`
+            : '-'
+        }}
       </span>
     </PopoverButton>
 
@@ -108,7 +165,7 @@ const trafficColorClass = computed(() => {
       leave-to-class="transform opacity-0 scale-95"
     >
       <PopoverPanel
-        class="absolute z-10 right-0 mt-4 w-[400px] origin-top-right overflow-hidden rounded-md bg-zinc-800 shadow-md ring-1 ring-black ring-opacity-5 focus:outline-none px-4 shadow-orange-300/20"
+        class="absolute z-10 right-0 mt-4 w-[720px] origin-top-right overflow-hidden rounded-md bg-zinc-800 shadow-md ring-1 ring-black ring-opacity-5 focus:outline-none px-4 shadow-orange-300/20"
       >
         <div class="divide-y divide-zinc-700">
           <div class="py-4">
@@ -139,76 +196,110 @@ const trafficColorClass = computed(() => {
             </div>
           </div>
 
-          <div class="py-4 flex flex-col items-stretch gap-2 justify-between">
-            <div class="item-label">Choose Fee Rate Plan</div>
+          <div class="grid grid-cols-5 divide-x divide-zinc-700 py-4">
+            <div
+              class="flex flex-col items-stretch gap-2 justify-between pr-4 col-span-2"
+            >
+              <div class="item-label">Choose Fee Rate Plan</div>
 
-            <div class="grow">
-              <RadioGroup v-model="selectedFeebPlan">
-                <div class="space-y-2">
-                  <RadioGroupOption
-                    as="template"
-                    v-for="plan in feebPlans"
-                    :key="plan.title"
-                    :value="plan"
-                    v-slot="{ active, checked }"
-                  >
-                    <div
-                      :class="[
-                        active
-                          ? 'ring-2 ring-white/60 ring-offset-2 ring-offset-orange-300'
-                          : '',
-                        checked ? 'bg-orange-300/75 text-white ' : 'bg-black ',
-                      ]"
-                      class="relative flex cursor-pointer rounded-lg px-5 py-4 shadow-md focus:outline-none"
+              <div class="grow">
+                <RadioGroup v-model="selectedFeebPlan">
+                  <div class="space-y-4">
+                    <RadioGroupOption
+                      as="template"
+                      v-for="plan in feebPlans"
+                      :key="plan.title"
+                      :value="plan"
+                      v-slot="{ active, checked }"
                     >
-                      <div class="flex w-full items-center justify-between">
-                        <div class="flex items-center">
-                          <div class="text-sm">
-                            <RadioGroupLabel
-                              as="p"
-                              :class="checked ? 'text-white' : 'text-zinc-300'"
-                              class="font-medium"
-                            >
-                              {{ plan.title }}
-                            </RadioGroupLabel>
+                      <div
+                        :class="[
+                          active
+                            ? 'ring-2 ring-white/60 ring-offset-2 ring-offset-orange-300'
+                            : '',
+                          checked
+                            ? 'bg-orange-300/75 text-white '
+                            : 'bg-black ',
+                        ]"
+                        class="relative flex cursor-pointer rounded-lg px-5 py-4 shadow-md focus:outline-none"
+                      >
+                        <div class="flex w-full items-center justify-between">
+                          <div class="flex items-center">
+                            <div class="text-sm">
+                              <RadioGroupLabel
+                                as="p"
+                                :class="
+                                  checked ? 'text-white' : 'text-zinc-300'
+                                "
+                                class="font-medium"
+                              >
+                                {{ plan.title }}
+                              </RadioGroupLabel>
 
-                            <RadioGroupDescription
-                              as="span"
-                              :class="
-                                checked ? 'text-orange-100' : 'text-zinc-500'
-                              "
-                              class="inline"
-                            >
-                              <div class="mt-1">
-                                {{ `${plan.feeRate} sat/vB` }}
-                              </div>
-                              <div class="">{{ plan.desc }}</div>
-                            </RadioGroupDescription>
+                              <RadioGroupDescription
+                                as="span"
+                                :class="
+                                  checked ? 'text-orange-100' : 'text-zinc-500'
+                                "
+                                class="inline"
+                              >
+                                <div class="mt-1">
+                                  <div
+                                    class="flex gap-1 items-center mb-1"
+                                    v-if="plan.title.toLowerCase() === 'custom'"
+                                  >
+                                    <input
+                                      type="text"
+                                      class="text-zinc-300 bg-transparent text-sm w-8 border-0 outline-none border-b !border-zinc-500 py-0.5 px-0 focus:ring-0 focus:ring-transparent text-center"
+                                      :value="customFeebPlan.feeRate"
+                                      @input="(event) => updateCustomFeeb"
+                                    />
+
+                                    <span>
+                                      {{ `sat/vB` }}
+                                    </span>
+                                  </div>
+
+                                  <span v-else>
+                                    {{ `${plan.feeRate} sat/vB` }}
+                                  </span>
+                                </div>
+                                <div class="">{{ plan.desc }}</div>
+                              </RadioGroupDescription>
+                            </div>
+                          </div>
+                          <div v-show="checked" class="shrink-0 text-white">
+                            <CheckIcon
+                              class="h-6 w-6 rounded-full bg-white/20 p-1"
+                              aria-hidden="true"
+                            />
                           </div>
                         </div>
-                        <div v-show="checked" class="shrink-0 text-white">
-                          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none">
-                            <circle
-                              cx="12"
-                              cy="12"
-                              r="12"
-                              fill="#fff"
-                              fill-opacity="0.2"
-                            />
-                            <path
-                              d="M7 13l3 3 7-7"
-                              stroke="#fff"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                        </div>
                       </div>
-                    </div>
-                  </RadioGroupOption>
+                    </RadioGroupOption>
+                  </div>
+                </RadioGroup>
+              </div>
+            </div>
+
+            <div class="pl-4 col-span-3">
+              <div class="item-label">Estimate Miner Fee</div>
+
+              <div class="mt-2 space-y-6">
+                <div
+                  class="flex items-start justify-between"
+                  v-for="action in actions"
+                >
+                  <div class="text-orange-300">
+                    {{ action.title }}
+                  </div>
+
+                  <div class="text-right flex gap-4">
+                    <div class="font-bold">10000 sat</div>
+                    <div class="text-zinc-500">~$10</div>
+                  </div>
                 </div>
-              </RadioGroup>
+              </div>
             </div>
           </div>
         </div>
