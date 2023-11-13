@@ -1,5 +1,11 @@
 const changelog = [
   {
+    version: '1.0.3',
+    emoji: '🐛',
+    date: '2023-11-13',
+    changes: ['Fix a bug that causes taproot address to be unable to use'],
+  },
+  {
     version: '1.0.2',
     emoji: '📚',
     date: '2023-11-06',
