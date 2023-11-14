@@ -224,7 +224,7 @@ function onSwitchShow(open: boolean) {
       leave-to-class="transform opacity-0 scale-95"
     >
       <PopoverPanel
-        class="absolute z-10 right-0 mt-4 w-[720px] origin-top-right overflow-hidden rounded-md bg-zinc-800 shadow-md ring-1 ring-black ring-opacity-5 focus:outline-none px-4 shadow-orange-300/20"
+        class="absolute z-10 right-0 mt-4 w-[720px] origin-top-right overflow-hidden rounded-md bg-zinc-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none px-4 shadow-orange-300/20"
       >
         <div class="divide-y divide-zinc-700">
           <div class="py-4">
