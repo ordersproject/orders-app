@@ -6,6 +6,7 @@ import {
 } from '@/store'
 import { change, exclusiveChange, safeOutputValue } from './build-helpers'
 import {
+  DEBUG,
   DUMMY_UTXO_VALUE,
   DUST_UTXO_VALUE,
   EXTRA_INPUT_MIN_VALUE,

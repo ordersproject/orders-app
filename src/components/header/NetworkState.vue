@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Ref, computed, onMounted, ref, watch } from 'vue'
+import { Ref, computed, ref } from 'vue'
+import { useStorage } from '@vueuse/core'
 import {
   Popover,
   PopoverButton,
@@ -10,83 +11,90 @@ import {
   RadioGroupOption,
 } from '@headlessui/vue'
 import { useQuery } from '@tanstack/vue-query'
+import { CarIcon, CheckIcon, Loader2Icon } from 'lucide-vue-next'
+
 import { useNetworkStore } from '@/store'
 import { FeebPlan, getFeebPlans } from '@/queries/proxy'
-import { CheckIcon } from 'lucide-vue-next'
 
 // custom feeb plan
+const customFeeb = useStorage('customFeeb', 2)
 const customFeebPlan: Ref<FeebPlan> = ref({
   title: 'Custom',
-  feeRate: 2,
-  desc: 'Choose your fee rate',
+  feeRate: customFeeb,
+  desc: '',
 })
-onMounted(() => {
-  // load custom feeb from localstorage
-  const customFeeb = localStorage.getItem('customFeeb')
-  if (customFeeb) {
-    customFeebPlan.value.feeRate = Number(customFeeb)
-  }
-})
-function updateCustomFeeb(e: InputEvent) {
+function updateCustomFeeb(e: any) {
   const target = e.target as HTMLInputElement
   const value = Number(target.value)
 
   if (Number.isNaN(value)) return
 
-  customFeebPlan.value.feeRate = value
-  localStorage.setItem('customFeeb', String(value))
+  customFeeb.value = value
 }
 
 // estimate miner fee for every actions
-const actions = [
+const transactionActions = [
   {
     title: 'Buy',
+    size: 500,
   },
   {
     title: 'Sell',
+    size: 0,
   },
   {
     title: 'Ask',
+    size: 0,
   },
   {
     title: 'Bid',
+    size: 610,
   },
+]
+
+const poolActions = [
   {
     title: 'Add BRC Liquidity',
+    size: 0,
   },
   {
     title: 'Add 2-Way Liquidity',
+    size: 140,
   },
   {
     title: 'Remove Liquidity',
+    size: 0,
   },
   {
     title: 'Release',
+    size: 700,
   },
   {
     title: 'Claim Reward',
+    size: 0,
   },
 ]
 
 const networkStore = useNetworkStore()
-const { data: feebPlans } = useQuery({
+const { data: feebPlans, isLoading: isLoadingFeebPlans } = useQuery({
   queryKey: ['feebPlans', { network: networkStore.network }],
   queryFn: () => getFeebPlans({ network: networkStore.network }),
   select(plans) {
-    plans.push(customFeebPlan.value)
+    if (!plans.some((plan) => plan.title === 'Custom')) {
+      plans.push(customFeebPlan.value)
+    }
 
     return plans
   },
 })
 
-const selectedFeebPlan: Ref<FeebPlan | undefined> = ref()
-watch(feebPlans, (plans) => {
-  if (!plans) return
+const selectedFeebPlanTitle = useStorage('selectedFeebPlanTitle', 'Avg')
+const selectedFeebPlan = computed(() => {
+  if (!feebPlans.value) return
 
-  if (!selectedFeebPlan.value) {
-    selectedFeebPlan.value = plans[1]
-    return
-  }
+  return feebPlans.value.find(
+    (plan) => plan.title === selectedFeebPlanTitle.value
+  )
 })
 
 const traffic = computed(() => {
@@ -129,6 +137,23 @@ const trafficColorClass = computed(() => {
       }
   }
 })
+// cars symbol
+const colorCarsCount = computed(() => {
+  if (!feebPlans.value) return 0
+
+  switch (traffic.value) {
+    case 'Low':
+      return 1
+    case 'Normal':
+      return 2
+    case 'Busy':
+      return 3
+    case 'Extremely Busy':
+      return 4
+    default:
+      return 0
+  }
+})
 </script>
 
 <template>
@@ -147,9 +172,15 @@ const trafficColorClass = computed(() => {
       </span>
 
       <span class="pl-2">Fee</span>
-      <span class="text-orange-300 min-w-[32px]">
+      <span class="min-w-[60px]" v-if="isLoadingFeebPlans">
+        <Loader2Icon class="text-zinc-500 h-4 w-4 mx-auto animate-spin">
+          Loading...
+        </Loader2Icon>
+      </span>
+
+      <span class="text-orange-300 text-left min-w-[60px]" v-else>
         {{
-          selectedFeebPlan?.title
+          selectedFeebPlan
             ? `${selectedFeebPlan.title} ${selectedFeebPlan.feeRate}`
             : '-'
         }}
@@ -172,8 +203,24 @@ const trafficColorClass = computed(() => {
             <div class="flex items-center justify-between">
               <div class="item-label">Network Traffic</div>
 
-              <div class="font-bold" :class="trafficColorClass.text">
-                {{ traffic }}
+              <div class="flex items-center gap-4">
+                <div class="flex gap-1">
+                  <CarIcon
+                    class="h-6 w-6"
+                    :class="trafficColorClass.text"
+                    aria-hidden="true"
+                    v-for="i in Array.from({ length: colorCarsCount })"
+                  />
+                  <!-- gray cars -->
+                  <CarIcon
+                    class="h-6 w-6 text-zinc-700"
+                    aria-hidden="true"
+                    v-for="i in Array.from({ length: 4 - colorCarsCount })"
+                  />
+                </div>
+                <div class="font-bold" :class="trafficColorClass.text">
+                  {{ traffic }}
+                </div>
               </div>
             </div>
 
@@ -188,9 +235,9 @@ const trafficColorClass = computed(() => {
                 </span>
                 now.
               </p>
-              <p class="mt-1">
-                This affects the speed of your transactions. The higher the
-                traffic, the higher the fee rate you need to pay to get your
+              <p class="mt-2">
+                This affects the confirma speed of your transactions. The higher
+                the traffic, the higher the fee rate you need to pay to get your
                 transaction confirmed in time.
               </p>
             </div>
@@ -203,13 +250,13 @@ const trafficColorClass = computed(() => {
               <div class="item-label">Choose Fee Rate Plan</div>
 
               <div class="grow">
-                <RadioGroup v-model="selectedFeebPlan">
+                <RadioGroup name="feebPlan" v-model="selectedFeebPlanTitle">
                   <div class="space-y-4">
                     <RadioGroupOption
                       as="template"
                       v-for="plan in feebPlans"
                       :key="plan.title"
-                      :value="plan"
+                      :value="plan.title"
                       v-slot="{ active, checked }"
                     >
                       <div
@@ -250,9 +297,14 @@ const trafficColorClass = computed(() => {
                                   >
                                     <input
                                       type="text"
-                                      class="text-zinc-300 bg-transparent text-sm w-8 border-0 outline-none border-b !border-zinc-500 py-0.5 px-0 focus:ring-0 focus:ring-transparent text-center"
-                                      :value="customFeebPlan.feeRate"
-                                      @input="(event) => updateCustomFeeb"
+                                      class="bg-transparent text-sm w-8 border-0 outline-none border-b !border-zinc-500 py-0.5 px-0 focus:ring-0 focus:ring-transparent text-center"
+                                      :class="
+                                        checked ? 'text-white' : 'text-zinc-300'
+                                      "
+                                      :value="customFeeb"
+                                      @input="
+                                        (event) => updateCustomFeeb(event)
+                                      "
                                     />
 
                                     <span>
@@ -270,7 +322,7 @@ const trafficColorClass = computed(() => {
                           </div>
                           <div v-show="checked" class="shrink-0 text-white">
                             <CheckIcon
-                              class="h-6 w-6 rounded-full bg-white/20 p-1"
+                              class="h-6 w-6 rounded-full bg-white/40 p-1"
                               aria-hidden="true"
                             />
                           </div>
@@ -285,18 +337,56 @@ const trafficColorClass = computed(() => {
             <div class="pl-4 col-span-3">
               <div class="item-label">Estimate Miner Fee</div>
 
-              <div class="mt-2 space-y-6">
-                <div
-                  class="flex items-start justify-between"
-                  v-for="action in actions"
-                >
-                  <div class="text-orange-300">
-                    {{ action.title }}
-                  </div>
+              <div class="mt-4">
+                <h3 class="text-zinc-500">Transaction Actions</h3>
+                <div class="mt-3 space-y-3">
+                  <div
+                    class="flex items-start justify-between"
+                    v-for="action in transactionActions"
+                    :key="action.title"
+                  >
+                    <div class="text-orange-300">
+                      {{ action.title }}
+                    </div>
 
-                  <div class="text-right flex gap-4">
-                    <div class="font-bold">10000 sat</div>
-                    <div class="text-zinc-500">~$10</div>
+                    <div class="text-right flex gap-4">
+                      <div class="font-bold">
+                        {{
+                          selectedFeebPlan
+                            ? (action.size > 0 ? '≈ ' : '') +
+                              action.size * selectedFeebPlan?.feeRate +
+                              ' sat'
+                            : '-'
+                        }}
+                      </div>
+                      <!-- <div class="text-zinc-500">~$10</div> -->
+                    </div>
+                  </div>
+                </div>
+
+                <h3 class="text-zinc-500 mt-8">Pool Actions</h3>
+                <div class="mt-3 space-y-3">
+                  <div
+                    class="flex items-start justify-between"
+                    v-for="action in poolActions"
+                    :key="action.title"
+                  >
+                    <div class="text-orange-300">
+                      {{ action.title }}
+                    </div>
+
+                    <div class="text-right flex gap-4">
+                      <div class="font-bold">
+                        {{
+                          selectedFeebPlan
+                            ? (action.size > 0 ? '≈ ' : '') +
+                              action.size * selectedFeebPlan?.feeRate +
+                              ' sat'
+                            : '-'
+                        }}
+                      </div>
+                      <!-- <div class="text-zinc-500">~$10</div> -->
+                    </div>
                   </div>
                 </div>
               </div>
