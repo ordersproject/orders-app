@@ -112,10 +112,28 @@ const { data: marketPrice } = useQuery({
           <tr class="">
             <th class="th"></th>
             <th class="th">Price (sat)</th>
-            <th class="th">
-              Amount ({{ '$' + selectedPair.fromSymbol.toUpperCase() }})
+            <th class="th-right">
+              <div class="flex items-center justify-end">
+                <span>Amount</span>
+                <span class="ml-2">
+                  {{ '$' + selectedPair.fromSymbol.toUpperCase() }}
+                </span>
+                <img
+                  :src="selectedPair.fromIcon"
+                  class="h-4 rounded-full inline ml-1"
+                />
+              </div>
             </th>
-            <th class="th">Total (sat)</th>
+            <th class="th-right">
+              <div class="flex items-center justify-end">
+                <span>Total</span>
+                <span class="ml-2">(sat)</span>
+                <img
+                  :src="selectedPair.toIcon"
+                  class="h-4 rounded-full inline ml-1"
+                />
+              </div>
+            </th>
             <th class="th"></th>
           </tr>
         </thead>

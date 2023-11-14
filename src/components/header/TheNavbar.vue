@@ -20,11 +20,11 @@ const links: {
     path: '/pool',
     new: true,
   },
-  {
-    name: 'Whitelist',
-    path: '/whitelist',
-    disabled: true,
-  },
+  // {
+  //   name: 'Whitelist',
+  //   path: '/whitelist',
+  //   disabled: true,
+  // },
 ]
 
 function isLinkActive(path: string) {

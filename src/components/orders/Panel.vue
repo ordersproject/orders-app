@@ -10,10 +10,6 @@ import {
   ListboxButton,
   ListboxOptions,
   ListboxOption,
-  RadioGroup,
-  RadioGroupLabel,
-  RadioGroupOption,
-  RadioGroupDescription,
 } from '@headlessui/vue'
 import {
   CheckIcon,
@@ -24,6 +20,7 @@ import {
 } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import { useQuery } from '@tanstack/vue-query'
+import Decimal from 'decimal.js'
 
 import btcIcon from '@/assets/btc.svg?url'
 import { prettyBalance, prettyBtcDisplay } from '@/lib/formatters'
@@ -44,28 +41,27 @@ import {
   type Brc20Transferable,
   type BidCandidate,
 } from '@/queries/orders-api'
-import { getFeebPlans, type FeebPlan } from '@/queries/proxy'
-import { useAddressStore, useDummiesStore, useNetworkStore } from '@/store'
+import {
+  useAddressStore,
+  useDummiesStore,
+  useFeebStore,
+  useNetworkStore,
+} from '@/store'
 import { buildBuyTake } from '@/lib/order-builder'
-import utils from '@/utils'
 import whitelist from '@/lib/whitelist'
+import { selectPair, selectedPairKey } from '@/data/trading-pairs'
+import { DEBUG } from '@/data/constants'
 
 import OrderPanelHeader from './PanelHeader.vue'
 import OrderList from './List.vue'
 import OrderConfirmationModal from '../ConfirmationModal.vue'
-import { selectPair, selectedPairKey } from '@/data/trading-pairs'
-import { DEBUG } from '@/data/constants'
-import Decimal from 'decimal.js'
 
 const unisat = window.unisat
 
 const addressStore = useAddressStore()
-const dummiesStore = useDummiesStore()
 const networkStore = useNetworkStore()
+const feebStore = useFeebStore()
 
-const inWhitelist = computed(() => {
-  return addressStore.get && whitelist.includes(addressStore.get)
-})
 const selectedPair = selectPair()
 provide(selectedPairKey, selectedPair)
 
@@ -162,17 +158,6 @@ const selectedSellCoinAmount = computed(() => {
   }, 0)
 })
 
-const { data: feebPlans } = useQuery({
-  queryKey: ['feebPlans', { network: networkStore.network }],
-  queryFn: () => getFeebPlans({ network: networkStore.network }),
-})
-const selectedFeebPlan: Ref<FeebPlan | undefined> = ref()
-watch(feebPlans, (plans) => {
-  if (!plans) return
-
-  selectedFeebPlan.value = plans[1]
-})
-
 const buyTotal = computed(() => {
   if (!selectedBuyCoinAmount.value) return 0
 
@@ -181,11 +166,11 @@ const buyTotal = computed(() => {
 
 const buyFees = computed(() => {
   if (!selectedBuyCoinAmount.value) return 0
-  if (!selectedFeebPlan.value) return 0
+  if (!feebStore.get) return 0
 
   const ordersCount = selectedBuyOrders.value.length
 
-  return calculateFee(selectedFeebPlan.value.feeRate, 4, 6) * ordersCount
+  return calculateFee(feebStore.get, 4, 6) * ordersCount
 })
 const sellFees = computed(() => {
   return 0
@@ -240,23 +225,14 @@ watch(useSellOrderId, (sellOrderId) => {
 
 const buildProcessTip = ref('Building Transaction...')
 async function buildOrder() {
+  const feeb = feebStore.get
+  if (!feeb) {
+    throw new Error('Choose a fee rate first.')
+  }
+
   setIsOpen(true)
   isBuilding.value = true
   let buildRes: any
-
-  // if (!dummiesStore.has) {
-  //   // build dummies first
-  //   buildProcessTip.value = 'Building dummy UTXOs for the first transaction. '
-  //   try {
-  //     await utils.checkAndSelectDummies({})
-  //   } catch (e: any) {
-  //     ElMessage.error(e.message)
-  //     setIsOpen(false)
-  //     builtInfo.value = undefined
-  //     isLimitExchangeMode.value = false
-  //     return
-  //   }
-  // }
 
   buildProcessTip.value = 'Building Transaction...'
 
@@ -303,7 +279,6 @@ async function buildOrder() {
 
         buildRes = await buildBuyTake({
           order: selectedBuyOrders.value[0],
-          feeb: selectedFeebPlan.value?.feeRate || 1,
           selectedPair,
         })
       } else if (takeModeTab.value === 1) {
@@ -474,12 +449,12 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
 
 <template>
   <div
-    class="rounded-xl shadow-lg shadow-orange-300/10 border-2 border-orange-200/20 hover:shadow-orange-300/20"
+    class="rounded-xl shadow-lg shadow-orange-300/10 border-2 border-orange-200/20 hover:shadow-orange-300/20 min-h-[75vh] flex flex-col"
   >
     <OrderPanelHeader v-model:is-limit-exchange-mode="isLimitExchangeMode" />
 
     <!-- table -->
-    <div class="flex items-start gap-x-8 p-8">
+    <div class="flex items-stretch gap-x-8 p-8 flex-1">
       <OrderList
         :askOrders="askOrders"
         :bidOrders="bidOrders"
@@ -489,9 +464,9 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
       />
 
       <!-- operate panel -->
-      <div class="flex-1" v-if="isLimitExchangeMode">
+      <div class="flex-1 flex flex-col" v-if="isLimitExchangeMode">
         <div
-          class="-mx-4 -mt-4 rounded-lg bg-zinc-800 p-4 shadow-md shadow-orange-300/20"
+          class="-mx-4 -mt-4 rounded-lg bg-zinc-800 p-4 shadow-md shadow-orange-300/20 flex-1 flex flex-col"
         >
           <div class="relative">
             <h3 class="font-sm text-center font-bold text-orange-300">
@@ -509,7 +484,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
 
           <!-- tabs -->
           <TabGroup
-            class="mt-8"
+            class="mt-8 flex-1 flex flex-col"
             as="div"
             @change="limitExchangeType = $event === 0 ? 'bid' : 'ask'"
             :default-index="1"
@@ -539,140 +514,144 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
               >
             </TabList>
 
-            <TabPanels class="mt-8">
+            <TabPanels class="mt-8 flex-1">
               <!-- bid panel -->
-              <TabPanel class="">
-                <div class="rounded-md border border-zinc-500 p-2">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                      <img :src="btcIcon" alt="btc icon" class="h-6 w-6" />
-                      <span class="ml-2 text-zinc-500">Price</span>
-                    </div>
+              <TabPanel class="h-full flex flex-col justify-between">
+                <div class="">
+                  <div class="rounded-md border border-zinc-500 p-2">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center">
+                        <img :src="btcIcon" alt="btc icon" class="h-6 w-6" />
+                        <span class="ml-2 text-zinc-500">Price</span>
+                      </div>
 
-                    <div class="relative max-w-[67%] grow">
-                      <input
-                        type="text"
-                        class="w-full rounded bg-zinc-700 py-2 pl-2 pr-16 text-right placeholder-zinc-500 outline-none"
-                        placeholder="sat"
-                        :value="bidExchangePrice"
-                        @input="(event: any) => (bidExchangePrice = parseFloat(event.target.value))"
-                      />
-                      <span
-                        class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
-                      >
-                        sat
-                      </span>
-                    </div>
-                  </div>
-
-                  <div
-                    class="cursor-pointer pt-2 text-right text-xs text-zinc-500"
-                    v-if="marketPrice"
-                    @click="bidExchangePrice = deviatePrice(marketPrice!, 0.99)"
-                    title="Use market price"
-                  >
-                    {{ `Market Price: ${marketPrice} sat` }}
-                  </div>
-                </div>
-
-                <!-- estimate -->
-                <!-- <div class="mt-2 text-right text-sm">≈$12.99</div> -->
-
-                <!-- amount -->
-                <div class="mt-4 rounded-md border border-zinc-500 p-2">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                      <img
-                        :src="selectedPair.fromIcon"
-                        alt="btc icon"
-                        class="h-6 w-6 rounded-full"
-                      />
-                      <span class="ml-2 text-zinc-500">Amount</span>
-                    </div>
-
-                    <Listbox
-                      v-model="selectedBidCandidate"
-                      as="div"
-                      class="relative max-w-[67%] grow"
-                    >
-                      <ListboxButton
-                        class="relative w-full cursor-default rounded bg-zinc-700 py-2 pl-3 pr-20 text-right text-sm focus:outline-none"
-                      >
-                        <span class="block truncate">
-                          {{ selectedBidCandidate?.coinAmount || '-' }}
-                        </span>
-
+                      <div class="relative max-w-[67%] grow">
+                        <input
+                          type="text"
+                          class="w-full rounded bg-zinc-700 py-2 pl-2 pr-16 text-right placeholder-zinc-500 outline-none"
+                          placeholder="sat"
+                          :value="bidExchangePrice"
+                          @input="(event: any) => (bidExchangePrice = parseFloat(event.target.value))"
+                        />
                         <span
                           class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                         >
-                          <span class="uppercase"
-                            >${{ selectedPair.fromSymbol }}</span
-                          >
-                          <ChevronsUpDownIcon
-                            class="h-5 w-5"
-                            aria-hidden="true"
-                          />
+                          sat
                         </span>
-                      </ListboxButton>
+                      </div>
+                    </div>
 
-                      <ListboxOptions
-                        class="absolute z-10 mt-4 max-h-60 w-full translate-x-2 overflow-auto rounded-md border border-zinc-500 bg-zinc-900 p-2 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                    <div
+                      class="cursor-pointer pt-2 text-right text-xs text-zinc-500"
+                      v-if="marketPrice"
+                      @click="
+                        bidExchangePrice = deviatePrice(marketPrice!, 0.99)
+                      "
+                      title="Use market price"
+                    >
+                      {{ `Market Price: ${marketPrice} sat` }}
+                    </div>
+                  </div>
+
+                  <!-- estimate -->
+                  <!-- <div class="mt-2 text-right text-sm">≈$12.99</div> -->
+
+                  <!-- amount -->
+                  <div class="mt-4 rounded-md border border-zinc-500 p-2">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center">
+                        <img
+                          :src="selectedPair.fromIcon"
+                          alt="btc icon"
+                          class="h-6 w-6 rounded-full"
+                        />
+                        <span class="ml-2 text-zinc-500">Amount</span>
+                      </div>
+
+                      <Listbox
+                        v-model="selectedBidCandidate"
+                        as="div"
+                        class="relative max-w-[67%] grow"
                       >
-                        <ListboxOption
-                          v-if="!bidCandidates?.length"
-                          :disabled="true"
-                          class="text-right text-zinc-500 text-sm py-2"
+                        <ListboxButton
+                          class="relative w-full cursor-default rounded bg-zinc-700 py-2 pl-3 pr-20 text-right text-sm focus:outline-none"
                         >
-                          No liquidity provided.
-                        </ListboxOption>
-                        <ListboxOption
-                          v-for="bidCandidate in bidCandidates"
-                          v-slot="{ active, selected }"
-                          as="template"
-                          :key="bidCandidate.inscriptionId"
-                          :value="bidCandidate"
-                        >
-                          <li
-                            class="relative flex cursor-pointer items-center justify-end rounded py-2 pl-10 pr-2 transition"
-                            :class="active && 'bg-orange-500/20'"
-                            :title="bidCandidate?.poolOrderId"
+                          <span class="block truncate">
+                            {{ selectedBidCandidate?.coinAmount || '-' }}
+                          </span>
+
+                          <span
+                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                           >
-                            <span
-                              v-if="selected"
-                              class="absolute inset-y-0 left-0 flex items-center pl-3 text-orange-300"
+                            <span class="uppercase"
+                              >${{ selectedPair.fromSymbol }}</span
                             >
-                              <CheckIcon class="h-5 w-5" aria-hidden="true" />
-                            </span>
+                            <ChevronsUpDownIcon
+                              class="h-5 w-5"
+                              aria-hidden="true"
+                            />
+                          </span>
+                        </ListboxButton>
 
-                            <span :class="selected && 'text-orange-300'">
-                              {{ bidCandidate.coinAmount }}
-                            </span>
+                        <ListboxOptions
+                          class="absolute z-10 mt-4 max-h-60 w-full translate-x-2 overflow-auto rounded-md border border-zinc-500 bg-zinc-900 p-2 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                        >
+                          <ListboxOption
+                            v-if="!bidCandidates?.length"
+                            :disabled="true"
+                            class="text-right text-zinc-500 text-sm py-2"
+                          >
+                            No liquidity provided.
+                          </ListboxOption>
+                          <ListboxOption
+                            v-for="bidCandidate in bidCandidates"
+                            v-slot="{ active, selected }"
+                            as="template"
+                            :key="bidCandidate.inscriptionId"
+                            :value="bidCandidate"
+                          >
+                            <li
+                              class="relative flex cursor-pointer items-center justify-end rounded py-2 pl-10 pr-2 transition"
+                              :class="active && 'bg-orange-500/20'"
+                              :title="bidCandidate?.poolOrderId"
+                            >
+                              <span
+                                v-if="selected"
+                                class="absolute inset-y-0 left-0 flex items-center pl-3 text-orange-300"
+                              >
+                                <CheckIcon class="h-5 w-5" aria-hidden="true" />
+                              </span>
 
-                            <!-- liquidity race status  -->
-                            <span class="relative flex h-2 w-2 ml-4">
-                              <span
-                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 blur-xs"
-                                v-if="bidCandidate.bidCount === 0"
-                              ></span>
-                              <span
-                                class="relative inline-flex rounded-full h-2 w-2"
-                                :class="{
-                                  'bg-green-500': bidCandidate.bidCount === 0,
-                                  'bg-yellow-500':
-                                    bidCandidate.bidCount > 0 &&
-                                    bidCandidate.bidCount < 5,
-                                  'bg-red-500': bidCandidate.bidCount >= 5,
-                                }"
-                              ></span>
-                            </span>
-                          </li>
-                        </ListboxOption>
-                      </ListboxOptions>
-                    </Listbox>
+                              <span :class="selected && 'text-orange-300'">
+                                {{ bidCandidate.coinAmount }}
+                              </span>
+
+                              <!-- liquidity race status  -->
+                              <span class="relative flex h-2 w-2 ml-4">
+                                <span
+                                  class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 blur-xs"
+                                  v-if="bidCandidate.bidCount === 0"
+                                ></span>
+                                <span
+                                  class="relative inline-flex rounded-full h-2 w-2"
+                                  :class="{
+                                    'bg-green-500': bidCandidate.bidCount === 0,
+                                    'bg-yellow-500':
+                                      bidCandidate.bidCount > 0 &&
+                                      bidCandidate.bidCount < 5,
+                                    'bg-red-500': bidCandidate.bidCount >= 5,
+                                  }"
+                                ></span>
+                              </span>
+                            </li>
+                          </ListboxOption>
+                        </ListboxOptions>
+                      </Listbox>
+                    </div>
                   </div>
                 </div>
 
-                <div class="mt-36">
+                <div class="">
                   <div class="flex items-center justify-between text-sm">
                     <span class="text-zinc-500">Total</span>
                     <span class="text-zinc-300">
@@ -703,173 +682,177 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
               </TabPanel>
 
               <!-- ask panel -->
-              <TabPanel class="">
-                <div class="rounded-md border border-zinc-500 p-2">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                      <img :src="btcIcon" alt="btc icon" class="h-6 w-6" />
-                      <span class="ml-2 text-zinc-500">Price</span>
-                    </div>
+              <TabPanel class="h-full flex flex-col justify-between">
+                <div class="">
+                  <div class="rounded-md border border-zinc-500 p-2">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center">
+                        <img :src="btcIcon" alt="btc icon" class="h-6 w-6" />
+                        <span class="ml-2 text-zinc-500">Price</span>
+                      </div>
 
-                    <div class="relative max-w-[67%] grow">
-                      <input
-                        type="text"
-                        class="w-full rounded bg-zinc-700 py-2 pl-2 pr-16 text-right placeholder-zinc-500 outline-none"
-                        placeholder="sat"
-                        :value="askExchangePrice"
-                        @input="(event: any) => (askExchangePrice = parseFloat(event.target.value))"
-                      />
-                      <span
-                        class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
-                      >
-                        sat
-                      </span>
-                    </div>
-                  </div>
-
-                  <div
-                    class="cursor-pointer pt-2 text-right text-xs text-zinc-500"
-                    v-if="marketPrice"
-                    @click="askExchangePrice = deviatePrice(marketPrice!, 1.01)"
-                    title="Use market price"
-                  >
-                    {{ `Market Price: ${marketPrice} sat` }}
-                  </div>
-                </div>
-
-                <!-- estimate -->
-                <!-- <div class="mt-2 text-right text-sm">≈$12.99</div> -->
-
-                <!-- amount -->
-                <div class="mt-4 rounded-md border border-zinc-500 p-2">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                      <img
-                        :src="selectedPair.fromIcon"
-                        alt="btc icon"
-                        class="h-6 w-6 rounded-full"
-                      />
-                      <span class="ml-2 text-zinc-500">Amount</span>
-                    </div>
-
-                    <div
-                      class="relative max-w-[67%] grow"
-                      v-if="networkStore.network === 'testnet'"
-                    >
-                      <input
-                        type="text"
-                        class="w-full rounded bg-zinc-700 py-2 pl-2 pr-16 text-right placeholder-zinc-500 outline-none"
-                        :placeholder="'$' + selectedPair.fromSymbol"
-                        v-model.number="askExchangeOrdiAmount"
-                      />
-                      <span
-                        class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400 uppercase"
-                      >
-                        ${{ selectedPair.fromSymbol }}
-                      </span>
-                    </div>
-
-                    <Listbox
-                      v-model="selectedAskCandidate"
-                      v-else
-                      as="div"
-                      class="relative max-w-[67%] grow"
-                    >
-                      <ListboxButton
-                        class="relative w-full cursor-default rounded bg-zinc-700 py-2 pl-3 pr-20 text-right text-sm focus:outline-none"
-                      >
-                        <span class="block truncate">
-                          {{ selectedAskCandidate?.amount || '-' }}
-                        </span>
-
+                      <div class="relative max-w-[67%] grow">
+                        <input
+                          type="text"
+                          class="w-full rounded bg-zinc-700 py-2 pl-2 pr-16 text-right placeholder-zinc-500 outline-none"
+                          placeholder="sat"
+                          :value="askExchangePrice"
+                          @input="(event: any) => (askExchangePrice = parseFloat(event.target.value))"
+                        />
                         <span
                           class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                         >
-                          <span class="uppercase">
-                            ${{ selectedPair.fromSymbol }}
-                          </span>
-                          <ChevronsUpDownIcon
-                            class="h-5 w-5"
-                            aria-hidden="true"
-                          />
+                          sat
                         </span>
-                      </ListboxButton>
+                      </div>
+                    </div>
 
-                      <ListboxOptions
-                        class="absolute z-10 mt-4 max-h-60 w-full translate-x-2 overflow-auto rounded-md border border-zinc-500 bg-zinc-900 p-2 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                    <div
+                      class="cursor-pointer pt-2 text-right text-xs text-zinc-500"
+                      v-if="marketPrice"
+                      @click="
+                        askExchangePrice = deviatePrice(marketPrice!, 1.01)
+                      "
+                      title="Use market price"
+                    >
+                      {{ `Market Price: ${marketPrice} sat` }}
+                    </div>
+                  </div>
+
+                  <!-- estimate -->
+                  <!-- <div class="mt-2 text-right text-sm">≈$12.99</div> -->
+
+                  <!-- amount -->
+                  <div class="mt-4 rounded-md border border-zinc-500 p-2">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center">
+                        <img
+                          :src="selectedPair.fromIcon"
+                          alt="btc icon"
+                          class="h-6 w-6 rounded-full"
+                        />
+                        <span class="ml-2 text-zinc-500">Amount</span>
+                      </div>
+
+                      <div
+                        class="relative max-w-[67%] grow"
+                        v-if="networkStore.network === 'testnet'"
                       >
-                        <ListboxOption
-                          v-for="askCandidate in myBrc20Info?.transferBalanceList"
-                          v-slot="{ active, selected }"
-                          as="template"
-                          :key="askCandidate.inscriptionId"
-                          :value="askCandidate"
+                        <input
+                          type="text"
+                          class="w-full rounded bg-zinc-700 py-2 pl-2 pr-16 text-right placeholder-zinc-500 outline-none"
+                          :placeholder="'$' + selectedPair.fromSymbol"
+                          v-model.number="askExchangeOrdiAmount"
+                        />
+                        <span
+                          class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400 uppercase"
                         >
-                          <li
-                            class="relative flex cursor-pointer items-center justify-end rounded py-2 pl-10 pr-2 transition"
-                            :class="active && 'bg-orange-500/20'"
-                          >
-                            <span
-                              v-if="selected"
-                              class="absolute inset-y-0 left-0 flex items-center pl-3 text-orange-300"
-                            >
-                              <CheckIcon class="h-5 w-5" aria-hidden="true" />
-                            </span>
+                          ${{ selectedPair.fromSymbol }}
+                        </span>
+                      </div>
 
-                            <span :class="selected && 'text-orange-300'">
-                              {{ askCandidate.amount }}
-                            </span>
-                          </li>
-                        </ListboxOption>
-
-                        <ListboxOption
-                          as="template"
-                          v-slot="{ active, selected }"
-                          @click="goInscribe"
+                      <Listbox
+                        v-model="selectedAskCandidate"
+                        v-else
+                        as="div"
+                        class="relative max-w-[67%] grow"
+                      >
+                        <ListboxButton
+                          class="relative w-full cursor-default rounded bg-zinc-700 py-2 pl-3 pr-20 text-right text-sm focus:outline-none"
                         >
-                          <li
-                            :class="[
-                              'flex cursor-pointer items-center justify-between rounded border-t border-zinc-700 p-2 text-zinc-300 transition',
-                              { 'bg-orange-500/20 text-orange-300': active },
-                            ]"
+                          <span class="block truncate">
+                            {{ selectedAskCandidate?.amount || '-' }}
+                          </span>
+
+                          <span
+                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                           >
-                            <BookPlusIcon
-                              class="mr-2 h-5 w-5"
+                            <span class="uppercase">
+                              ${{ selectedPair.fromSymbol }}
+                            </span>
+                            <ChevronsUpDownIcon
+                              class="h-5 w-5"
                               aria-hidden="true"
                             />
-                            <span>Inscribe Transfer</span>
-                          </li>
-                        </ListboxOption>
-                      </ListboxOptions>
-                    </Listbox>
+                          </span>
+                        </ListboxButton>
+
+                        <ListboxOptions
+                          class="absolute z-10 mt-4 max-h-60 w-full translate-x-2 overflow-auto rounded-md border border-zinc-500 bg-zinc-900 p-2 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                        >
+                          <ListboxOption
+                            v-for="askCandidate in myBrc20Info?.transferBalanceList"
+                            v-slot="{ active, selected }"
+                            as="template"
+                            :key="askCandidate.inscriptionId"
+                            :value="askCandidate"
+                          >
+                            <li
+                              class="relative flex cursor-pointer items-center justify-end rounded py-2 pl-10 pr-2 transition"
+                              :class="active && 'bg-orange-500/20'"
+                            >
+                              <span
+                                v-if="selected"
+                                class="absolute inset-y-0 left-0 flex items-center pl-3 text-orange-300"
+                              >
+                                <CheckIcon class="h-5 w-5" aria-hidden="true" />
+                              </span>
+
+                              <span :class="selected && 'text-orange-300'">
+                                {{ askCandidate.amount }}
+                              </span>
+                            </li>
+                          </ListboxOption>
+
+                          <ListboxOption
+                            as="template"
+                            v-slot="{ active, selected }"
+                            @click="goInscribe"
+                          >
+                            <li
+                              :class="[
+                                'flex cursor-pointer items-center justify-between rounded border-t border-zinc-700 p-2 text-zinc-300 transition',
+                                { 'bg-orange-500/20 text-orange-300': active },
+                              ]"
+                            >
+                              <BookPlusIcon
+                                class="mr-2 h-5 w-5"
+                                aria-hidden="true"
+                              />
+                              <span>Inscribe Transfer</span>
+                            </li>
+                          </ListboxOption>
+                        </ListboxOptions>
+                      </Listbox>
+                    </div>
+
+                    <div
+                      class="cursor-pointer pt-2 text-right text-xs text-zinc-500"
+                      v-if="networkStore.network === 'testnet'"
+                      @click="askExchangeOrdiAmount = ordiBalance || 0"
+                      :title="`Sell all $${selectedPair.fromSymbol.toUpperCase()}`"
+                    >
+                      {{
+                        `Balance: ${ordiBalance} $${selectedPair.fromSymbol.toUpperCase()}`
+                      }}
+                    </div>
                   </div>
 
+                  <!-- how to -->
                   <div
-                    class="cursor-pointer pt-2 text-right text-xs text-zinc-500"
-                    v-if="networkStore.network === 'testnet'"
-                    @click="askExchangeOrdiAmount = ordiBalance || 0"
-                    :title="`Sell all $${selectedPair.fromSymbol.toUpperCase()}`"
+                    class="mt-4 text-right text-xs text-zinc-400 underline underline-offset-2 transition hover:text-orange-300"
                   >
-                    {{
-                      `Balance: ${ordiBalance} $${selectedPair.fromSymbol.toUpperCase()}`
-                    }}
+                    <a
+                      href="https://canary-sailor-7ad.notion.site/How-to-place-an-ASK-order-faedef7a12134b57a40962b06d75c024"
+                      target="_blank"
+                    >
+                      How to place an ASK order?
+                    </a>
                   </div>
-                </div>
-
-                <!-- how to -->
-                <div
-                  class="mt-4 text-right text-xs text-zinc-400 underline underline-offset-2 transition hover:text-orange-300"
-                >
-                  <a
-                    href="https://canary-sailor-7ad.notion.site/How-to-place-an-ASK-order-faedef7a12134b57a40962b06d75c024"
-                    target="_blank"
-                  >
-                    How to place an ASK order?
-                  </a>
                 </div>
 
                 <!-- buy -->
-                <div class="mt-36">
+                <div class="">
                   <div class="flex items-center justify-between text-sm">
                     <span class="text-zinc-500">Total</span>
                     <span class="text-zinc-300">
@@ -896,7 +879,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
         </div>
       </div>
 
-      <div class="flex-1" v-else>
+      <div class="flex-1 flex flex-col" v-else>
         <!-- tabs -->
         <TabGroup :selectedIndex="takeModeTab" @change="changeTakeModeTab">
           <TabList
@@ -925,156 +908,109 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
             </Tab>
           </TabList>
 
-          <TabPanels class="mt-8">
+          <TabPanels class="mt-8 flex-1">
             <!-- buy panel -->
-            <TabPanel class="">
-              <div
-                class="flex items-center justify-between rounded-md border border-zinc-500 p-2"
-              >
-                <div class="flex items-center">
-                  <img :src="btcIcon" alt="btc icon" class="h-6 w-6" />
-                  <span class="ml-2 text-zinc-500">Price</span>
-                </div>
-
-                <div class="relative max-w-[67%] grow">
-                  <input
-                    type="text"
-                    class="w-full rounded bg-zinc-700 py-2 pl-2 pr-12 text-right placeholder-zinc-500 outline-none"
-                    placeholder="sat"
-                    :value="useBuyPrice"
-                    @input="(event: any) => (useBuyPrice = parseFloat(event.target.value))"
-                  />
-                  <span
-                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
-                  >
-                    sat
-                  </span>
-                </div>
-              </div>
-
-              <!-- estimate -->
-              <!-- <div class="mt-2 text-right text-sm">≈$12.99</div> -->
-
-              <!-- amount -->
-              <div
-                class="mt-4 flex items-center justify-between rounded-md border border-zinc-500 p-2"
-              >
-                <div class="flex items-center">
-                  <img
-                    :src="selectedPair.fromIcon"
-                    alt="btc icon"
-                    class="h-6 w-6 rounded-full"
-                  />
-                  <span class="ml-2 text-zinc-500">Amount</span>
-                </div>
-
-                <Listbox
-                  v-model="selectedBuyOrders"
-                  multiple
-                  as="div"
-                  class="relative max-w-[67%] grow"
+            <TabPanel class="flex flex-col justify-between h-full">
+              <div class="">
+                <div
+                  class="flex items-center justify-between rounded-md border border-zinc-500 p-2"
                 >
-                  <ListboxButton
-                    class="relative w-full cursor-default rounded bg-zinc-700 py-2 pl-3 pr-20 text-right text-sm focus:outline-none"
-                  >
-                    <span class="block truncate">
-                      {{ selectedBuyCoinAmount }}
-                    </span>
+                  <div class="flex items-center">
+                    <img :src="btcIcon" alt="btc icon" class="h-6 w-6" />
+                    <span class="ml-2 text-zinc-500">Price</span>
+                  </div>
 
+                  <div class="relative max-w-[67%] grow">
+                    <input
+                      type="text"
+                      class="w-full rounded bg-zinc-700 py-2 pl-2 pr-12 text-right placeholder-zinc-500 outline-none"
+                      placeholder="sat"
+                      :value="useBuyPrice"
+                      @input="(event: any) => (useBuyPrice = parseFloat(event.target.value))"
+                    />
                     <span
                       class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                     >
-                      <span class="uppercase"
-                        >${{ selectedPair.fromSymbol }}</span
-                      >
-                      <ChevronsUpDownIcon class="h-5 w-5" aria-hidden="true" />
+                      sat
                     </span>
-                  </ListboxButton>
+                  </div>
+                </div>
 
-                  <ListboxOptions
-                    class="absolute z-10 mt-4 max-h-60 w-full translate-x-2 overflow-auto rounded-md border border-zinc-500 bg-zinc-900 p-2 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                <!-- amount -->
+                <div
+                  class="mt-4 flex items-center justify-between rounded-md border border-zinc-500 p-2"
+                >
+                  <div class="flex items-center">
+                    <img
+                      :src="selectedPair.fromIcon"
+                      alt="btc icon"
+                      class="h-6 w-6 rounded-full"
+                    />
+                    <span class="ml-2 text-zinc-500">Amount</span>
+                  </div>
+
+                  <Listbox
+                    v-model="selectedBuyOrders"
+                    multiple
+                    as="div"
+                    class="relative max-w-[67%] grow"
                   >
-                    <ListboxOption
-                      v-for="psbt in candidateBuyOrders"
-                      v-slot="{ active, selected }"
-                      as="template"
-                      :key="psbt.orderId"
-                      :value="psbt"
+                    <ListboxButton
+                      class="relative w-full cursor-default rounded bg-zinc-700 py-2 pl-3 pr-20 text-right text-sm focus:outline-none"
                     >
-                      <li
-                        class="relative flex cursor-pointer items-center justify-between rounded py-2 pl-10 pr-2 transition"
-                        :class="active && 'bg-orange-500/20'"
+                      <span class="block truncate">
+                        {{ selectedBuyCoinAmount }}
+                      </span>
+
+                      <span
+                        class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                       >
-                        <span
-                          v-if="selected"
-                          class="absolute inset-y-0 left-0 flex items-center pl-3 text-orange-300"
+                        <span class="uppercase"
+                          >${{ selectedPair.fromSymbol }}</span
                         >
-                          <CheckIcon class="h-5 w-5" aria-hidden="true" />
-                        </span>
-                        <span class="text-sm text-zinc-500">
-                          {{ Number(psbt.coinRatePrice) }} sat
-                        </span>
-                        <span :class="selected && 'text-orange-300'">
-                          {{ psbt.coinAmount }}
-                        </span>
-                      </li>
-                    </ListboxOption>
-                  </ListboxOptions>
-                </Listbox>
+                        <ChevronsUpDownIcon
+                          class="h-5 w-5"
+                          aria-hidden="true"
+                        />
+                      </span>
+                    </ListboxButton>
+
+                    <ListboxOptions
+                      class="absolute z-10 mt-4 max-h-60 w-full translate-x-2 overflow-auto rounded-md border border-zinc-500 bg-zinc-900 p-2 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                    >
+                      <ListboxOption
+                        v-for="psbt in candidateBuyOrders"
+                        v-slot="{ active, selected }"
+                        as="template"
+                        :key="psbt.orderId"
+                        :value="psbt"
+                      >
+                        <li
+                          class="relative flex cursor-pointer items-center justify-between rounded py-2 pl-10 pr-2 transition"
+                          :class="active && 'bg-orange-500/20'"
+                        >
+                          <span
+                            v-if="selected"
+                            class="absolute inset-y-0 left-0 flex items-center pl-3 text-orange-300"
+                          >
+                            <CheckIcon class="h-5 w-5" aria-hidden="true" />
+                          </span>
+                          <span class="text-sm text-zinc-500">
+                            {{ Number(psbt.coinRatePrice) }} sat
+                          </span>
+                          <span :class="selected && 'text-orange-300'">
+                            {{ psbt.coinAmount }}
+                          </span>
+                        </li>
+                      </ListboxOption>
+                    </ListboxOptions>
+                  </Listbox>
+                </div>
               </div>
 
               <!-- buy -->
-              <div class="mt-12">
-                <!-- feeb select -->
-                <RadioGroup v-model="selectedFeebPlan" v-if="feebPlans">
-                  <RadioGroupLabel class="text-xs text-zinc-500">
-                    Select Fee Rate
-                  </RadioGroupLabel>
-                  <div class="mt-2 flex justify-center gap-4">
-                    <RadioGroupOption
-                      as="template"
-                      v-slot="{ checked, active }"
-                      :key="feebPlan.title"
-                      :value="feebPlan"
-                      v-for="feebPlan in feebPlans"
-                    >
-                      <div
-                        :class="[
-                          active
-                            ? 'ring-2 ring-white ring-opacity-60 ring-offset-2 ring-offset-orange-300'
-                            : '',
-                          checked
-                            ? 'bg-orange-300/80 text-white'
-                            : 'bg-zinc-800 ',
-                        ]"
-                        class="relative flex-1 cursor-pointer rounded-lg px-5 py-4 text-center text-xs shadow-md focus:outline-none"
-                      >
-                        <div class="">
-                          <RadioGroupLabel
-                            as="p"
-                            :class="
-                              checked ? 'text-orange-100' : 'text-zinc-300'
-                            "
-                            class="mb-2 text-center text-sm font-bold"
-                          >
-                            {{ feebPlan.title }}
-                          </RadioGroupLabel>
-
-                          <RadioGroupDescription
-                            :class="
-                              checked ? 'text-orange-100' : 'text-zinc-500'
-                            "
-                          >
-                            <div>{{ `${feebPlan.feeRate} sat/vB` }}</div>
-                            <div class="mt-1">{{ feebPlan.desc }}</div>
-                          </RadioGroupDescription>
-                        </div>
-                      </div>
-                    </RadioGroupOption>
-                  </div>
-                </RadioGroup>
-
-                <div class="mt-8 flex items-center justify-between text-sm">
+              <div class="">
+                <div class="flex items-center justify-between text-sm">
                   <span class="text-zinc-500">Total</span>
                   <span class="text-zinc-300">{{ buyTotal }}</span>
                 </div>
@@ -1115,101 +1051,107 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
             </TabPanel>
 
             <!-- sell panel -->
-            <TabPanel class="">
-              <div
-                class="flex items-center justify-between rounded-md border border-zinc-500 p-2"
-              >
-                <div class="flex items-center">
-                  <img :src="btcIcon" alt="btc icon" class="h-6 w-6" />
-                  <span class="ml-2 text-zinc-500">Price</span>
-                </div>
-
-                <div class="relative max-w-[67%] grow">
-                  <input
-                    type="text"
-                    class="w-full rounded bg-zinc-700 py-2 pl-2 pr-12 text-right placeholder-zinc-500 outline-none"
-                    placeholder="sat"
-                    :value="useSellPrice"
-                    @input="(event: any) => (useSellPrice = parseFloat(event.target.value))"
-                  />
-                  <span
-                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
-                  >
-                    sat
-                  </span>
-                </div>
-              </div>
-
-              <!-- estimate -->
-              <!-- <div class="mt-2 text-right text-sm">≈$12.99</div> -->
-
-              <!-- amount -->
-              <div
-                class="mt-4 flex items-center justify-between rounded-md border border-zinc-500 p-2"
-              >
-                <div class="flex items-center">
-                  <img
-                    :src="selectedPair.fromIcon"
-                    alt="btc icon"
-                    class="h-6 w-6 rounded-full"
-                  />
-                  <span class="ml-2 text-zinc-500">Amount</span>
-                </div>
-
-                <Listbox
-                  v-model="selectedSellOrders"
-                  multiple
-                  as="div"
-                  class="relative max-w-[67%] grow"
+            <TabPanel class="flex flex-col justify-between h-full">
+              <div class="">
+                <div
+                  class="flex items-center justify-between rounded-md border border-zinc-500 p-2"
                 >
-                  <ListboxButton
-                    class="relative w-full cursor-default rounded bg-zinc-700 py-2 pl-3 pr-20 text-right text-sm focus:outline-none"
-                  >
-                    <span class="block truncate">
-                      {{ selectedSellCoinAmount }}
-                    </span>
+                  <div class="flex items-center">
+                    <img :src="btcIcon" alt="btc icon" class="h-6 w-6" />
+                    <span class="ml-2 text-zinc-500">Price</span>
+                  </div>
 
+                  <div class="relative max-w-[67%] grow">
+                    <input
+                      type="text"
+                      class="w-full rounded bg-zinc-700 py-2 pl-2 pr-12 text-right placeholder-zinc-500 outline-none"
+                      placeholder="sat"
+                      :value="useSellPrice"
+                      @input="(event: any) => (useSellPrice = parseFloat(event.target.value))"
+                    />
                     <span
                       class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                     >
-                      <span class="uppercase"
-                        >${{ selectedPair.fromSymbol }}</span
-                      >
-                      <ChevronsUpDownIcon class="h-5 w-5" aria-hidden="true" />
+                      sat
                     </span>
-                  </ListboxButton>
+                  </div>
+                </div>
 
-                  <ListboxOptions
-                    class="absolute z-10 mt-4 max-h-60 w-full translate-x-2 overflow-auto rounded-md border border-zinc-500 bg-zinc-900 p-2 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                <!-- estimate -->
+                <!-- <div class="mt-2 text-right text-sm">≈$12.99</div> -->
+
+                <!-- amount -->
+                <div
+                  class="mt-4 flex items-center justify-between rounded-md border border-zinc-500 p-2"
+                >
+                  <div class="flex items-center">
+                    <img
+                      :src="selectedPair.fromIcon"
+                      alt="btc icon"
+                      class="h-6 w-6 rounded-full"
+                    />
+                    <span class="ml-2 text-zinc-500">Amount</span>
+                  </div>
+
+                  <Listbox
+                    v-model="selectedSellOrders"
+                    multiple
+                    as="div"
+                    class="relative max-w-[67%] grow"
                   >
-                    <ListboxOption
-                      v-for="psbt in candidateSellOrders"
-                      v-slot="{ active, selected }"
-                      as="template"
-                      :key="psbt.orderId"
-                      :value="psbt"
+                    <ListboxButton
+                      class="relative w-full cursor-default rounded bg-zinc-700 py-2 pl-3 pr-20 text-right text-sm focus:outline-none"
                     >
-                      <li
-                        class="relative flex cursor-pointer items-center justify-between rounded py-2 pl-10 pr-2 transition"
-                        :class="active && 'bg-orange-500/20'"
+                      <span class="block truncate">
+                        {{ selectedSellCoinAmount }}
+                      </span>
+
+                      <span
+                        class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                       >
-                        <span
-                          v-if="selected"
-                          class="absolute inset-y-0 left-0 flex items-center pl-3 text-orange-300"
+                        <span class="uppercase"
+                          >${{ selectedPair.fromSymbol }}</span
                         >
-                          <CheckIcon class="h-5 w-5" aria-hidden="true" />
-                        </span>
-                        <span class="text-sm text-zinc-500">
-                          {{ Number(psbt.coinRatePrice) }} sat
-                        </span>
-                        <span :class="selected && 'text-orange-300'">
-                          {{ psbt.coinAmount }}
-                        </span>
-                      </li>
-                    </ListboxOption>
-                  </ListboxOptions>
-                </Listbox>
+                        <ChevronsUpDownIcon
+                          class="h-5 w-5"
+                          aria-hidden="true"
+                        />
+                      </span>
+                    </ListboxButton>
+
+                    <ListboxOptions
+                      class="absolute z-10 mt-4 max-h-60 w-full translate-x-2 overflow-auto rounded-md border border-zinc-500 bg-zinc-900 p-2 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                    >
+                      <ListboxOption
+                        v-for="psbt in candidateSellOrders"
+                        v-slot="{ active, selected }"
+                        as="template"
+                        :key="psbt.orderId"
+                        :value="psbt"
+                      >
+                        <li
+                          class="relative flex cursor-pointer items-center justify-between rounded py-2 pl-10 pr-2 transition"
+                          :class="active && 'bg-orange-500/20'"
+                        >
+                          <span
+                            v-if="selected"
+                            class="absolute inset-y-0 left-0 flex items-center pl-3 text-orange-300"
+                          >
+                            <CheckIcon class="h-5 w-5" aria-hidden="true" />
+                          </span>
+                          <span class="text-sm text-zinc-500">
+                            {{ Number(psbt.coinRatePrice) }} sat
+                          </span>
+                          <span :class="selected && 'text-orange-300'">
+                            {{ psbt.coinAmount }}
+                          </span>
+                        </li>
+                      </ListboxOption>
+                    </ListboxOptions>
+                  </Listbox>
+                </div>
               </div>
+
               <!-- brc-20 availability -->
               <!-- <div
                 class="z-[-1] -mt-1 overflow-hidden rounded-lg bg-zinc-950 text-xs text-zinc-500"
@@ -1226,60 +1168,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
 
               <!-- sell -->
               <div class="mt-12">
-                <!-- feeb select -->
-                <RadioGroup
-                  v-model="selectedFeebPlan"
-                  v-if="feebPlans"
-                  class="mt-4"
-                >
-                  <RadioGroupLabel class="text-xs text-zinc-500">
-                    Select Fee Rate
-                  </RadioGroupLabel>
-                  <div class="mt-2 flex justify-center gap-4">
-                    <RadioGroupOption
-                      as="template"
-                      v-slot="{ checked, active }"
-                      :key="feebPlan.title"
-                      :value="feebPlan"
-                      v-for="feebPlan in feebPlans"
-                    >
-                      <div
-                        :class="[
-                          active
-                            ? 'ring-2 ring-white ring-opacity-60 ring-offset-2 ring-offset-orange-300'
-                            : '',
-                          checked
-                            ? 'bg-orange-300/80 text-white'
-                            : 'bg-zinc-800 ',
-                        ]"
-                        class="relative flex-1 cursor-pointer rounded-lg px-5 py-4 text-center text-xs shadow-md focus:outline-none"
-                      >
-                        <div class="">
-                          <RadioGroupLabel
-                            as="p"
-                            :class="
-                              checked ? 'text-orange-100' : 'text-zinc-300'
-                            "
-                            class="mb-2 text-sm font-bold"
-                          >
-                            {{ feebPlan.title }}
-                          </RadioGroupLabel>
-
-                          <RadioGroupDescription
-                            :class="
-                              checked ? 'text-orange-100' : 'text-zinc-500'
-                            "
-                          >
-                            <div>{{ `${feebPlan.feeRate} sat/vB` }}</div>
-                            <div class="mt-1">{{ feebPlan.desc }}</div>
-                          </RadioGroupDescription>
-                        </div>
-                      </div>
-                    </RadioGroupOption>
-                  </div>
-                </RadioGroup>
-
-                <div class="mt-4 flex items-center justify-between text-sm">
+                <div class="flex items-center justify-between text-sm">
                   <span class="text-zinc-500">Fees</span>
                   <span class="text-zinc-300">{{ prettySellFees }}</span>
                 </div>

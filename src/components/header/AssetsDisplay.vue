@@ -2,7 +2,7 @@
 import { useQueries, useQuery } from '@tanstack/vue-query'
 import { ElMessage } from 'element-plus'
 import { computed, watch } from 'vue'
-import { LoaderIcon, ChevronsUpDownIcon } from 'lucide-vue-next'
+import { ChevronsUpDownIcon, Loader2Icon } from 'lucide-vue-next'
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 
 import { prettyCoinDisplay } from '@/lib/formatters'
@@ -62,7 +62,7 @@ const { data: myBrc20s } = useQuery({
       <Menu as="div" class="relative inline-block text-left">
         <div>
           <MenuButton
-            class="inline-flex w-full items-center justify-center gap-x-1 rounded-md pl-3 shadow-sm"
+            class="inline-flex w-full items-center justify-center gap-x-1 rounded-md px-3 shadow-sm"
           >
             <span>
               {{ prettyCoinDisplay(balance, 'BTC') }}
@@ -146,7 +146,7 @@ const { data: myBrc20s } = useQuery({
     </div>
 
     <span v-else>
-      <LoaderIcon class="h-5 animate-spin" />
+      <Loader2Icon class="h-5 animate-spin" />
     </span>
   </div>
 </template>
