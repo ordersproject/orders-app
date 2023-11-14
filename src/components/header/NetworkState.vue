@@ -9,6 +9,7 @@ import {
   RadioGroupLabel,
   RadioGroupDescription,
   RadioGroupOption,
+  PopoverOverlay,
 } from '@headlessui/vue'
 import { useQuery } from '@tanstack/vue-query'
 import { CarIcon, CheckIcon, Loader2Icon } from 'lucide-vue-next'
@@ -48,7 +49,7 @@ const transactionActions = [
   },
   {
     title: 'Bid',
-    size: 610,
+    size: 750,
   },
 ]
 
@@ -168,12 +169,25 @@ const colorCarsCount = computed(() => {
       return 0
   }
 })
+const delayedControl = ref(false)
+function onSwitchShow(open: boolean) {
+  if (open) {
+    delayedControl.value = false
+  } else {
+    setTimeout(() => {
+      delayedControl.value = true
+    }, 500)
+  }
+}
 </script>
 
 <template>
-  <Popover class="relative text-sm text-zinc-300">
-    <PopoverButton class="px-3 outline-none text-xs flex items-center gap-2">
-      <span>Network</span>
+  <Popover class="relative text-sm text-zinc-300" v-slot="{ open }">
+    <PopoverButton
+      class="px-3 outline-none text-xs flex items-center gap-2 hover:scale-105"
+      @click="onSwitchShow(open)"
+    >
+      <span class="">Network</span>
       <span class="relative flex h-2 w-2">
         <span
           class="animate-ping-slow absolute inline-flex h-full w-full rounded-full opacity-75"
@@ -187,9 +201,7 @@ const colorCarsCount = computed(() => {
 
       <span class="pl-2">Fee</span>
       <span class="min-w-[60px]" v-if="isLoadingFeebPlans">
-        <Loader2Icon class="text-zinc-500 h-4 w-4 mx-auto animate-spin">
-          Loading...
-        </Loader2Icon>
+        <Loader2Icon class="text-zinc-500 h-4 w-4 mx-auto animate-spin" />
       </span>
 
       <span class="text-orange-300 text-left min-w-[60px]" v-else>
@@ -200,6 +212,8 @@ const colorCarsCount = computed(() => {
         }}
       </span>
     </PopoverButton>
+
+    <PopoverOverlay class="fixed inset-0 backdrop-blur z-10 bg-black/30" />
 
     <transition
       enter-active-class="transition ease-out duration-100"
@@ -218,21 +232,28 @@ const colorCarsCount = computed(() => {
               <div class="item-label">BTC Network Traffic</div>
 
               <div class="flex items-center gap-4">
-                <div class="flex gap-1">
-                  <CarIcon
-                    class="h-6 w-6"
-                    :class="trafficColorClass.text"
-                    aria-hidden="true"
-                    v-for="i in Array.from({ length: colorCarsCount })"
-                  />
-                  <!-- gray cars -->
-                  <CarIcon
-                    class="h-6 w-6 text-zinc-700"
-                    aria-hidden="true"
-                    v-for="i in Array.from({ length: 4 - colorCarsCount })"
-                  />
-                </div>
-                <div class="font-bold" :class="trafficColorClass.text">
+                <transition
+                  enter-active-class="transition duration-1000 ease-out"
+                  enter-from-class="-translate-x-9 opacity-50"
+                  enter-to-class="translate-x-0 opacity-100"
+                >
+                  <div class="flex gap-1" v-show="delayedControl">
+                    <CarIcon
+                      class="h-6 w-6"
+                      :class="trafficColorClass.text"
+                      aria-hidden="true"
+                      v-for="i in Array.from({ length: colorCarsCount })"
+                    />
+                    <!-- gray cars -->
+                    <CarIcon
+                      class="h-6 w-6 text-zinc-700"
+                      aria-hidden="true"
+                      v-for="i in Array.from({ length: 4 - colorCarsCount })"
+                    />
+                  </div>
+                </transition>
+
+                <div class="font-bold py-1" :class="trafficColorClass.text">
                   {{ traffic }}
                 </div>
               </div>

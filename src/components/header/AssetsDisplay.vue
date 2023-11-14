@@ -2,7 +2,7 @@
 import { useQueries, useQuery } from '@tanstack/vue-query'
 import { ElMessage } from 'element-plus'
 import { computed, watch } from 'vue'
-import { LoaderIcon, ChevronsUpDownIcon } from 'lucide-vue-next'
+import { ChevronsUpDownIcon, Loader2Icon } from 'lucide-vue-next'
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 
 import { prettyCoinDisplay } from '@/lib/formatters'
@@ -146,7 +146,7 @@ const { data: myBrc20s } = useQuery({
     </div>
 
     <span v-else>
-      <LoaderIcon class="h-5 animate-spin" />
+      <Loader2Icon class="h-5 animate-spin" />
     </span>
   </div>
 </template>
