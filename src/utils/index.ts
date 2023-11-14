@@ -6,11 +6,13 @@ import {
   useBtcJsStore,
   DummyUtxo,
   useNetworkStore,
+  useFeebStore,
 } from '@/store'
 import { getUtxos, getTxHex } from '@/queries/proxy'
 import { calculatePsbtFee } from '@/lib/build-helpers'
-import { DUMMY_UTXO_VALUE, EXTREME_FEEB, MIN_FEEB } from '@/data/constants'
-import { getLowestFeeb } from '@/lib/helpers'
+import { DUMMY_UTXO_VALUE } from '@/data/constants'
+import { raise } from '@/lib/helpers'
+
 const utils = {
   checkAndSelectDummies: async ({
     checkOnly = false,
@@ -93,7 +95,7 @@ const utils = {
       dummiesPsbt.addOutput({ address: address, value: DUMMY_UTXO_VALUE })
       dummiesPsbt.addOutput({ address: address, value: DUMMY_UTXO_VALUE })
 
-      const feeb = await getLowestFeeb()
+      const feeb = useFeebStore().get ?? raise('Choose a fee rate first')
       const fee = calculatePsbtFee(dummiesPsbt, feeb)
 
       const changeValue = paymentUtxo.satoshis - DUMMY_UTXO_VALUE * 2 - fee

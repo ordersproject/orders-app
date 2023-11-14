@@ -4,9 +4,8 @@ import {
   useDummiesStore,
   useNetworkStore,
 } from '@/store'
-import { change, exclusiveChange, safeOutputValue } from './build-helpers'
+import { exclusiveChange, safeOutputValue } from './build-helpers'
 import {
-  DEBUG,
   DUMMY_UTXO_VALUE,
   DUST_UTXO_VALUE,
   EXTRA_INPUT_MIN_VALUE,
@@ -26,8 +25,6 @@ import {
 } from '@/queries/orders-api'
 import { getUtxos, type SimpleUtxoFromMempool, getTxHex } from '@/queries/proxy'
 import { type TradingPair } from '@/data/trading-pairs'
-import { getLowestFeeb } from './helpers'
-import { toOutputScript } from 'bitcoinjs-lib/src/address'
 
 export async function buildAskLimit({
   total,
@@ -274,132 +271,10 @@ export async function buildBidLimit({
     totalSpent: difference + payFee,
     changeValue,
   }
-
-  // Step 1. prepare bid from exchange
-  const candidateInfo = await getBidCandidateInfo({
-    network: orderNetwork,
-    tick: selectedPair.fromSymbol,
-    inscriptionId,
-    inscriptionNumber,
-    coinAmount,
-    total,
-    isPool,
-    poolOrderId,
-  })
-
-  const exchange = btcjs.Psbt.fromHex(candidateInfo.psbtRaw, {
-    network: btcjs.networks[btcNetwork],
-  })
-
-  // const bid = new btcjs.Psbt({ network: btcjs.networks[btcNetwork] })
-  let totalInput = 0
-
-  const dummyUtxos = useDummiesStore().get!
-  for (const dummyUtxo of dummyUtxos) {
-    const dummyTx = btcjs.Transaction.fromHex(dummyUtxo.txHex)
-    const dummyInput = {
-      hash: dummyUtxo.txId,
-      index: dummyUtxo.outputIndex,
-      witnessUtxo: dummyTx.outs[dummyUtxo.outputIndex],
-      sighashType:
-        btcjs.Transaction.SIGHASH_ALL | btcjs.Transaction.SIGHASH_ANYONECANPAY,
-    }
-    bid.addInput(dummyInput)
-    totalInput += dummyUtxo.satoshis
-  }
-
-  // Step 3: add placeholder 0-indexed output
-  bid.addOutput({
-    address,
-    value: DUMMY_UTXO_VALUE * 2,
-  })
-
-  // Step 4: add ordinal output
-  const ordValue = exchange.data.inputs[0].witnessUtxo!.value
-  const ordOutput = {
-    address,
-    value: ordValue,
-  }
-  bid.addOutput(ordOutput)
-
-  // Step 5: add exchange input and output
-  const exchangeInput = {
-    hash: exchange.txInputs[0].hash,
-    index: exchange.txInputs[0].index,
-    witnessUtxo: exchange.data.inputs[0].witnessUtxo,
-    finalScriptWitness: exchange.data.inputs[0].finalScriptWitness,
-  }
-  bid.addInput(exchangeInput)
-  totalInput += exchangeInput.witnessUtxo!.value
-
-  const exchangeOutput = exchange.txOutputs[0]
-  bid.addOutput(exchangeOutput)
-
-  // Step 6: service fee again
-  const serviceAddress =
-    btcNetwork === 'bitcoin'
-      ? SERVICE_LIVENET_BID_ADDRESS
-      : SERVICE_TESTNET_ADDRESS
-  // const serviceFee = Math.max(10_000, total * 0.01)
-  const oneServiceFee = 10_000
-  const serviceFee = oneServiceFee * 2
-  // add 2 service fee output
-  bid.addOutput({
-    address: serviceAddress,
-    value: oneServiceFee,
-  })
-  bid.addOutput({
-    address: serviceAddress,
-    value: oneServiceFee,
-  })
-
-  // Step 7: add 2 dummies output for future use
-  bid.addOutput({
-    address,
-    value: DUMMY_UTXO_VALUE,
-  })
-  bid.addOutput({
-    address,
-    value: DUMMY_UTXO_VALUE,
-  })
-
-  // Step 8: change
-  let useFeeb = await getLowestFeeb()
-  // const extraInputValue = exchangeOutput.value - total
-  // const { fee, paymentValue, feeb, changeValue } = await change({
-  //   psbt: bid,
-  //   feeb: useFeeb,
-  //   extraSize: 68, // baseInput + segwit
-  //   extraInputValue,
-  //   estimate: true,
-  // })
-
-  // const totalSpent = total + serviceFee + fee! - ordValue + extraInputValue
-
-  // console.log({ psbt })
-
-  // return {
-  //   order: bid,
-  //   orderId: candidateInfo.orderId,
-  //   type: 'bid',
-  //   feeb,
-  //   networkFee: fee + extraInputValue,
-  //   total,
-  //   using: paymentValue,
-  //   fromSymbol: selectedPair.toSymbol, // reversed
-  //   toSymbol: selectedPair.fromSymbol,
-  //   fromValue: total,
-  //   toValue: coinAmount,
-  //   serviceFee,
-  //   totalPrice: total,
-  //   totalSpent,
-  //   changeValue,
-  // }
 }
 
 export async function buildBuyTake({
   order,
-  feeb,
   selectedPair,
 }: {
   order: {
@@ -409,7 +284,6 @@ export async function buildBuyTake({
     orderId: string
     freeState?: number
   }
-  feeb: number
   selectedPair: TradingPair
 }) {
   const address = useAddressStore().get!
@@ -516,7 +390,6 @@ export async function buildBuyTake({
   ]
   const { fee } = await exclusiveChange({
     psbt: buyPsbt,
-    feeb,
   })
   const totalSpent = sellerOutput.value + serviceFee + fee - ordValue
 

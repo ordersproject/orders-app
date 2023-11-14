@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Ref, computed, ref } from 'vue'
+import { Ref, computed, ref, watch } from 'vue'
 import { useStorage } from '@vueuse/core'
 import {
   Popover,
@@ -13,7 +13,7 @@ import {
 import { useQuery } from '@tanstack/vue-query'
 import { CarIcon, CheckIcon, Loader2Icon } from 'lucide-vue-next'
 
-import { useNetworkStore } from '@/store'
+import { useNetworkStore, useFeebStore } from '@/store'
 import { FeebPlan, getFeebPlans } from '@/queries/proxy'
 
 // custom feeb plan
@@ -79,23 +79,37 @@ const networkStore = useNetworkStore()
 const { data: feebPlans, isLoading: isLoadingFeebPlans } = useQuery({
   queryKey: ['feebPlans', { network: networkStore.network }],
   queryFn: () => getFeebPlans({ network: networkStore.network }),
-  select(plans) {
-    if (!plans.some((plan) => plan.title === 'Custom')) {
-      plans.push(customFeebPlan.value)
-    }
+})
+const selectableFeebPlans = computed(() => {
+  if (!feebPlans.value) return
 
-    return plans
-  },
+  return [...feebPlans.value, customFeebPlan.value]
 })
 
 const selectedFeebPlanTitle = useStorage('selectedFeebPlanTitle', 'Avg')
 const selectedFeebPlan = computed(() => {
   if (!feebPlans.value) return
 
+  if (selectedFeebPlanTitle.value === 'Custom') {
+    return customFeebPlan.value
+  }
+
   return feebPlans.value.find(
     (plan) => plan.title === selectedFeebPlanTitle.value
   )
 })
+// tell feebStore whenever selectedFeebPlan changes
+const feebStore = useFeebStore()
+watch(
+  selectedFeebPlan,
+  (plan) => {
+    if (!plan) return
+    if (!plan.feeRate) return
+
+    feebStore.set(plan.feeRate)
+  },
+  { immediate: true, deep: true }
+)
 
 const traffic = computed(() => {
   if (!feebPlans.value) return '-'
@@ -201,7 +215,7 @@ const colorCarsCount = computed(() => {
         <div class="divide-y divide-zinc-700">
           <div class="py-4">
             <div class="flex items-center justify-between">
-              <div class="item-label">Network Traffic</div>
+              <div class="item-label">BTC Network Traffic</div>
 
               <div class="flex items-center gap-4">
                 <div class="flex gap-1">
@@ -236,7 +250,7 @@ const colorCarsCount = computed(() => {
                 now.
               </p>
               <p class="mt-2">
-                This affects the confirma speed of your transactions. The higher
+                This affects the confirm speed of your transactions. The higher
                 the traffic, the higher the fee rate you need to pay to get your
                 transaction confirmed in time.
               </p>
@@ -254,7 +268,7 @@ const colorCarsCount = computed(() => {
                   <div class="space-y-4">
                     <RadioGroupOption
                       as="template"
-                      v-for="plan in feebPlans"
+                      v-for="plan in selectableFeebPlans"
                       :key="plan.title"
                       :value="plan.title"
                       v-slot="{ active, checked }"

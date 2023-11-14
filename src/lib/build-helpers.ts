@@ -1,23 +1,20 @@
 import { PsbtTxOutput, type Psbt, TxOutput } from 'bitcoinjs-lib'
 import { Buffer } from 'buffer'
 import { isTaprootInput } from 'bitcoinjs-lib/src/psbt/bip371'
+import Decimal from 'decimal.js'
 
-import { useAddressStore, useBtcJsStore } from '@/store'
+import { useAddressStore, useBtcJsStore, useFeebStore } from '@/store'
 import {
   DUST_UTXO_VALUE,
   FEEB_MULTIPLIER,
-  MIN_FEEB,
   MS_BRC20_UTXO_VALUE,
   MS_FEEB_MULTIPLIER,
-  SIGHASH_ALL,
   SIGHASH_ALL_ANYONECANPAY,
-  SIGHASH_ANYONECANPAY,
 } from '@/data/constants'
-import { getFeebPlans, getTxHex, getUtxos } from '@/queries/proxy'
-import { getLowestFeeb, raise } from './helpers'
+import { getTxHex, getUtxos } from '@/queries/proxy'
+import { raise } from './helpers'
 import { Output } from 'bitcoinjs-lib/src/transaction'
 import { getListingUtxos } from '@/queries/orders-api'
-import Decimal from 'decimal.js'
 
 const TX_EMPTY_SIZE = 4 + 1 + 1 + 4
 const TX_INPUT_BASE = 32 + 4 + 1 + 4 // 41
@@ -162,7 +159,6 @@ export function calculatePsbtFee(psbt: Psbt, feeRate: number, isMs?: boolean) {
 // that way we dont generate contradictory psbts
 export async function exclusiveChange({
   psbt,
-  feeb,
   pubKey,
   extraSize,
   extraInputValue,
@@ -170,13 +166,13 @@ export async function exclusiveChange({
   estimate = false,
 }: {
   psbt: Psbt
-  feeb?: number
   pubKey?: Buffer
   extraSize?: number
   extraInputValue?: number
   sighashType?: number
   estimate?: boolean
 }) {
+  const feeb = useFeebStore().get ?? raise('Choose a fee rate first.')
   // check if address is set
   const address =
     useAddressStore().get ??
@@ -240,10 +236,6 @@ export async function exclusiveChange({
     psbtClone.addInput(paymentInput)
 
     // Add change output
-    if (!feeb) {
-      feeb = await getLowestFeeb()
-    }
-
     let fee = calcFee(psbtClone, feeb, extraSize)
     console.log({ fee, feeb, extraSize, extraInputValue })
     const totalOutput = sumOrNaN(psbtClone.txOutputs)
@@ -286,10 +278,6 @@ export async function exclusiveChange({
   psbt.addInput(paymentInput)
 
   // Add change output
-  if (!feeb) {
-    feeb = await getLowestFeeb()
-  }
-
   let fee = calcFee(psbt, feeb, extraSize)
   const totalOutput = sumOrNaN(psbt.txOutputs)
   const totalInput = sumOrNaN(
@@ -332,7 +320,6 @@ export async function exclusiveChange({
 
 export async function change({
   psbt,
-  feeb,
   pubKey,
   extraSize,
   extraInputValue,
@@ -340,7 +327,6 @@ export async function change({
   estimate = false,
 }: {
   psbt: Psbt
-  feeb?: number
   pubKey?: Buffer
   extraSize?: number
   extraInputValue?: number
@@ -351,6 +337,8 @@ export async function change({
   const address =
     useAddressStore().get ??
     raise('Please connect to your UniSat wallet first.')
+
+  const feeb = useFeebStore().get ?? raise('Choose a fee rate first.')
 
   // Add payment input
   const paymentUtxo = await getUtxos(address).then((result) => {
@@ -394,10 +382,6 @@ export async function change({
     psbtClone.addInput(paymentInput)
 
     // Add change output
-    if (!feeb) {
-      feeb = await getLowestFeeb()
-    }
-
     let fee = calcFee(psbtClone, feeb, extraSize)
     console.log({ fee, feeb, extraSize, extraInputValue })
     const totalOutput = sumOrNaN(psbtClone.txOutputs)
@@ -440,10 +424,6 @@ export async function change({
   psbt.addInput(paymentInput)
 
   // Add change output
-  if (!feeb) {
-    feeb = await getLowestFeeb()
-  }
-
   let fee = calcFee(psbt, feeb, extraSize)
   const totalOutput = sumOrNaN(psbt.txOutputs)
   const totalInput = sumOrNaN(
