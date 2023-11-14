@@ -213,7 +213,7 @@ function onSwitchShow(open: boolean) {
       </span>
     </PopoverButton>
 
-    <PopoverOverlay class="fixed inset-0 backdrop-blur-sm z-10 bg-black/30" />
+    <PopoverOverlay class="fixed inset-0 z-10 bg-black/50" />
 
     <transition
       enter-active-class="transition ease-out duration-100"
