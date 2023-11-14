@@ -1,5 +1,11 @@
 const changelog = [
   {
+    version: '1.0.5',
+    emoji: '🍒',
+    date: '2023-11-14',
+    changes: ['Add a new network status panel to globally set fee rate'],
+  },
+  {
     version: '1.0.4',
     emoji: '🐛',
     date: '2023-11-13',
