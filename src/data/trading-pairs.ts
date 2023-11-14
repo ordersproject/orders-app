@@ -12,6 +12,7 @@ import catsLogo from '@/assets/cats.jpg?url'
 import btcsLogo from '@/assets/btcs.jpg?url'
 import ibtcLogo from '@/assets/ibtc.jpg?url'
 import biliLogo from '@/assets/bili.jpg?url'
+import ratsLogo from '@/assets/rats.jpg?url'
 
 import { useRoute } from 'vue-router'
 import { InjectionKey } from 'vue'
@@ -50,14 +51,17 @@ const tradingPairs = [
     toIcon: btcLogo,
     useDecimals: 16,
     hasPool: true,
+    isNew: true,
   },
-  // {
-  //   id: 5,
-  //   fromSymbol: 'grum',
-  //   toSymbol: 'btc',
-  //   fromIcon: grumLogo,
-  //   toIcon: btcLogo,
-  // },
+  {
+    id: 5,
+    fromSymbol: 'rats',
+    toSymbol: 'btc',
+    fromIcon: ratsLogo,
+    toIcon: btcLogo,
+    hasPool: true,
+    isNew: true,
+  },
   {
     id: 6,
     fromSymbol: 'vmpx',
@@ -138,6 +142,7 @@ const tradingPairs = [
   hasPool?: boolean
   usePool?: boolean
   useDecimals?: number
+  isNew?: boolean
 }[]
 
 export default tradingPairs

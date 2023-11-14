@@ -87,14 +87,22 @@ const choosePair = (pairId: number) => {
               <img :src="pair.toIcon" class="-ml-2 h-6 rounded-full" />
             </div>
 
-            <span
-              :class="[
-                'font-bold ml-2 uppercase',
-                selected && 'text-orange-300',
-              ]"
-            >
-              ${{ pair.fromSymbol }}-{{ pair.toSymbol }}
-            </span>
+            <div class="relative">
+              <span
+                :class="[
+                  'font-bold ml-2 uppercase',
+                  selected && 'text-orange-300',
+                ]"
+              >
+                ${{ pair.fromSymbol }}-{{ pair.toSymbol }}
+              </span>
+              <span
+                class="inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium text-red-500 -translate-y-2 -translate-x-1 absolute rotate-3"
+                v-if="pair.isNew"
+              >
+                New!
+              </span>
+            </div>
 
             <CheckIcon
               v-if="selected"

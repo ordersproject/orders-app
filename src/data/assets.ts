@@ -12,6 +12,7 @@ import catsLogo from '@/assets/cats.jpg?url'
 import btcsLogo from '@/assets/btcs.jpg?url'
 import ibtcLogo from '@/assets/ibtc.jpg?url'
 import biliLogo from '@/assets/bili.jpg?url'
+import ratsLogo from '@/assets/rats.jpg?url'
 
 const assets = [
   {
@@ -88,6 +89,11 @@ const assets = [
     id: 16,
     symbol: 'sayc',
     icon: saycLogo,
+  },
+  {
+    id: 17,
+    symbol: 'rats',
+    icon: ratsLogo,
   },
 ]
 
