@@ -72,6 +72,9 @@ export type BidCandidate = {
   coinAmount: string
   poolOrderId?: string
   bidCount: number
+  coinRatePrice: number
+  coinPrice: number
+  coinPriceDecimalNum: number
 }
 export const getBidCandidates = async (
   network: 'livenet' | 'testnet',

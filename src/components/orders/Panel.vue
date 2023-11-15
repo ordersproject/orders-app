@@ -10,6 +10,9 @@ import {
   ListboxButton,
   ListboxOptions,
   ListboxOption,
+  Disclosure,
+  DisclosureButton,
+  DisclosurePanel,
 } from '@headlessui/vue'
 import {
   CheckIcon,
@@ -55,6 +58,7 @@ import { DEBUG } from '@/data/constants'
 import OrderPanelHeader from './PanelHeader.vue'
 import OrderList from './List.vue'
 import OrderConfirmationModal from '../ConfirmationModal.vue'
+import { ChevronRightIcon } from 'lucide-vue-next'
 
 const unisat = window.unisat
 
@@ -340,8 +344,8 @@ const isBuilding = ref(false)
 const builtInfo = ref()
 
 // limit exchange mode
-const isLimitExchangeMode = ref(false)
-const limitExchangeType: Ref<'bid' | 'ask'> = ref('ask')
+const isLimitExchangeMode = ref(true)
+const limitExchangeType: Ref<'bid' | 'ask'> = ref('bid')
 const { data: marketPrice } = useQuery({
   queryKey: [
     'marketPrice',
@@ -444,7 +448,30 @@ const { data: bidCandidates } = useQuery({
   queryFn: () =>
     getBidCandidates(networkStore.network, selectedPair.fromSymbol, usePool),
 })
+// filter out the bid candidates that is less than the price user input
+const usableBidCandidates = computed(() => {
+  if (!bidCandidates.value) return []
+
+  return bidCandidates.value.filter((item) => {
+    return item.coinRatePrice >= bidExchangePrice.value + 1
+  })
+})
+const unusableBidCandidates = computed(() => {
+  if (!bidCandidates.value) return []
+
+  return bidCandidates.value.filter((item) => {
+    return item.coinRatePrice < bidExchangePrice.value + 1
+  })
+})
 const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
+// watch for bid exchange price change, remove selected bid candidate if the price is higher than the bid exchange price
+watch(bidExchangePrice, (price) => {
+  if (!selectedBidCandidate.value) return
+
+  if (selectedBidCandidate.value.coinRatePrice < price + 1) {
+    selectedBidCandidate.value = undefined
+  }
+})
 </script>
 
 <template>
@@ -487,7 +514,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
             class="mt-8 flex-1 flex flex-col"
             as="div"
             @change="limitExchangeType = $event === 0 ? 'bid' : 'ask'"
-            :default-index="1"
+            :default-index="limitExchangeType === 'bid' ? 0 : 1"
           >
             <TabList
               class="flex items-center justify-center gap-4"
@@ -517,7 +544,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
             <TabPanels class="mt-8 flex-1">
               <!-- bid panel -->
               <TabPanel class="h-full flex flex-col justify-between">
-                <div class="">
+                <div class="grow relative">
                   <div class="rounded-md border border-zinc-500 p-2">
                     <div class="flex items-center justify-between">
                       <div class="flex items-center">
@@ -554,7 +581,6 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                   </div>
 
                   <!-- estimate -->
-                  <!-- <div class="mt-2 text-right text-sm">≈$12.99</div> -->
 
                   <!-- amount -->
                   <div class="mt-4 rounded-md border border-zinc-500 p-2">
@@ -571,10 +597,10 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                       <Listbox
                         v-model="selectedBidCandidate"
                         as="div"
-                        class="relative max-w-[67%] grow"
+                        class="max-w-[67%] grow"
                       >
                         <ListboxButton
-                          class="relative w-full cursor-default rounded bg-zinc-700 py-2 pl-3 pr-20 text-right text-sm focus:outline-none"
+                          class="relative w-full rounded bg-zinc-700 py-2 pl-3 pr-20 text-right text-sm focus:outline-none"
                         >
                           <span class="block truncate">
                             {{ selectedBidCandidate?.coinAmount || '-' }}
@@ -594,57 +620,179 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
                         </ListboxButton>
 
                         <ListboxOptions
-                          class="absolute z-10 mt-4 max-h-60 w-full translate-x-2 overflow-auto rounded-md border border-zinc-500 bg-zinc-900 p-2 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                          class="absolute z-10 mt-4 max-h-60 w-full left-0 overflow-auto rounded-md border border-zinc-500 bg-zinc-800 p-2 pr-4 text-sm focus:outline-none grid grid-cols-2 gap-2"
                         >
                           <ListboxOption
                             v-if="!bidCandidates?.length"
                             :disabled="true"
-                            class="text-right text-zinc-500 text-sm py-2"
+                            class="text-right text-zinc-500 text-sm py-2 col-span-2"
                           >
                             No liquidity provided.
                           </ListboxOption>
+
+                          <div
+                            class="col-span-2 text-zinc-300 px-2 py-1"
+                            v-else
+                          >
+                            Select Liquidity
+                          </div>
+                          <div
+                            class="col-span-2 text-zinc-500 px-2 text-sm"
+                            v-if="usableBidCandidates.length <= 0"
+                          >
+                            🥹 No liquidity is available at this price since the
+                            liquidity used must have a price higher than the
+                            price you entered.
+                          </div>
                           <ListboxOption
-                            v-for="bidCandidate in bidCandidates"
+                            v-for="bidCandidate in usableBidCandidates"
                             v-slot="{ active, selected }"
                             as="template"
                             :key="bidCandidate.inscriptionId"
                             :value="bidCandidate"
                           >
                             <li
-                              class="relative flex cursor-pointer items-center justify-end rounded py-2 pl-10 pr-2 transition"
-                              :class="active && 'bg-orange-500/20'"
+                              class="relative flex cursor-pointer items-center justify-between rounded py-2 pl-2 pr-10 transition bg-black"
+                              :class="[
+                                active && 'bg-orange-500/20',
+                                selected && 'shadow-md shadow-orange-300/30',
+                              ]"
                               :title="bidCandidate?.poolOrderId"
                             >
+                              <div class="flex items-center">
+                                <!-- liquidity race status  -->
+                                <span class="relative flex h-2 w-2 mr-4">
+                                  <span
+                                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 blur-xs"
+                                    v-if="bidCandidate.bidCount === 0"
+                                  ></span>
+                                  <span
+                                    class="relative inline-flex rounded-full h-2 w-2"
+                                    :class="{
+                                      'bg-green-500':
+                                        bidCandidate.bidCount === 0,
+                                      'bg-yellow-500':
+                                        bidCandidate.bidCount > 0 &&
+                                        bidCandidate.bidCount < 5,
+                                      'bg-red-500': bidCandidate.bidCount >= 5,
+                                    }"
+                                  ></span>
+                                </span>
+
+                                <div class="space-y-0.5">
+                                  <div :class="selected && 'text-orange-300'">
+                                    {{ bidCandidate.coinAmount }}
+                                  </div>
+                                  <div class="text-xs text-zinc-500">
+                                    {{
+                                      new Decimal(bidCandidate.coinPrice).div(
+                                        10 ** bidCandidate.coinPriceDecimalNum
+                                      )
+                                    }}
+                                    sat
+                                  </div>
+                                </div>
+                              </div>
+
                               <span
                                 v-if="selected"
-                                class="absolute inset-y-0 left-0 flex items-center pl-3 text-orange-300"
+                                class="absolute inset-y-0 right-0 flex items-center pr-3 text-orange-300"
                               >
                                 <CheckIcon class="h-5 w-5" aria-hidden="true" />
                               </span>
-
-                              <span :class="selected && 'text-orange-300'">
-                                {{ bidCandidate.coinAmount }}
-                              </span>
-
-                              <!-- liquidity race status  -->
-                              <span class="relative flex h-2 w-2 ml-4">
-                                <span
-                                  class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 blur-xs"
-                                  v-if="bidCandidate.bidCount === 0"
-                                ></span>
-                                <span
-                                  class="relative inline-flex rounded-full h-2 w-2"
-                                  :class="{
-                                    'bg-green-500': bidCandidate.bidCount === 0,
-                                    'bg-yellow-500':
-                                      bidCandidate.bidCount > 0 &&
-                                      bidCandidate.bidCount < 5,
-                                    'bg-red-500': bidCandidate.bidCount >= 5,
-                                  }"
-                                ></span>
-                              </span>
                             </li>
                           </ListboxOption>
+
+                          <Disclosure
+                            as="div"
+                            class="mt-4 col-span-2"
+                            v-if="unusableBidCandidates.length > 0"
+                          >
+                            <DisclosureButton
+                              class="text-left mb-2 text-zinc-300 pl-2 flex items-center gap-1"
+                              v-slot="{ open }"
+                            >
+                              <span>
+                                Unusable Liquidity ({{
+                                  unusableBidCandidates.length
+                                }})
+                              </span>
+                              <ChevronRightIcon
+                                :class="[
+                                  'h-4 w-4 text-zinc-400 transform duration-200',
+                                  open && 'rotate-90',
+                                ]"
+                                aria-hidden="true"
+                              />
+                            </DisclosureButton>
+
+                            <DisclosurePanel class="grid grid-cols-2 gap-2">
+                              <ListboxOption
+                                v-for="bidCandidate in unusableBidCandidates"
+                                v-slot="{ active, selected }"
+                                as="template"
+                                :key="bidCandidate.inscriptionId"
+                                :value="bidCandidate"
+                                :disabled="true"
+                              >
+                                <li
+                                  class="relative flex cursor-not-allowed items-center justify-between rounded py-2 pl-2 pr-10 transition bg-black opacity-30"
+                                  :title="bidCandidate?.poolOrderId"
+                                >
+                                  <div class="flex items-center">
+                                    <!-- liquidity race status  -->
+                                    <span class="relative flex h-2 w-2 mr-4">
+                                      <span
+                                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 blur-xs"
+                                        v-if="bidCandidate.bidCount === 0"
+                                      ></span>
+                                      <span
+                                        class="relative inline-flex rounded-full h-2 w-2"
+                                        :class="{
+                                          'bg-green-500':
+                                            bidCandidate.bidCount === 0,
+                                          'bg-yellow-500':
+                                            bidCandidate.bidCount > 0 &&
+                                            bidCandidate.bidCount < 5,
+                                          'bg-red-500':
+                                            bidCandidate.bidCount >= 5,
+                                        }"
+                                      ></span>
+                                    </span>
+
+                                    <div class="space-y-0.5">
+                                      <div
+                                        :class="selected && 'text-orange-300'"
+                                      >
+                                        {{ bidCandidate.coinAmount }}
+                                      </div>
+                                      <div class="text-xs text-zinc-500">
+                                        {{
+                                          new Decimal(
+                                            bidCandidate.coinPrice
+                                          ).div(
+                                            10 **
+                                              bidCandidate.coinPriceDecimalNum
+                                          )
+                                        }}
+                                        sat
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <span
+                                    v-if="selected"
+                                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-orange-300"
+                                  >
+                                    <CheckIcon
+                                      class="h-5 w-5"
+                                      aria-hidden="true"
+                                    />
+                                  </span>
+                                </li>
+                              </ListboxOption>
+                            </DisclosurePanel>
+                          </Disclosure>
                         </ListboxOptions>
                       </Listbox>
                     </div>
