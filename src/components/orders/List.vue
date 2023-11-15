@@ -44,13 +44,13 @@ const { data: marketPrice } = useQuery({
 
 <template>
   <div class="flex flex-col gap-y-4 max-h-[60vh]">
-    <div class="nicer-scrollbar h-full overflow-y-scroll pr-1">
+    <div class="nicer-scrollbar h-full overflow-y-scroll pr-1" id="askOrders">
       <table class="w-full">
         <thead>
-          <tr>
-            <th class="th"></th>
-            <th class="th">Price (sat)</th>
-            <th class="th-right">
+          <tr class="">
+            <th class="th th-sticky"></th>
+            <th class="th th-sticky">Price (sat)</th>
+            <th class="th-right th-sticky">
               <div class="flex items-center justify-end">
                 <span>Amount</span>
                 <span class="ml-2">
@@ -62,7 +62,7 @@ const { data: marketPrice } = useQuery({
                 />
               </div>
             </th>
-            <th class="th-right">
+            <th class="th-right th-sticky">
               <div class="flex items-center justify-end">
                 <span>Total</span>
                 <span class="ml-2">(sat)</span>
@@ -72,7 +72,7 @@ const { data: marketPrice } = useQuery({
                 />
               </div>
             </th>
-            <th class="th"></th>
+            <th class="th th-sticky"></th>
           </tr>
         </thead>
 
@@ -161,6 +161,10 @@ const { data: marketPrice } = useQuery({
 <style scoped>
 .th {
   @apply pb-2 pt-0 text-left text-sm font-normal text-zinc-500;
+}
+
+.th-sticky {
+  @apply sticky top-0 bg-zinc-900;
 }
 
 .th-right {

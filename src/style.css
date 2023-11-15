@@ -11,7 +11,7 @@
 }
 
 .nicer-scrollbar::-webkit-scrollbar-thumb {
-  @apply rounded-full bg-zinc-700;
+  @apply rounded-full bg-zinc-600;
 }
 
 .nicer-scrollbar::-webkit-scrollbar-thumb:hover {

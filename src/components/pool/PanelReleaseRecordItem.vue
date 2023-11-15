@@ -213,7 +213,10 @@ async function submitReleaseRecord() {
 
           <Disclosure as="div" v-slot="{ open }" class="grow">
             <DisclosureButton class="flex items-center gap-2">
-              <span>
+              <span v-if="record.calStartBlock === 0" class="text-zinc-500">
+                Calculating...
+              </span>
+              <span v-else>
                 {{
                   record.rewardAmount
                     ? `${

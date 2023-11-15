@@ -32,7 +32,8 @@ onMounted(async () => {
 const queryClient = useQueryClient()
 queryClient.setDefaultOptions({
   queries: {
-    staleTime: 1000 * 30, // 30 seconds
+    // staleTime: 1000 * 30, // 30 seconds
+    staleTime: 1000, // 1 second
   },
 })
 </script>

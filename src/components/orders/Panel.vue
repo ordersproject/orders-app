@@ -69,7 +69,7 @@ const feebStore = useFeebStore()
 const selectedPair = selectPair()
 provide(selectedPairKey, selectedPair)
 
-const { data: askOrders } = useQuery({
+const { data: askOrders, isFetched: isFetchedAskOrders } = useQuery({
   queryKey: [
     'askOrders',
     { network: networkStore.network, tick: selectedPair.fromSymbol },
@@ -97,6 +97,22 @@ const { data: bidOrders } = useQuery({
     }),
   placeholderData: [],
 })
+// watch ask orders data
+// when it finish loaded, scroll to the bottom
+watch(
+  isFetchedAskOrders,
+  (isFetchedAskOrders) => {
+    if (!isFetchedAskOrders) return
+
+    setTimeout(() => {
+      const el = document.getElementById('askOrders')
+      if (el) {
+        el.scrollTop = el.scrollHeight
+      }
+    }, 100)
+  },
+  { immediate: true }
+)
 
 const balance = ref(0)
 async function updateBalance() {
@@ -344,8 +360,8 @@ const isBuilding = ref(false)
 const builtInfo = ref()
 
 // limit exchange mode
-const isLimitExchangeMode = ref(true)
-const limitExchangeType: Ref<'bid' | 'ask'> = ref('bid')
+const isLimitExchangeMode = ref(false)
+const limitExchangeType: Ref<'bid' | 'ask'> = ref('ask')
 const { data: marketPrice } = useQuery({
   queryKey: [
     'marketPrice',
