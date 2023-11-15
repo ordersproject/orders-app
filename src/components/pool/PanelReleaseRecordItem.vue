@@ -113,7 +113,7 @@ async function submitReleaseRecord() {
       console.log(e)
       ElMessage.error(e.message)
     } else {
-      ElMessage.error('Error while releasing record.')
+      ElMessage.error(`Error while releasing record. Reason: ${e.message}`)
     }
   }
 

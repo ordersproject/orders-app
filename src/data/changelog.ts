@@ -1,5 +1,16 @@
 const changelog = [
   {
+    version: '1.0.6',
+    emoji: '👻',
+    date: '2023-11-15',
+    changes: [
+      'More ui polishing',
+      'Show liquidity use tx in pool release page',
+      'Prettify liquidity selection panel in bid page',
+      'Show estimated bid miner fee in network state panel',
+    ],
+  },
+  {
     version: '1.0.5',
     emoji: '🍒',
     date: '2023-11-14',
