@@ -699,14 +699,14 @@ watch(bidExchangePrice, (price) => {
                                   <div :class="selected && 'text-orange-300'">
                                     {{ bidCandidate.coinAmount }}
                                   </div>
-                                  <div class="text-xs text-zinc-500">
+                                  <!-- <div class="text-xs text-zinc-500">
                                     {{
                                       new Decimal(bidCandidate.coinPrice).div(
                                         10 ** bidCandidate.coinPriceDecimalNum
                                       )
                                     }}
                                     sat
-                                  </div>
+                                  </div> -->
                                 </div>
                               </div>
 
@@ -782,7 +782,7 @@ watch(bidExchangePrice, (price) => {
                                       >
                                         {{ bidCandidate.coinAmount }}
                                       </div>
-                                      <div class="text-xs text-zinc-500">
+                                      <!-- <div class="text-xs text-zinc-500">
                                         {{
                                           new Decimal(
                                             bidCandidate.coinPrice
@@ -792,7 +792,7 @@ watch(bidExchangePrice, (price) => {
                                           )
                                         }}
                                         sat
-                                      </div>
+                                      </div> -->
                                     </div>
                                   </div>
 
