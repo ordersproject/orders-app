@@ -10,7 +10,7 @@ import {
   ChevronRightIcon,
 } from 'lucide-vue-next'
 
-import { prettyTimestamp } from '@/lib/formatters'
+import { prettyTimestamp, prettyTxid } from '@/lib/formatters'
 import {
   type PoolRecord,
   getReleaseEssential,
@@ -26,6 +26,8 @@ import { buildReleasePsbt } from '@/lib/order-pool-builder'
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 
 import ReleasingOverlay from '@/components/overlays/Loading.vue'
+import { ExternalLinkIcon } from 'lucide-vue-next'
+import { toTx } from '@/lib/helpers'
 
 const props = defineProps<{
   record: PoolRecord
@@ -165,6 +167,45 @@ async function submitReleaseRecord() {
           <span v-else>
             {{ `${record.coinAmount} ${record.tick.toUpperCase()}` }}
           </span>
+        </div>
+
+        <div class="flex items-center">
+          <span class="w-28 inline-block text-zinc-500">Tx Record</span>
+          <div class="space-y-1">
+            <div
+              class="flex items-center gap-2 hover:cursor-pointer"
+              @click="toTx(record.dealCoinTx)"
+              v-if="record.dealCoinTx"
+            >
+              <span
+                class="text-xs w-12 text-center py-0.5 bg-cyan-500/50 rounded"
+              >
+                {{ record.tick.toUpperCase() }}
+              </span>
+              <span class="hover:text-orange-300 underline">
+                {{ prettyTxid(record.dealCoinTx, 4) }}
+              </span>
+
+              <ExternalLinkIcon class="inline-block w-4 h-4" />
+            </div>
+
+            <div
+              class="flex items-center gap-2 hover:cursor-pointer"
+              @click="toTx(record.dealTx)"
+              v-if="record.dealTx"
+            >
+              <span
+                class="text-xs w-12 text-center py-0.5 bg-indigo-500/50 rounded"
+              >
+                BTC
+              </span>
+              <span class="hover:text-orange-300 underline">
+                {{ prettyTxid(record.dealTx, 4) }}
+              </span>
+
+              <ExternalLinkIcon class="inline-block w-4 h-4" />
+            </div>
+          </div>
         </div>
 
         <div class="flex items-center" v-if="record.claimState === 'ready'">

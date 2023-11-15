@@ -41,7 +41,7 @@ const transactionActions = [
   },
   {
     title: 'Sell',
-    size: 0,
+    size: 1120,
   },
   {
     title: 'Ask',

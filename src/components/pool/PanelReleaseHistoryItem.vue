@@ -7,14 +7,11 @@ import { ExternalLinkIcon, ChevronRightIcon } from 'lucide-vue-next'
 import { prettyTimestamp, prettyTxid } from '@/lib/formatters'
 import { type ReleaseHistory } from '@/queries/pool'
 import { POOL_REWARDS_TICK } from '@/data/constants'
+import { toTx } from '@/lib/helpers'
 
 const props = defineProps<{
   record: ReleaseHistory
 }>()
-
-const toTx = () => {
-  window.open(`https://mempool.space/tx/${props.record.releaseTx}`, '_blank')
-}
 
 const status = computed(() => {
   if (props.record.releaseTxBlock) {
@@ -158,7 +155,7 @@ const status = computed(() => {
           <span class="w-32 inline-block text-zinc-500">Tx Record</span>
           <div
             class="flex items-center gap-2 hover:cursor-pointer"
-            @click="toTx"
+            @click="toTx(record.releaseTx)"
           >
             <span class="hover:text-orange-300 underline">
               {{ prettyTxid(record.releaseTx, 4) }}

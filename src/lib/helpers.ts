@@ -37,3 +37,7 @@ export type BidTxSpec = {
     address?: string
   }[]
 }
+
+export const toTx = (txid: string) => {
+  window.open(`https://mempool.space/tx/${txid}`, '_blank')
+}
