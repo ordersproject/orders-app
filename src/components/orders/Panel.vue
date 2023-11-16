@@ -656,9 +656,8 @@ watch(bidExchangePrice, (price) => {
                             class="col-span-2 text-zinc-500 px-2 text-sm"
                             v-if="usableBidCandidates.length <= 0"
                           >
-                            🥹 No liquidity is available at this price since the
-                            liquidity used must have a price higher than the
-                            price you entered.
+                            🥹 No liquidity is available since the liquidity used
+                            must have a price higher than current market price.
                           </div>
                           <ListboxOption
                             v-for="bidCandidate in usableBidCandidates"

@@ -31,6 +31,7 @@ import { sleep } from '@/lib/helpers'
 import { getMyPooledInscriptions } from '@/queries/pool'
 
 import OrderConfirmationModal from './PoolConfirmationModal.vue'
+import funArrowSvg from '@/assets/fun-arrow.svg?url'
 import { useStorage } from '@vueuse/core'
 
 const queryClient = useQueryClient()
@@ -84,10 +85,10 @@ const { data: marketPrice } = useQuery({
     }),
 })
 
-const multipliers = [1.2, 1.5, 1.8]
-const selectedMultiplier = ref(multipliers[0])
+const multipliers = [1.2, 1.5, 1.8, 3, 5, 10]
+const selectedMultiplier = ref(multipliers[2])
 
-const providesBtc = useStorage('provides-btc', false)
+const providesBtc = useStorage('provides-btc', true)
 
 const reversePrice = computed(() => {
   if (!selected.value) return 0
@@ -95,7 +96,7 @@ const reversePrice = computed(() => {
   // prevent float number precision problem
 
   // round up to 8 decimal places
-  const useMultiplier = selectedMultiplier.value || 1.5
+  const useMultiplier = selectedMultiplier.value || 1.8
   const useMarketPrice = marketPrice.value || 0
   // times together and round up to 8 decimal places
   const useUnitPrice = new Decimal(useMarketPrice)
@@ -320,7 +321,7 @@ async function onConfirm() {
         leave-from-class="opacity-100"
         leave-to-class="opacity-0"
       >
-        <div class="mt-4 grow flex items-start" v-show="providesBtc">
+        <div class="mt-4 grow" v-show="providesBtc">
           <div class="items-center gap-x-4 gap-y-2 grid grid-cols-6 grow">
             <div class="text-zinc-300 col-span-1">sat</div>
 
@@ -394,6 +395,11 @@ async function onConfirm() {
                       </ListboxOption>
                     </ListboxOptions>
                   </transition>
+
+                  <img
+                    :src="funArrowSvg"
+                    class="object-fill w-16 h-16 absolute right-0 top-0 translate-y-[50%] translate-x-[80%] -rotate-[60deg]"
+                  />
                 </div>
               </Listbox>
             </div>
@@ -452,6 +458,13 @@ async function onConfirm() {
               </el-popover>
             </div>
           </div>
+
+          <p class="text-sm mt-4 mb-8 text-orange-300">
+            Friendly reminder: In the continuously rising market conditions, we
+            strongly recommend choosing higher leverage to ensure the
+            effectiveness of liquidity. Of course, once liquidity is utilized,
+            you will also receive higher rewards.
+          </p>
         </div>
       </transition>
 
