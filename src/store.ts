@@ -13,8 +13,7 @@ export const useAddressStore = defineStore('address', {
   },
 
   getters: {
-    // get: (state) => state.address,
-    get: () => 'bc1quzktscunm6vc66phclmhwfdzshdlvra5pzl5mn',
+    get: (state) => state.address,
   },
 
   actions: {
