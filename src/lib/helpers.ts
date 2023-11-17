@@ -18,6 +18,9 @@ export const unit = computedEager(() => {
   const useBtcUnit = useStorage('use-btc-unit', true)
   return useBtcUnit.value ? 'BTC' : 'sat'
 })
+export const showFiat = computedEager(() => {
+  return useStorage('show-fiat-price', true)
+})
 
 export const getLowestFeeb = async () => {
   const feeb = (await getFeebPlans({ network: 'livenet' }).then(

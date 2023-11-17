@@ -2,14 +2,14 @@
 import { useQuery } from '@tanstack/vue-query'
 import { computed, inject } from 'vue'
 
-import { getMarketPrice, type Order } from '@/queries/orders-api'
+import { getFiatPrice, getMarketPrice, type Order } from '@/queries/orders-api'
 import { useNetworkStore } from '@/store'
 import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
 
 import OrderItem from './Item.vue'
 import { prettyBalance } from '@/lib/formatters'
-import { unit, useBtcUnit } from '@/lib/helpers'
-import { get } from '@vueuse/core'
+import { showFiat, unit, useBtcUnit } from '@/lib/helpers'
+import Decimal from 'decimal.js'
 
 const networkStore = useNetworkStore()
 
@@ -41,6 +41,12 @@ const { data: marketPrice } = useQuery({
     { network: networkStore.network, tick: selectedPair.fromSymbol },
   ],
   queryFn: () => getMarketPrice({ tick: selectedPair.fromSymbol }),
+})
+
+// fiat price
+const { data: fiatPrice } = useQuery({
+  queryKey: ['fiatPrice'],
+  queryFn: getFiatPrice,
 })
 </script>
 
@@ -100,15 +106,26 @@ const { data: marketPrice } = useQuery({
 
     <div class="">
       <el-tooltip :content="`Market Price`" placement="right" effect="light">
-        <span
-          :class="['text-lg', marketPrice ? 'text-green-500' : 'text-zinc-500']"
-        >
-          {{
-            marketPrice
-              ? prettyBalance(marketPrice, useBtcUnit) + ' ' + unit
-              : '-'
-          }}
-        </span>
+        <div class="flex items-center">
+          <span
+            :class="[
+              'text-lg',
+              marketPrice ? 'text-green-500' : 'text-zinc-500',
+            ]"
+          >
+            {{
+              marketPrice
+                ? prettyBalance(marketPrice, useBtcUnit) + ' ' + unit
+                : '-'
+            }}
+          </span>
+          <span
+            class="text-xs text-zinc-500 pl-2"
+            v-if="showFiat && fiatPrice && marketPrice"
+          >
+            {{ '$' + new Decimal(marketPrice).times(fiatPrice).toFixed(2) }}
+          </span>
+        </div>
       </el-tooltip>
     </div>
 

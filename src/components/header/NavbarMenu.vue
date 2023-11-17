@@ -14,6 +14,7 @@ import { VERSION } from '@/data/constants'
 import { useStorage } from '@vueuse/core'
 
 const useBtcUnit = useStorage('use-btc-unit', true)
+const showFiatPrice = useStorage('show-fiat-price', true)
 </script>
 
 <template>
@@ -83,6 +84,26 @@ const useBtcUnit = useStorage('use-btc-unit', true)
                 >
                   satoshis
                 </span>
+              </Switch>
+            </SwitchGroup>
+          </MenuItem>
+
+          <MenuItem :disabled="true">
+            <SwitchGroup
+              as="div"
+              class="flex items-center p-4 justify-between font-normal"
+            >
+              <SwitchLabel class="text-zinc-500">Show $ Price</SwitchLabel>
+              <Switch
+                v-model="showFiatPrice"
+                :class="showFiatPrice ? 'bg-orange-300' : 'bg-black'"
+                class="relative inline-flex h-6 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75"
+              >
+                <span
+                  aria-hidden="true"
+                  :class="showFiatPrice ? 'translate-x-6' : 'translate-x-0'"
+                  class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out"
+                ></span>
               </Switch>
             </SwitchGroup>
           </MenuItem>

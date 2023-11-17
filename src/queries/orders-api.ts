@@ -2,6 +2,7 @@ import Decimal from 'decimal.js'
 import sign from '../lib/sign'
 import { useAddressStore, useNetworkStore } from '../store'
 import { ordersApiFetch } from '@/lib/fetch'
+import { showFiat } from '@/lib/helpers'
 
 export const login = async () => {
   const address = useAddressStore().get as string
@@ -14,6 +15,10 @@ export const login = async () => {
   })
 
   return loginRes
+}
+
+export const getFiatPrice = async () => {
+  return 35000 / 1e8
 }
 
 export type Notification = {

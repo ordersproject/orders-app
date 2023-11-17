@@ -522,17 +522,17 @@ watch(bidExchangePrice, (price) => {
     <OrderPanelHeader v-model:is-limit-exchange-mode="isLimitExchangeMode" />
 
     <!-- table -->
-    <div class="flex items-stretch gap-x-8 p-8 flex-1">
+    <div class="grid gap-x-8 p-8 grid-cols-5 flex-1">
       <OrderList
         :askOrders="askOrders"
         :bidOrders="bidOrders"
-        class="flex-1 self-stretch"
+        class="col-span-3 self-stretch"
         @use-buy-price="(price: number, orderId: string) => setUseBuyPrice(price, orderId)"
         @use-sell-price="(price: number, orderId: string) => setUseSellPrice(price, orderId)"
       />
 
       <!-- operate panel -->
-      <div class="flex-1 flex flex-col" v-if="isLimitExchangeMode">
+      <div class="col-span-2 flex flex-col" v-if="isLimitExchangeMode">
         <div
           class="-mx-4 -mt-4 rounded-lg bg-zinc-800 p-4 shadow-md shadow-orange-300/20 flex-1 flex flex-col"
         >
@@ -1082,7 +1082,7 @@ watch(bidExchangePrice, (price) => {
         </div>
       </div>
 
-      <div class="flex-1 flex flex-col" v-else>
+      <div class="col-span-2 flex flex-col" v-else>
         <!-- tabs -->
         <TabGroup :selectedIndex="takeModeTab" @change="changeTakeModeTab">
           <TabList
