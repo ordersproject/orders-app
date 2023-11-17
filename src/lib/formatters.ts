@@ -1,3 +1,4 @@
+import { RemovableRef } from '@vueuse/core'
 import dayjs from 'dayjs/esm/index.js'
 import Decimal from 'decimal.js'
 
@@ -15,13 +16,24 @@ export const prettyTxid = (txid: string, len = 6) => {
   return `${txid.slice(0, len)}...${txid.slice(-len)}`
 }
 
-export const prettyBalance = (balance: number | string, useSats = false) => {
+export const prettyBalance = (
+  balance: number | string,
+  useBtcUnit: boolean | RemovableRef<boolean> = true
+) => {
   if (balance === 0 || balance === '0') return new Decimal(0)
   if (!balance) return '-'
 
-  if (useSats) return new Decimal(balance)
+  const useBtcUnitValue =
+    typeof useBtcUnit === 'boolean' ? useBtcUnit : useBtcUnit.value
+  if (useBtcUnitValue) {
+    const _ = new Decimal(balance).dividedBy(1e8)
 
-  return new Decimal(balance).dividedBy(1e8).toFixed(8)
+    if (_.dp() > 8) return _.toFixed()
+
+    return _.toFixed(8)
+  }
+
+  return new Decimal(balance).toFixed()
 }
 
 export const prettyBtcDisplay = (balance: number | string) => {

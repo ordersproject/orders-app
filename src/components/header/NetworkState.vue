@@ -16,6 +16,8 @@ import { CarIcon, CheckIcon, Loader2Icon } from 'lucide-vue-next'
 
 import { useNetworkStore, useFeebStore } from '@/store'
 import { FeebPlan, getFeebPlans } from '@/queries/proxy'
+import { unit, useBtcUnit } from '@/lib/helpers'
+import { prettyBalance } from '@/lib/formatters'
 
 // custom feeb plan
 const customFeeb = useStorage('customFeeb', 2)
@@ -370,7 +372,7 @@ function onSwitchShow(open: boolean) {
             </div>
 
             <div class="pl-4 col-span-3">
-              <div class="item-label">Estimate Miner Fee</div>
+              <div class="item-label">Estimated Miner Fee</div>
 
               <div class="mt-4">
                 <h3 class="text-zinc-500">Transaction Actions</h3>
@@ -389,8 +391,12 @@ function onSwitchShow(open: boolean) {
                         {{
                           selectedFeebPlan
                             ? (action.size > 0 ? '≈ ' : '') +
-                              action.size * selectedFeebPlan?.feeRate +
-                              ' sat'
+                              prettyBalance(
+                                action.size * selectedFeebPlan?.feeRate,
+                                useBtcUnit
+                              ) +
+                              ' ' +
+                              unit
                             : '-'
                         }}
                       </div>
@@ -415,8 +421,12 @@ function onSwitchShow(open: boolean) {
                         {{
                           selectedFeebPlan
                             ? (action.size > 0 ? '≈ ' : '') +
-                              action.size * selectedFeebPlan?.feeRate +
-                              ' sat'
+                              prettyBalance(
+                                action.size * selectedFeebPlan?.feeRate,
+                                useBtcUnit
+                              ) +
+                              ' ' +
+                              unit
                             : '-'
                         }}
                       </div>

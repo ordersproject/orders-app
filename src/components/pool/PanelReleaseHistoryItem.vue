@@ -4,10 +4,10 @@ import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue'
 import { computed } from 'vue'
 import { ExternalLinkIcon, ChevronRightIcon } from 'lucide-vue-next'
 
-import { prettyTimestamp, prettyTxid } from '@/lib/formatters'
+import { prettyBalance, prettyTimestamp, prettyTxid } from '@/lib/formatters'
 import { type ReleaseHistory } from '@/queries/pool'
 import { POOL_REWARDS_TICK } from '@/data/constants'
-import { toTx } from '@/lib/helpers'
+import { toTx, unit, useBtcUnit } from '@/lib/helpers'
 
 const props = defineProps<{
   record: ReleaseHistory
@@ -27,9 +27,10 @@ const status = computed(() => {
     <h3 class="items-center flex justify-between">
       <span class="text-orange-300" v-if="record.poolType === 3">
         {{
-          `${record.coinAmount} ${record.tick.toUpperCase()} / ${new Decimal(
-            record.amount
-          )} sat`
+          `${record.coinAmount} ${record.tick.toUpperCase()} / ${prettyBalance(
+            record.amount,
+            useBtcUnit
+          )} ${unit}`
         }}
       </span>
       <span class="text-orange-300" v-else>
@@ -58,9 +59,10 @@ const status = computed(() => {
             {{
               `${
                 record.coinAmount
-              } ${record.tick.toUpperCase()} / ${new Decimal(
-                record.amount
-              )} sat`
+              } ${record.tick.toUpperCase()} / ${prettyBalance(
+                record.amount,
+                useBtcUnit
+              )} ${unit}`
             }}
           </span>
           <span v-else>

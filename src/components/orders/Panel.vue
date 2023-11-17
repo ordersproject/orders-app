@@ -27,7 +27,7 @@ import Decimal from 'decimal.js'
 
 import btcIcon from '@/assets/btc.svg?url'
 import { prettyBalance, prettyBtcDisplay } from '@/lib/formatters'
-import { sleep } from '@/lib/helpers'
+import { sleep, unit, useBtcUnit } from '@/lib/helpers'
 import { calculateFee } from '@/lib/build-helpers'
 import {
   buildAskLimit,
@@ -59,6 +59,7 @@ import OrderPanelHeader from './PanelHeader.vue'
 import OrderList from './List.vue'
 import OrderConfirmationModal from '../ConfirmationModal.vue'
 import { ChevronRightIcon } from 'lucide-vue-next'
+import { get } from '@vueuse/core'
 
 const unisat = window.unisat
 
@@ -181,7 +182,14 @@ const selectedSellCoinAmount = computed(() => {
 const buyTotal = computed(() => {
   if (!selectedBuyCoinAmount.value) return 0
 
-  return selectedBuyCoinAmount.value * useBuyPrice.value + ' sat'
+  return (
+    prettyBalance(
+      selectedBuyCoinAmount.value * useBuyPrice.value,
+      get(useBtcUnit)
+    ) +
+    ' ' +
+    get(unit)
+  )
 })
 
 const buyFees = computed(() => {
@@ -201,14 +209,14 @@ const prettyBuyFees = computed(() => {
 
   const feeInBtc = buyFees.value
 
-  return `≈ ${feeInBtc} sat`
+  return `≈ ${prettyBalance(feeInBtc, get(useBtcUnit))} ${get(unit)}`
 })
 const prettySellFees = computed(() => {
   if (!sellFees.value) return '0'
 
   const feeInBtc = sellFees.value
 
-  return `≈ ${feeInBtc} sat`
+  return `≈ ${prettyBalance(feeInBtc, get(useBtcUnit))} ${get(unit)}`
 })
 
 const useBuyPrice = ref(0)
@@ -384,6 +392,23 @@ const canPlaceBidOrder = computed(() => {
 })
 
 const askExchangePrice = ref(0)
+const updateExchangePrice = (price: number, type: 'ask' | 'bid') => {
+  if (typeof price === 'string') {
+    price = Number(price)
+  }
+  if (isNaN(price)) {
+    price = 0
+  }
+  if (useBtcUnit.value) {
+    price = new Decimal(price).times(1e8).toNumber()
+  }
+
+  if (type === 'ask') {
+    askExchangePrice.value = price
+  } else {
+    bidExchangePrice.value = price
+  }
+}
 const askExchangeOrdiAmount = ref(0)
 const askLimitBrcAmount = computed(() => {
   if (networkStore.network === 'testnet') {
@@ -572,14 +597,21 @@ watch(bidExchangePrice, (price) => {
                         <input
                           type="text"
                           class="w-full rounded bg-zinc-700 py-2 pl-2 pr-16 text-right placeholder-zinc-500 outline-none"
-                          placeholder="sat"
-                          :value="bidExchangePrice"
-                          @input="(event: any) => (bidExchangePrice = parseFloat(event.target.value))"
+                          :placeholder="unit"
+                          :value="
+                            useBtcUnit
+                              ? new Decimal(bidExchangePrice)
+                                  .dividedBy(1e8)
+                                  .toDP()
+                                  .toNumber()
+                              : bidExchangePrice
+                          "
+                          @input="(event: any) => updateExchangePrice(event.target.value, 'bid')"
                         />
                         <span
                           class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                         >
-                          sat
+                          {{ unit }}
                         </span>
                       </div>
                     </div>
@@ -592,7 +624,12 @@ watch(bidExchangePrice, (price) => {
                       "
                       title="Use market price"
                     >
-                      {{ `Market Price: ${marketPrice} sat` }}
+                      {{
+                        `Market Price: ${prettyBalance(
+                          marketPrice,
+                          useBtcUnit
+                        )} ${unit}`
+                      }}
                     </div>
                   </div>
 
@@ -698,14 +735,6 @@ watch(bidExchangePrice, (price) => {
                                   <div :class="selected && 'text-orange-300'">
                                     {{ bidCandidate.coinAmount }}
                                   </div>
-                                  <!-- <div class="text-xs text-zinc-500">
-                                    {{
-                                      new Decimal(bidCandidate.coinPrice).div(
-                                        10 ** bidCandidate.coinPriceDecimalNum
-                                      )
-                                    }}
-                                    sat
-                                  </div> -->
                                 </div>
                               </div>
 
@@ -781,17 +810,6 @@ watch(bidExchangePrice, (price) => {
                                       >
                                         {{ bidCandidate.coinAmount }}
                                       </div>
-                                      <!-- <div class="text-xs text-zinc-500">
-                                        {{
-                                          new Decimal(
-                                            bidCandidate.coinPrice
-                                          ).div(
-                                            10 **
-                                              bidCandidate.coinPriceDecimalNum
-                                          )
-                                        }}
-                                        sat
-                                      </div> -->
                                     </div>
                                   </div>
 
@@ -818,14 +836,19 @@ watch(bidExchangePrice, (price) => {
                   <div class="flex items-center justify-between text-sm">
                     <span class="text-zinc-500">Total</span>
                     <span class="text-zinc-300">
-                      {{ `${bidTotalExchangePrice} sat` }}
+                      {{
+                        `${prettyBalance(
+                          bidTotalExchangePrice,
+                          useBtcUnit
+                        )} ${unit}`
+                      }}
                     </span>
                   </div>
 
                   <div class="mt-2 flex items-center justify-between text-sm">
                     <span class="text-zinc-500">Balance</span>
                     <span class="text-zinc-300">
-                      {{ `${prettyBalance(btcBalance, true)} sat` }}
+                      {{ `${prettyBalance(btcBalance, useBtcUnit)} ${unit}` }}
                     </span>
                   </div>
 
@@ -858,14 +881,21 @@ watch(bidExchangePrice, (price) => {
                         <input
                           type="text"
                           class="w-full rounded bg-zinc-700 py-2 pl-2 pr-16 text-right placeholder-zinc-500 outline-none"
-                          placeholder="sat"
-                          :value="askExchangePrice"
-                          @input="(event: any) => (askExchangePrice = parseFloat(event.target.value))"
+                          :placeholder="unit"
+                          :value="
+                            useBtcUnit
+                              ? new Decimal(askExchangePrice)
+                                  .dividedBy(1e8)
+                                  .toDP()
+                                  .toNumber()
+                              : askExchangePrice
+                          "
+                          @input="(event: any) => updateExchangePrice(event.target.value, 'ask')"
                         />
                         <span
                           class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                         >
-                          sat
+                          {{ unit }}
                         </span>
                       </div>
                     </div>
@@ -878,7 +908,12 @@ watch(bidExchangePrice, (price) => {
                       "
                       title="Use market price"
                     >
-                      {{ `Market Price: ${marketPrice} sat` }}
+                      {{
+                        `Market Price: ${prettyBalance(
+                          marketPrice,
+                          useBtcUnit
+                        )} ${unit}`
+                      }}
                     </div>
                   </div>
 
@@ -1019,7 +1054,12 @@ watch(bidExchangePrice, (price) => {
                   <div class="flex items-center justify-between text-sm">
                     <span class="text-zinc-500">Total</span>
                     <span class="text-zinc-300">
-                      {{ `${askTotalExchangePrice} sat` }}
+                      {{
+                        `${prettyBalance(
+                          askTotalExchangePrice,
+                          useBtcUnit
+                        )} ${unit}`
+                      }}
                     </span>
                   </div>
 
@@ -1084,17 +1124,13 @@ watch(bidExchangePrice, (price) => {
                   </div>
 
                   <div class="relative max-w-[67%] grow">
-                    <input
-                      type="text"
-                      class="w-full rounded bg-zinc-700 py-2 pl-2 pr-12 text-right placeholder-zinc-500 outline-none"
-                      placeholder="sat"
-                      :value="useBuyPrice"
-                      @input="(event: any) => (useBuyPrice = parseFloat(event.target.value))"
-                    />
+                    <div class="w-full py-2 pl-2 pr-12 text-right outline-none">
+                      {{ prettyBalance(useBuyPrice, useBtcUnit) }}
+                    </div>
                     <span
                       class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                     >
-                      sat
+                      {{ unit }}
                     </span>
                   </div>
                 </div>
@@ -1159,7 +1195,13 @@ watch(bidExchangePrice, (price) => {
                             <CheckIcon class="h-5 w-5" aria-hidden="true" />
                           </span>
                           <span class="text-sm text-zinc-500">
-                            {{ Number(psbt.coinRatePrice) }} sat
+                            {{
+                              prettyBalance(
+                                Number(psbt.coinRatePrice),
+                                useBtcUnit
+                              )
+                            }}
+                            {{ unit }}
                           </span>
                           <span :class="selected && 'text-orange-300'">
                             {{ psbt.coinAmount }}
@@ -1179,7 +1221,7 @@ watch(bidExchangePrice, (price) => {
                 </div>
 
                 <div class="flex items-center justify-between text-sm">
-                  <span class="text-zinc-500">Fees</span>
+                  <span class="text-zinc-500">Miner Fee</span>
                   <span class="text-zinc-300">{{ prettyBuyFees }}</span>
                 </div>
 
@@ -1201,7 +1243,7 @@ watch(bidExchangePrice, (price) => {
                 >
                   <span class="text-zinc-500">Available</span>
                   <span class="text-zinc-300">
-                    {{ `${prettyBalance(balance, true)} sat` }}
+                    {{ `${prettyBalance(balance, useBtcUnit)} ${unit}` }}
                   </span>
                   <button @click="updateBalance">
                     <RefreshCcwIcon
@@ -1225,17 +1267,13 @@ watch(bidExchangePrice, (price) => {
                   </div>
 
                   <div class="relative max-w-[67%] grow">
-                    <input
-                      type="text"
-                      class="w-full rounded bg-zinc-700 py-2 pl-2 pr-12 text-right placeholder-zinc-500 outline-none"
-                      placeholder="sat"
-                      :value="useSellPrice"
-                      @input="(event: any) => (useSellPrice = parseFloat(event.target.value))"
-                    />
+                    <div class="w-full py-2 pl-2 pr-12 text-right outline-none">
+                      {{ prettyBalance(useSellPrice, useBtcUnit) }}
+                    </div>
                     <span
                       class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400"
                     >
-                      sat
+                      {{ unit }}
                     </span>
                   </div>
                 </div>
@@ -1303,7 +1341,13 @@ watch(bidExchangePrice, (price) => {
                             <CheckIcon class="h-5 w-5" aria-hidden="true" />
                           </span>
                           <span class="text-sm text-zinc-500">
-                            {{ Number(psbt.coinRatePrice) }} sat
+                            {{
+                              prettyBalance(
+                                Number(psbt.coinRatePrice),
+                                useBtcUnit
+                              )
+                            }}
+                            {{ unit }}
                           </span>
                           <span :class="selected && 'text-orange-300'">
                             {{ psbt.coinAmount }}
@@ -1332,7 +1376,7 @@ watch(bidExchangePrice, (price) => {
               <!-- sell -->
               <div class="mt-12">
                 <div class="flex items-center justify-between text-sm">
-                  <span class="text-zinc-500">Fees</span>
+                  <span class="text-zinc-500">Miner Fee</span>
                   <span class="text-zinc-300">{{ prettySellFees }}</span>
                 </div>
 

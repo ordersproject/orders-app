@@ -1,8 +1,19 @@
 <script lang="ts" setup>
-import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
+import {
+  Menu,
+  MenuButton,
+  MenuItems,
+  MenuItem,
+  Switch,
+  SwitchGroup,
+  SwitchLabel,
+} from '@headlessui/vue'
 
 import logo from '@/assets/logo-new.png?url'
 import { VERSION } from '@/data/constants'
+import { useStorage } from '@vueuse/core'
+
+const useBtcUnit = useStorage('use-btc-unit', true)
 </script>
 
 <template>
@@ -52,6 +63,28 @@ import { VERSION } from '@/data/constants'
               <span class="text-zinc-500">Liquidity Mode</span>
               <span>PSBT</span>
             </div>
+          </MenuItem>
+
+          <MenuItem :disabled="true">
+            <SwitchGroup
+              as="div"
+              class="flex items-center p-4 justify-between font-normal"
+            >
+              <SwitchLabel class="text-zinc-500">Unit</SwitchLabel>
+              <Switch v-model="useBtcUnit" class="border-none flex">
+                <span
+                  :class="[useBtcUnit ? 'text-orange-300' : 'text-zinc-500']"
+                >
+                  BTC
+                </span>
+                <span class="px-2">/</span>
+                <span
+                  :class="[useBtcUnit ? 'text-zinc-500' : 'text-orange-300']"
+                >
+                  satoshis
+                </span>
+              </Switch>
+            </SwitchGroup>
           </MenuItem>
 
           <MenuItem :disabled="true">

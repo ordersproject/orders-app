@@ -7,6 +7,8 @@ import { ElMessage } from 'element-plus'
 import { useAddressStore } from '@/store'
 import { cancelOrder, type Order } from '@/queries/orders-api'
 import { prettyBalance } from '@/lib/formatters'
+import { useBtcUnit } from '@/lib/helpers'
+import { get } from '@vueuse/core'
 
 const address = useAddressStore().address
 
@@ -64,7 +66,7 @@ async function onCancel() {
     >
       <span v-if="isFreeOrder" class="">0</span>
       <span v-else>
-        {{ prettyBalance(order.coinRatePrice, true) }}
+        {{ prettyBalance(order.coinRatePrice, useBtcUnit) }}
       </span>
     </td>
     <td class="td-right">{{ order.coinAmount }}</td>
@@ -77,7 +79,7 @@ async function onCancel() {
         </span>
       </template>
 
-      <span v-else>{{ prettyBalance(order.amount, true) }}</span>
+      <span v-else>{{ prettyBalance(order.amount, useBtcUnit) }}</span>
     </td>
     <td class="td">
       <div class="flex h-full w-full items-center justify-center">

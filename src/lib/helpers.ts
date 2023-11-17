@@ -1,5 +1,6 @@
 import { MIN_FEEB } from '@/data/constants'
 import { getFeebPlans } from '@/queries/proxy'
+import { computedEager, useStorage } from '@vueuse/core'
 import Decimal from 'decimal.js'
 
 export const sleep = (ms: number) => {
@@ -9,6 +10,14 @@ export const sleep = (ms: number) => {
 export const raise = (err: string): never => {
   throw new Error(err)
 }
+
+export const useBtcUnit = computedEager(() => {
+  return useStorage('use-btc-unit', true)
+})
+export const unit = computedEager(() => {
+  const useBtcUnit = useStorage('use-btc-unit', true)
+  return useBtcUnit.value ? 'BTC' : 'sat'
+})
 
 export const getLowestFeeb = async () => {
   const feeb = (await getFeebPlans({ network: 'livenet' }).then(

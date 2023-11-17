@@ -1,5 +1,18 @@
 const changelog = [
   {
+    version: '1.1.0',
+    emoji: '🏊🏻‍♀️',
+    date: '2023-11-17',
+    changes: [
+      'More ui polishing',
+      'Fix a bug that causes adding liquidity to has incorrect price',
+      'Refactor the logic of liquidity selection',
+      'Add more multiplier options for liquidity selection',
+      'Add dollar representation for assets',
+      'Add BTC/satoshis representation switch for assets',
+    ],
+  },
+  {
     version: '1.0.6',
     emoji: '👻',
     date: '2023-11-15',

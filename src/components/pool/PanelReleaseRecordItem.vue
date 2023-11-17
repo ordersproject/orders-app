@@ -10,7 +10,7 @@ import {
   ChevronRightIcon,
 } from 'lucide-vue-next'
 
-import { prettyTimestamp, prettyTxid } from '@/lib/formatters'
+import { prettyBalance, prettyTimestamp, prettyTxid } from '@/lib/formatters'
 import {
   type PoolRecord,
   getReleaseEssential,
@@ -27,7 +27,7 @@ import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 
 import ReleasingOverlay from '@/components/overlays/Loading.vue'
 import { ExternalLinkIcon } from 'lucide-vue-next'
-import { toTx } from '@/lib/helpers'
+import { toTx, unit, useBtcUnit } from '@/lib/helpers'
 
 const props = defineProps<{
   record: PoolRecord
@@ -128,9 +128,10 @@ async function submitReleaseRecord() {
     <h3 class="items-center flex justify-between">
       <span class="text-orange-300" v-if="record.poolType === 3">
         {{
-          `${record.coinAmount} ${record.tick.toUpperCase()} / ${new Decimal(
-            record.amount
-          )} sat`
+          `${record.coinAmount} ${record.tick.toUpperCase()} / ${prettyBalance(
+            record.amount,
+            useBtcUnit
+          )} ${unit}`
         }}
       </span>
       <span class="text-orange-300" v-else>
@@ -159,9 +160,10 @@ async function submitReleaseRecord() {
             {{
               `${
                 record.coinAmount
-              } ${record.tick.toUpperCase()} / ${new Decimal(
-                record.amount
-              )} sat`
+              } ${record.tick.toUpperCase()} / ${prettyBalance(
+                record.amount,
+                useBtcUnit
+              )} ${unit}`
             }}
           </span>
           <span v-else>

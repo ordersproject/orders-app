@@ -8,6 +8,8 @@ import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
 
 import OrderItem from './Item.vue'
 import { prettyBalance } from '@/lib/formatters'
+import { unit, useBtcUnit } from '@/lib/helpers'
+import { get } from '@vueuse/core'
 
 const networkStore = useNetworkStore()
 
@@ -49,7 +51,7 @@ const { data: marketPrice } = useQuery({
         <thead>
           <tr class="">
             <th class="th th-sticky"></th>
-            <th class="th th-sticky">Price (sat)</th>
+            <th class="th th-sticky">Price ({{ unit }})</th>
             <th class="th-right th-sticky">
               <div class="flex items-center justify-end">
                 <span>Amount</span>
@@ -65,7 +67,7 @@ const { data: marketPrice } = useQuery({
             <th class="th-right th-sticky">
               <div class="flex items-center justify-end">
                 <span>Total</span>
-                <span class="ml-2">(sat)</span>
+                <span class="ml-2">({{ unit }})</span>
                 <img
                   :src="selectedPair.toIcon"
                   class="h-4 rounded-full inline ml-1"
@@ -101,7 +103,11 @@ const { data: marketPrice } = useQuery({
         <span
           :class="['text-lg', marketPrice ? 'text-green-500' : 'text-zinc-500']"
         >
-          {{ marketPrice ? prettyBalance(marketPrice, true) + ' sats' : '-' }}
+          {{
+            marketPrice
+              ? prettyBalance(marketPrice, useBtcUnit) + ' ' + unit
+              : '-'
+          }}
         </span>
       </el-tooltip>
     </div>
@@ -111,7 +117,7 @@ const { data: marketPrice } = useQuery({
         <thead class="invisible">
           <tr class="">
             <th class="th"></th>
-            <th class="th">Price (sat)</th>
+            <th class="th">Price ({{ unit }})</th>
             <th class="th-right">
               <div class="flex items-center justify-end">
                 <span>Amount</span>
@@ -127,7 +133,7 @@ const { data: marketPrice } = useQuery({
             <th class="th-right">
               <div class="flex items-center justify-end">
                 <span>Total</span>
-                <span class="ml-2">(sat)</span>
+                <span class="ml-2">({{ unit }})</span>
                 <img
                   :src="selectedPair.toIcon"
                   class="h-4 rounded-full inline ml-1"

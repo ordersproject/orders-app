@@ -19,7 +19,8 @@ import {
   type PoolRecord,
 } from '@/queries/pool'
 import { useAddressStore } from '@/store'
-import { prettyTimestamp } from '@/lib/formatters'
+import { prettyBalance, prettyTimestamp } from '@/lib/formatters'
+import { unit, useBtcUnit } from '@/lib/helpers'
 
 const queryClient = useQueryClient()
 const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
@@ -104,9 +105,10 @@ async function submitRemove() {
                 {{
                   `${
                     selectedRecord.coinAmount
-                  } ${selectedRecord.tick.toUpperCase()} / ${new Decimal(
-                    selectedRecord.amount
-                  )} sat`
+                  } ${selectedRecord.tick.toUpperCase()} / ${prettyBalance(
+                    selectedRecord.amount,
+                    useBtcUnit
+                  )} ${unit}`
                 }}
               </span>
               <span class="text-xs">
@@ -175,9 +177,10 @@ async function submitRemove() {
                       {{
                         `${
                           record.coinAmount
-                        } ${record.tick.toUpperCase()} / ${new Decimal(
-                          record.amount
-                        )} sat`
+                        } ${record.tick.toUpperCase()} / ${prettyBalance(
+                          record.amount,
+                          useBtcUnit
+                        )} ${unit}`
                       }}
                     </span>
                     <span class="text-zinc-500 text-xs">

@@ -5,18 +5,16 @@ import { computed, watch } from 'vue'
 import { ChevronsUpDownIcon, Loader2Icon } from 'lucide-vue-next'
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 
-import { prettyCoinDisplay } from '@/lib/formatters'
+import { prettyBalance, prettyCoinDisplay } from '@/lib/formatters'
 import { useAddressStore, useNetworkStore } from '@/store'
 import { getBalance } from '@/queries/unisat'
 import { getBrc20s } from '@/queries/orders-api'
-import { selectPair } from '@/data/trading-pairs'
+import { unit, useBtcUnit } from '@/lib/helpers'
 
 const networkStore = useNetworkStore()
 const addressStore = useAddressStore()
 const address = computed(() => addressStore.get)
 const enabled = computed(() => !!addressStore.get)
-
-const selectedPair = selectPair()
 
 const { data: balance } = useQuery({
   queryKey: [
@@ -64,9 +62,7 @@ const { data: myBrc20s } = useQuery({
           <MenuButton
             class="inline-flex w-full items-center justify-center gap-x-1 rounded-md px-3 shadow-sm"
           >
-            <span>
-              {{ prettyCoinDisplay(balance, 'BTC') }}
-            </span>
+            <span> {{ prettyBalance(balance, useBtcUnit) }} {{ unit }} </span>
 
             <div class="flex h-4 w-4 items-center justify-center">
               <ChevronsUpDownIcon
@@ -85,7 +81,7 @@ const { data: myBrc20s } = useQuery({
           leave-to-class="transform opacity-0 scale-95"
         >
           <MenuItems
-            class="absolute right-0 z-10 mt-4 w-56 origin-top-right divide-y divide-zinc-700 overflow-hidden rounded-md bg-zinc-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+            class="absolute right-0 z-10 mt-4 w-80 origin-top-right divide-y divide-zinc-700 overflow-hidden rounded-md bg-zinc-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
           >
             <MenuItem v-slot="{ active }">
               <div
@@ -96,7 +92,7 @@ const { data: myBrc20s } = useQuery({
               >
                 <div class="text-orange-300">BTC</div>
                 <div class="mt-2 text-xs">
-                  {{ prettyCoinDisplay(balance, 'BTC') }}
+                  {{ prettyBalance(balance, useBtcUnit) }} {{ unit }}
                 </div>
               </div>
             </MenuItem>

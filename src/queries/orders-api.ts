@@ -277,13 +277,11 @@ export const getOrders = async ({
       // if orders is empty, return empty array
       if (!orders) return []
 
-      // if order don't have coinRatePrice, calculate it on our own
+      // order's coinRatePrice is incorrect, so we need to calculate it
       orders.forEach((order: Order) => {
-        if (!order.coinRatePrice) {
-          order.coinRatePrice = new Decimal(
-            order.amount / order.coinAmount
-          ).toNumber()
-        }
+        order.coinRatePrice = new Decimal(
+          order.amount / order.coinAmount
+        ).toNumber()
       })
 
       return orders

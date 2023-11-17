@@ -27,12 +27,13 @@ import {
   buildAddBrcLiquidity,
   buildAddBtcLiquidity,
 } from '@/lib/order-pool-builder'
-import { sleep } from '@/lib/helpers'
+import { sleep, unit, useBtcUnit } from '@/lib/helpers'
 import { getMyPooledInscriptions } from '@/queries/pool'
 
 import OrderConfirmationModal from './PoolConfirmationModal.vue'
 import funArrowSvg from '@/assets/fun-arrow.svg?url'
 import { useStorage } from '@vueuse/core'
+import { prettyBalance } from '@/lib/formatters'
 
 const queryClient = useQueryClient()
 const addressStore = useAddressStore()
@@ -103,7 +104,7 @@ const reversePrice = computed(() => {
     .times(useMultiplier)
     .toDecimalPlaces(8, Decimal.ROUND_HALF_CEIL)
 
-  return useUnitPrice.times(selected.value.amount).round()
+  return useUnitPrice.times(selected.value.amount).round().toNumber()
 })
 
 const builtInfo = ref<
@@ -323,14 +324,14 @@ async function onConfirm() {
       >
         <div class="mt-4 grow" v-show="providesBtc">
           <div class="items-center gap-x-4 gap-y-2 grid grid-cols-6 grow">
-            <div class="text-zinc-300 col-span-1">sat</div>
+            <div class="text-zinc-300 col-span-1">{{ unit }}</div>
 
             <div
               class="flex items-center justify-between col-span-5 rounded-md border px-4 py-2 border-zinc-700 text-zinc-300 shadow-sm sm:text-sm sm:leading-6 bg-zinc-800"
             >
               <div class="flex flex-col items-start gap-1">
                 <span class="font-bold text-zinc-100">
-                  {{ reversePrice }}
+                  {{ prettyBalance(reversePrice, useBtcUnit) }}
                 </span>
               </div>
 
@@ -412,7 +413,13 @@ async function onConfirm() {
               <el-popover
                 placement="bottom"
                 trigger="hover"
-                :content="marketPrice ? marketPrice + 'sat' : '-'"
+                popper-class="whitespace-nowrap text-center"
+                :width="250"
+                :content="
+                  marketPrice
+                    ? prettyBalance(marketPrice, useBtcUnit) + ' ' + unit
+                    : '-'
+                "
               >
                 <template #reference>
                   <span
