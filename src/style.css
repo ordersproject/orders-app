@@ -4,7 +4,7 @@
 
 @font-face {
   font-family: 'Geist';
-  src: url('@/assets/fonts/GeistMono.ttf') format('truetype');
+  src: url('@/assets/fonts/geistMono.ttf') format('truetype');
 }
 
 .nicer-scrollbar::-webkit-scrollbar {
