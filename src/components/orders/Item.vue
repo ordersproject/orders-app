@@ -100,7 +100,7 @@ const { data: fiatRate } = useQuery({
           class="text-xs text-zinc-500 pl-2 min-w-[40px]"
           v-if="showFiat && fiatRate"
         >
-          {{ '$' + new Decimal(order.amount).times(fiatRate).toFixed(2) }}
+          {{ '$' + calcFiatPrice(order.amount, fiatRate) }}
         </span>
       </span>
     </td>
