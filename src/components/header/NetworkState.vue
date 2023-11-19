@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Ref, computed, ref, watch } from 'vue'
-import { useStorage } from '@vueuse/core'
+import { get, useStorage } from '@vueuse/core'
 import {
   Popover,
   PopoverButton,
@@ -16,8 +16,9 @@ import { CarIcon, CheckIcon, Loader2Icon } from 'lucide-vue-next'
 
 import { useNetworkStore, useFeebStore } from '@/store'
 import { FeebPlan, getFeebPlans } from '@/queries/proxy'
-import { unit, useBtcUnit } from '@/lib/helpers'
+import { calcFiatPrice, unit, useBtcUnit } from '@/lib/helpers'
 import { prettyBalance } from '@/lib/formatters'
+import { getFiatRate } from '@/queries/orders-api'
 
 // custom feeb plan
 const customFeeb = useStorage('customFeeb', 2)
@@ -77,6 +78,36 @@ const poolActions = [
     size: 0,
   },
 ]
+
+function getPoolActionsPriceDisplay(actionSize: number) {
+  if (!selectedFeebPlan.value)
+    return {
+      inCrypto: '-',
+      inFiat: '-',
+    }
+
+  const prefix = actionSize > 0 ? '≈ ' : ''
+  const btcPriceDisplay =
+    prettyBalance(
+      actionSize * selectedFeebPlan.value.feeRate,
+      get(useBtcUnit)
+    ) +
+    ' ' +
+    unit.value
+
+  const fiatPriceDisplay =
+    fiatRate.value && actionSize > 0
+      ? calcFiatPrice(
+          actionSize * selectedFeebPlan.value.feeRate,
+          get(fiatRate)
+        )
+      : ''
+
+  return {
+    inCrypto: prefix + btcPriceDisplay,
+    inFiat: fiatPriceDisplay ? '$' + fiatPriceDisplay : '$0',
+  }
+}
 
 const networkStore = useNetworkStore()
 const { data: feebPlans, isLoading: isLoadingFeebPlans } = useQuery({
@@ -181,6 +212,12 @@ function onSwitchShow(open: boolean) {
     }, 500)
   }
 }
+
+// fiat price
+const { data: fiatRate } = useQuery({
+  queryKey: ['fiatRate'],
+  queryFn: getFiatRate,
+})
 </script>
 
 <template>
@@ -228,7 +265,7 @@ function onSwitchShow(open: boolean) {
       <PopoverPanel
         class="absolute z-10 right-0 mt-4 w-[720px] origin-top-right overflow-hidden rounded-md bg-zinc-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none px-4 shadow-orange-300/20"
       >
-        <div class="divide-y divide-zinc-700">
+        <div class="divide-y-2 divide-zinc-700">
           <div class="py-4">
             <div class="flex items-center justify-between">
               <div class="item-label">BTC Network Traffic</div>
@@ -280,7 +317,7 @@ function onSwitchShow(open: boolean) {
             </div>
           </div>
 
-          <div class="grid grid-cols-5 divide-x divide-zinc-700 py-4">
+          <div class="grid grid-cols-5 divide-x-2 divide-zinc-700 py-4">
             <div
               class="flex flex-col items-stretch gap-2 justify-between pr-4 col-span-2"
             >
@@ -376,9 +413,9 @@ function onSwitchShow(open: boolean) {
 
               <div class="mt-4">
                 <h3 class="text-zinc-500">Transaction Actions</h3>
-                <div class="mt-3 space-y-3">
+                <div class="mt-3 divide divide-y-2 divide-zinc-700">
                   <div
-                    class="flex items-start justify-between"
+                    class="flex items-center justify-between py-1.5"
                     v-for="action in transactionActions"
                     :key="action.title"
                   >
@@ -388,27 +425,19 @@ function onSwitchShow(open: boolean) {
 
                     <div class="text-right flex gap-4">
                       <div class="font-bold">
-                        {{
-                          selectedFeebPlan
-                            ? (action.size > 0 ? '≈ ' : '') +
-                              prettyBalance(
-                                action.size * selectedFeebPlan?.feeRate,
-                                useBtcUnit
-                              ) +
-                              ' ' +
-                              unit
-                            : '-'
-                        }}
+                        {{ getPoolActionsPriceDisplay(action.size).inCrypto }}
+                        <div class="pl-2 text-zinc-500 text-xs">
+                          {{ getPoolActionsPriceDisplay(action.size).inFiat }}
+                        </div>
                       </div>
-                      <!-- <div class="text-zinc-500">~$10</div> -->
                     </div>
                   </div>
                 </div>
 
                 <h3 class="text-zinc-500 mt-8">Pool Actions</h3>
-                <div class="mt-3 space-y-3">
+                <div class="mt-3 divide divide-y-2 divide-zinc-700">
                   <div
-                    class="flex items-start justify-between"
+                    class="flex items-center justify-between py-1.5"
                     v-for="action in poolActions"
                     :key="action.title"
                   >
@@ -418,19 +447,11 @@ function onSwitchShow(open: boolean) {
 
                     <div class="text-right flex gap-4">
                       <div class="font-bold">
-                        {{
-                          selectedFeebPlan
-                            ? (action.size > 0 ? '≈ ' : '') +
-                              prettyBalance(
-                                action.size * selectedFeebPlan?.feeRate,
-                                useBtcUnit
-                              ) +
-                              ' ' +
-                              unit
-                            : '-'
-                        }}
+                        {{ getPoolActionsPriceDisplay(action.size).inCrypto }}
+                        <div class="pl-2 text-zinc-500 text-xs">
+                          {{ getPoolActionsPriceDisplay(action.size).inFiat }}
+                        </div>
                       </div>
-                      <!-- <div class="text-zinc-500">~$10</div> -->
                     </div>
                   </div>
                 </div>

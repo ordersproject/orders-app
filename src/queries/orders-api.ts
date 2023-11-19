@@ -17,8 +17,11 @@ export const login = async () => {
   return loginRes
 }
 
-export const getFiatPrice = async () => {
-  return 35000 / 1e8
+export const getFiatRate = async (): Promise<number> => {
+  const res = await ordersApiFetch(`common/rate/btc`)
+
+  // use per satoshi price
+  return res?.usd?.btc ? new Decimal(res.usd.btc).dividedBy(1e8).toNumber() : 0
 }
 
 export type Notification = {

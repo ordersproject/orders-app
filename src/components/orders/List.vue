@@ -2,13 +2,13 @@
 import { useQuery } from '@tanstack/vue-query'
 import { computed, inject } from 'vue'
 
-import { getFiatPrice, getMarketPrice, type Order } from '@/queries/orders-api'
+import { getFiatRate, getMarketPrice, type Order } from '@/queries/orders-api'
 import { useNetworkStore } from '@/store'
 import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
 
 import OrderItem from './Item.vue'
 import { prettyBalance } from '@/lib/formatters'
-import { showFiat, unit, useBtcUnit } from '@/lib/helpers'
+import { calcFiatPrice, showFiat, unit, useBtcUnit } from '@/lib/helpers'
 import Decimal from 'decimal.js'
 
 const networkStore = useNetworkStore()
@@ -44,9 +44,9 @@ const { data: marketPrice } = useQuery({
 })
 
 // fiat price
-const { data: fiatPrice } = useQuery({
-  queryKey: ['fiatPrice'],
-  queryFn: getFiatPrice,
+const { data: fiatRate } = useQuery({
+  queryKey: ['fiatRate'],
+  queryFn: getFiatRate,
 })
 </script>
 
@@ -121,9 +121,9 @@ const { data: fiatPrice } = useQuery({
           </span>
           <span
             class="text-xs text-zinc-500 pl-2"
-            v-if="showFiat && fiatPrice && marketPrice"
+            v-if="showFiat && fiatRate && marketPrice"
           >
-            {{ '$' + new Decimal(marketPrice).times(fiatPrice).toFixed(2) }}
+            {{ '$' + calcFiatPrice(marketPrice, fiatRate) }}
           </span>
         </div>
       </el-tooltip>

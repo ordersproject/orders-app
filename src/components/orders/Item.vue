@@ -5,10 +5,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { ElMessage } from 'element-plus'
 
 import { useAddressStore } from '@/store'
-import { cancelOrder, type Order, getFiatPrice } from '@/queries/orders-api'
+import { cancelOrder, type Order, getFiatRate } from '@/queries/orders-api'
 import { prettyBalance } from '@/lib/formatters'
-import { showFiat, useBtcUnit } from '@/lib/helpers'
-import { get } from '@vueuse/core'
+import { calcFiatPrice, showFiat, useBtcUnit } from '@/lib/helpers'
 import Decimal from 'decimal.js'
 
 const address = useAddressStore().address
@@ -46,9 +45,9 @@ async function onCancel() {
 }
 
 // fiat price
-const { data: fiatPrice } = useQuery({
-  queryKey: ['fiatPrice'],
-  queryFn: getFiatPrice,
+const { data: fiatRate } = useQuery({
+  queryKey: ['fiatRate'],
+  queryFn: getFiatRate,
 })
 </script>
 
@@ -78,8 +77,8 @@ const { data: fiatPrice } = useQuery({
         </span>
       </span>
 
-      <span class="text-xs text-zinc-500" v-if="showFiat && fiatPrice">
-        {{ '$' + new Decimal(order.coinRatePrice).times(fiatPrice).toFixed(2) }}
+      <span class="text-xs text-zinc-500" v-if="showFiat && fiatRate">
+        {{ '$' + calcFiatPrice(order.coinRatePrice, fiatRate) }}
       </span>
     </td>
 
@@ -97,8 +96,11 @@ const { data: fiatPrice } = useQuery({
       <span v-else class="">
         <span>{{ prettyBalance(order.amount, useBtcUnit) }}</span>
 
-        <span class="text-xs text-zinc-500 pl-2" v-if="showFiat && fiatPrice">
-          {{ '$' + new Decimal(order.amount).times(fiatPrice).toFixed(2) }}
+        <span
+          class="text-xs text-zinc-500 pl-2 min-w-[40px]"
+          v-if="showFiat && fiatRate"
+        >
+          {{ '$' + new Decimal(order.amount).times(fiatRate).toFixed(2) }}
         </span>
       </span>
     </td>

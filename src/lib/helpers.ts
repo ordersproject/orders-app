@@ -53,3 +53,15 @@ export type BidTxSpec = {
 export const toTx = (txid: string) => {
   window.open(`https://mempool.space/tx/${txid}`, '_blank')
 }
+
+export const calcFiatPrice = (price: number | string, rate: number) => {
+  const fiatPrice = new Decimal(price).times(rate)
+
+  // if it's less than 0.0001, use fixed(8)
+  if (fiatPrice.lt(0.0001)) return fiatPrice.toFixed(8)
+
+  // if it's less than 0.01, use fixed(4)
+  if (fiatPrice.lt(0.01)) return fiatPrice.toFixed(4)
+
+  return fiatPrice.toFixed(2)
+}
