@@ -159,10 +159,10 @@ const unisatModalOpen = ref(false)
 
       <div v-else class="flex items-center gap-2">
         <div
-          class="flex h-10 cursor-pointer items-center divide-x divide-zinc-700 rounded-lg bg-black/90 px-4"
+          class="flex h-10 items-center divide-x divide-zinc-700 rounded-lg bg-black/90 px-4"
         >
           <div
-            class="lg:flex gap-2 pr-3 hidden"
+            class="lg:flex gap-2 pr-3 hidden cursor-pointer"
             @click="copyAddress"
             title="copy address"
           >

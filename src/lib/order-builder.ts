@@ -6,19 +6,19 @@ import {
 } from '@/store'
 import { exclusiveChange, safeOutputValue } from './build-helpers'
 import {
+  DEBUG,
   DUMMY_UTXO_VALUE,
   DUST_UTXO_VALUE,
   EXTRA_INPUT_MIN_VALUE,
   ONE_SERVICE_FEE,
+  SELL_SERVICE_FEE,
   SERVICE_LIVENET_ADDRESS,
-  SERVICE_LIVENET_BID_ADDRESS,
   SERVICE_LIVENET_RDEX_ADDRESS,
   SERVICE_TESTNET_ADDRESS,
   SIGHASH_SINGLE_ANYONECANPAY,
 } from '@/data/constants'
 import {
   constructBidPsbt,
-  getBidCandidateInfo,
   getListingUtxos,
   getOneBrc20,
   getOneOrder,
@@ -456,6 +456,9 @@ export async function buildSellTake({
       tick: selectedPair.fromSymbol,
       address,
     }).then((brc20Info) => {
+      // if (DEBUG) {
+      //   return brc20Info.transferBalanceList[0]
+      // }
       // choose a real ordinal with the right amount, not the white amount (Heil Uncle Roger!)
       return brc20Info.transferBalanceList.find(
         (brc20) => Number(brc20.amount) === amount
@@ -510,17 +513,14 @@ export async function buildSellTake({
   })
 
   // Step 3: Add service fee
-  // This is a little bit different
-  // Instead of adding a service fee output, we add a service fee input, and a change output
-  // This way, we imply that the service fee payed by the seller is instead the difference of the change
-  const serviceAddress =
-    networkStore.btcNetwork === 'bitcoin'
-      ? selectedPair.fromSymbol === 'rdex'
-        ? SERVICE_LIVENET_RDEX_ADDRESS
-        : SERVICE_LIVENET_ADDRESS
-      : SERVICE_TESTNET_ADDRESS
-  // let serviceFee = Math.max(2000, total * 0.025) // 2.5%
-  let serviceFee = 16_000
+  let serviceFee = SELL_SERVICE_FEE
+
+  const { fee } = await exclusiveChange({
+    psbt: sell,
+    extraSize: 943,
+    extraInputValue: -serviceFee,
+    estimate: true,
+  })
 
   // fetch a biggest utxo
   const listingUtxos = await getListingUtxos()
@@ -548,8 +548,6 @@ export async function buildSellTake({
     )
   }
   // add input
-  // const rawPaymentTx = await getTxHex(paymentUtxo.txId)
-  // const paymentTx = btcjs.Transaction.fromHex(rawPaymentTx)
   const paymentPrevOutput = btcjs.address.toOutputScript(address)
   const paymentWitnessUtxo = {
     value: paymentUtxo.satoshis,
@@ -563,7 +561,7 @@ export async function buildSellTake({
   }
   sell.addInput(paymentInput)
   // add output
-  const changeValue = paymentInput.witnessUtxo.value - serviceFee
+  const changeValue = paymentInput.witnessUtxo.value - serviceFee - fee
   if (changeValue < 0) {
     throw new Error(
       'Insufficient balance. Please ensure that the address has a sufficient balance and try again.'
@@ -584,9 +582,9 @@ export async function buildSellTake({
     type: 'sell',
     value: ordinalValue,
     totalPrice: 0,
-    networkFee: 0,
+    networkFee: fee,
     serviceFee,
-    totalSpent: 0,
+    totalSpent: fee + serviceFee,
     fromSymbol: selectedPair.fromSymbol,
     toSymbol: selectedPair.toSymbol,
     fromValue: amount,

@@ -50,14 +50,6 @@ const showFiatPrice = useStorage('show-fiat-price', true)
               Home
             </router-link>
           </MenuItem>
-          <MenuItem>
-            <router-link
-              to="/changelog"
-              class="p-4 block hover:text-orange-300 transition"
-            >
-              Changelog
-            </router-link>
-          </MenuItem>
 
           <MenuItem :disabled="true">
             <div class="flex items-center p-4 justify-between font-normal">
@@ -106,6 +98,15 @@ const showFiatPrice = useStorage('show-fiat-price', true)
                 ></span>
               </Switch>
             </SwitchGroup>
+          </MenuItem>
+
+          <MenuItem>
+            <router-link
+              to="/changelog"
+              class="p-4 block hover:text-orange-300 transition"
+            >
+              Changelog
+            </router-link>
           </MenuItem>
 
           <MenuItem :disabled="true">

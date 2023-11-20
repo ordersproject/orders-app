@@ -238,7 +238,7 @@ const { data: fiatRate } = useQuery({
         ></span>
       </span>
 
-      <span class="pl-2">Fee</span>
+      <span class="pl-2">Gas</span>
       <span class="min-w-[60px]" v-if="isLoadingFeebPlans">
         <Loader2Icon class="text-zinc-500 h-4 w-4 mx-auto animate-spin" />
       </span>
@@ -321,7 +321,7 @@ const { data: fiatRate } = useQuery({
             <div
               class="flex flex-col items-stretch gap-4 justify-between pr-4 col-span-2"
             >
-              <div class="item-label leading-none">Choose Fee Rate Plan</div>
+              <div class="item-label leading-none">Choose Gas Plan</div>
 
               <div class="grow">
                 <RadioGroup name="feebPlan" v-model="selectedFeebPlanTitle">
@@ -409,9 +409,7 @@ const { data: fiatRate } = useQuery({
             </div>
 
             <div class="pl-4 col-span-3">
-              <div class="item-label align-top leading-none">
-                Estimated Miner Fee
-              </div>
+              <div class="item-label align-top leading-none">Estimated Gas</div>
 
               <div class="mt-4">
                 <h3 class="text-zinc-500">Transaction Actions</h3>
