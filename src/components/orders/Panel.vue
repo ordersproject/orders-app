@@ -201,7 +201,9 @@ const buyFees = computed(() => {
   return calculateFee(feebStore.get, 4, 6) * ordersCount
 })
 const sellFees = computed(() => {
-  return 0
+  if (!feebStore.get) return 0
+
+  return 1120 * feebStore.get
 })
 
 const prettyBuyFees = computed(() => {

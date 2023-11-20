@@ -376,6 +376,7 @@ const { data: fiatRate } = useQuery({
                                         checked ? 'text-white' : 'text-zinc-300'
                                       "
                                       :value="customFeeb"
+                                      name="customFeeb"
                                       @input="
                                         (event) => updateCustomFeeb(event)
                                       "
