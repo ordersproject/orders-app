@@ -106,7 +106,7 @@ const { data: fiatRate } = useQuery({
 
     <div class="">
       <el-tooltip :content="`Market Price`" placement="right" effect="light">
-        <div class="flex items-center">
+        <div class="inline-flex items-center">
           <span
             :class="[
               'text-lg',

@@ -193,6 +193,7 @@ async function submitOrder() {
           address: addressStore.get!,
           value: builtInfo.value,
           amount: builtInfo.amount,
+          networkFee: builtInfo.networkFee,
         })
         break
       case 'bid':

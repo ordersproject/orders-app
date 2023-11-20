@@ -427,6 +427,7 @@ export const pushSellTake = async ({
   address,
   value,
   amount,
+  networkFee,
 }: {
   network: 'livenet' | 'testnet'
   psbtRaw: string
@@ -434,6 +435,7 @@ export const pushSellTake = async ({
   address: string
   value: number
   amount: string
+  networkFee: number
 }) => {
   const sellRes = await ordersApiFetch(`order/bid/do`, {
     method: 'POST',
@@ -444,6 +446,7 @@ export const pushSellTake = async ({
       address,
       value,
       amount,
+      networkFee,
     }),
   })
 
