@@ -24,7 +24,7 @@ const tradingPairs = [
     toSymbol: 'btc',
     fromIcon: rdexLogo,
     toIcon: btcLogo,
-    hasPool: import.meta.env.VITE_ENVIRONMENT === 'admin',
+    hasPool: false,
     usePool: true,
   },
   {
