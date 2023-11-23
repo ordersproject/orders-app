@@ -193,6 +193,7 @@ async function submitOrder() {
           address: addressStore.get!,
           value: builtInfo.value,
           amount: builtInfo.amount,
+          networkFee: builtInfo.networkFee,
         })
         break
       case 'bid':
@@ -352,7 +353,7 @@ async function submitOrder() {
                   </span>
                 </div>
 
-                <div class="text-left text-zinc-500">Miner Fee</div>
+                <div class="text-left text-zinc-500">Gas</div>
                 <div class="col-span-1 text-right">
                   {{ prettyBtcDisplay(builtInfo.networkFee) }}
                 </div>

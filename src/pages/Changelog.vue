@@ -3,7 +3,7 @@ import changelog from '@/data/changelog'
 </script>
 
 <template>
-  <div class="max-w-xl mx-auto scroll-my-12">
+  <div class="max-w-2xl mx-auto scroll-my-12">
     <h1 class="text-center text-3xl font-bold">Changelog</h1>
 
     <div
@@ -16,7 +16,7 @@ import changelog from '@/data/changelog'
           </h2>
           <span class="ml-auto text-sm text-zinc-500">{{ log.date }}</span>
         </div>
-        <ul class="list-disc list-inside mt-2 text-sm">
+        <ul class="list-disc list-outside mt-2 text-sm ml-4">
           <li v-for="change in log.changes" class="mt-2">
             {{ change }}
           </li>

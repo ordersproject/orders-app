@@ -9,6 +9,7 @@ export const DUMMY_UTXO_VALUE = 600
 export const DUST_UTXO_VALUE = 546
 export const MS_BRC20_UTXO_VALUE = 1000
 export const ONE_SERVICE_FEE = 10_000
+export const SELL_SERVICE_FEE = 16_000
 export const EXTRA_INPUT_MIN_VALUE = 600
 
 // feeb

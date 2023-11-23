@@ -7,15 +7,6 @@
   </a>
 </p>
 
-<!-- <p align="center">
-  <a aria-label="License" href="https://github.com/vercel/next.js/blob/canary/license.md">
-    <img alt="" src="https://img.shields.io/npm/l/next.svg?style=for-the-badge&labelColor=000000">
-  </a>
-  <a aria-label="Join the community on Discord" href="https://discord.gg/nGrjF7FJJD">
-    <img alt="" src="https://img.shields.io/badge/Join%20the%20community-blueviolet.svg?style=for-the-badge&logo=Next.js&labelColor=000000&logoWidth=20">
-  </a>
-</p> -->
-
 ## What is Orders.Exchange?
 
 Orders is the first decentralized exchange (DEX) with orderbooks that fully operates on the Bitcoin network. It harnesses the full potential of Bitcoin's Layer 1 capabilities, powered by a combination of Ordinals protocol, PSBT technology, Bitcoin scripts, and the revolutionary Nostr protocol. Welcome to the future of Bitcoin-based DeFi with comprehensive support for BRC-20 Tokens.
@@ -35,3 +26,5 @@ Visit [https://orders-exchange.gitbook.io](https://orders-exchange.gitbook.io) t
 [Discord](https://discord.gg/nGrjF7FJJD)
 
 [Twitter](https://twitter.com/ordersexchange)
+
+[Telegram](https://t.me/orders_exchange)

@@ -1,5 +1,14 @@
 const changelog = [
   {
+    version: '1.1.1',
+    emoji: '👘',
+    date: '2023-11-20',
+    changes: [
+      'Refactor the gas calculation logic on sell process',
+      'Separate the assets that have been listed and the assets that can still be listed when displaying assets',
+    ],
+  },
+  {
     version: '1.1.0',
     emoji: '🏊🏻‍♀️',
     date: '2023-11-17',

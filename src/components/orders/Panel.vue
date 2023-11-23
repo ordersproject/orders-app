@@ -201,7 +201,9 @@ const buyFees = computed(() => {
   return calculateFee(feebStore.get, 4, 6) * ordersCount
 })
 const sellFees = computed(() => {
-  return 0
+  if (!feebStore.get) return 0
+
+  return 1120 * feebStore.get
 })
 
 const prettyBuyFees = computed(() => {
@@ -1221,7 +1223,7 @@ watch(bidExchangePrice, (price) => {
                 </div>
 
                 <div class="flex items-center justify-between text-sm">
-                  <span class="text-zinc-500">Miner Fee</span>
+                  <span class="text-zinc-500">Gas</span>
                   <span class="text-zinc-300">{{ prettyBuyFees }}</span>
                 </div>
 
@@ -1376,7 +1378,7 @@ watch(bidExchangePrice, (price) => {
               <!-- sell -->
               <div class="mt-12">
                 <div class="flex items-center justify-between text-sm">
-                  <span class="text-zinc-500">Miner Fee</span>
+                  <span class="text-zinc-500">Gas</span>
                   <span class="text-zinc-300">{{ prettySellFees }}</span>
                 </div>
 
