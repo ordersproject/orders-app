@@ -28,7 +28,7 @@ const { record } = defineProps<{
           </span>
         </div>
 
-        <div class="flex mt-2 items-center gap-2">
+        <div class="flex mt-2 items-center gap-2" v-if="record.sendId">
           <span class="text-zinc-500 text-xs">Claim Tx</span>
 
           <div
