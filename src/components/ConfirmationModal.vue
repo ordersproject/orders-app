@@ -1,12 +1,12 @@
 <script lang="ts" setup>
-import { inject, onMounted, ref, toRaw } from 'vue'
+import { computed, inject, ref, toRaw } from 'vue'
 import {
   Dialog,
   DialogPanel,
   DialogTitle,
   DialogDescription,
 } from '@headlessui/vue'
-import { Loader, ArrowDownIcon, RefreshCcwIcon } from 'lucide-vue-next'
+import { Loader, ArrowDownIcon } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 
 import { prettyBtcDisplay, prettyCoinDisplay } from '@/lib/formatters'
@@ -17,14 +17,10 @@ import {
   pushSellTake,
 } from '@/queries/orders-api'
 import { useAddressStore, useBtcJsStore, useNetworkStore } from '@/store'
-import {
-  DEBUG,
-  SIGHASH_ALL,
-  SIGHASH_ALL_ANYONECANPAY,
-  SIGHASH_ANYONECANPAY,
-} from '@/data/constants'
+import { DEBUG, SIGHASH_ALL_ANYONECANPAY } from '@/data/constants'
 import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
 import assets from '@/data/assets'
+import { useExcludedBalanceQuery } from '@/queries/excluded-balance'
 
 const unisat = window.unisat
 
@@ -54,19 +50,10 @@ function clearBuiltInfo() {
 
 const selectedPair = inject(selectedPairKey, defaultPair)
 
-const balance = ref(0)
-async function updateBalance() {
-  if (!unisat) return
-
-  const balanceRes = await unisat.getBalance()
-  if (balanceRes && balanceRes.total) {
-    balance.value = balanceRes.total
-  }
-}
-onMounted(async () => {
-  // update balance
-  await updateBalance()
-})
+const { data: balance } = useExcludedBalanceQuery(
+  computed(() => addressStore.get),
+  computed(() => !!addressStore.get)
+)
 
 function getIconFromSymbol(symbol: string) {
   return (
@@ -89,13 +76,10 @@ async function submitBidOrder() {
     const payPsbtSigned = await window.unisat.signPsbt(
       builtInfo.secondaryOrder.toHex()
     )
-    console.log({ payPsbtSigned })
     const payPsbt = btcjs.Psbt.fromHex(payPsbtSigned)
-    console.log({ payPsbt })
 
     // 2. now we can add that utxo to the bid order
     const bidPsbt = builtInfo.order
-    console.log({ bidPsbt })
     bidPsbt.addInput({
       hash: payPsbt.extractTransaction().getId(),
       index: 0,
@@ -108,7 +92,6 @@ async function submitBidOrder() {
 
     // 3. we sign the bid order
     const signed = await unisat.signPsbt(bidPsbt.toHex())
-    console.log({ signed })
 
     // 4. push the bid order to the api
     const pushRes = await pushBidOrder({
@@ -122,7 +105,6 @@ async function submitBidOrder() {
       using: builtInfo.using,
       orderId: builtInfo.orderId,
     })
-    console.log({ pushRes })
 
     // 5. if pushRes is not null, we can now push the secondary order to the blockchain
     if (pushRes) {
@@ -172,7 +154,6 @@ async function submitOrder() {
   try {
     // 1. sign
     const signed = await unisat.signPsbt(builtInfo.order.toHex())
-    console.log({ signed })
 
     let pushRes: any
     // 2. push
@@ -193,7 +174,8 @@ async function submitOrder() {
           address: addressStore.get!,
           value: builtInfo.value,
           amount: builtInfo.amount,
-          networkFee: builtInfo.networkFee,
+          networkFee: builtInfo.selfFee,
+          networkFeeRate: builtInfo.networkFeeRate,
         })
         break
       case 'bid':
@@ -395,14 +377,7 @@ async function submitOrder() {
 
                 <div class="text-left text-zinc-300">Available Balance</div>
                 <div class="col-span-1 flex items-center justify-end gap-2">
-                  <button @click="updateBalance">
-                    <RefreshCcwIcon
-                      class="h-3 w-3 text-zinc-300 transition hover:text-orange-300"
-                      aria-hidden="true"
-                    />
-                  </button>
-
-                  <span>{{ prettyBtcDisplay(balance) }}</span>
+                  <span>{{ balance ? prettyBtcDisplay(balance) : '-' }}</span>
                 </div>
               </div>
             </div>

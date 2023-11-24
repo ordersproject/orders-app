@@ -18,12 +18,12 @@ const { data: rewardsEssential, isLoading: isLoadingRewardsEssential } =
   useQuery({
     queryKey: [
       'poolRewardsEssential',
-      { address: addressStore.get as string, tick: POOL_REWARDS_TICK },
+      { address: addressStore.get as string, tick: selectedPair.fromSymbol },
     ],
     queryFn: () =>
       getMyRewardsEssential({
         address: addressStore.get as string,
-        tick: POOL_REWARDS_TICK,
+        tick: selectedPair.fromSymbol,
       }),
     select: (data) => {
       return {
@@ -55,7 +55,7 @@ const { mutate: mutateClaimReward } = useMutation({
         'poolRewardsEssential',
         {
           address: addressStore.get as string,
-          tick: POOL_REWARDS_TICK,
+          tick: selectedPair.fromSymbol,
         },
       ],
     })
@@ -71,7 +71,7 @@ async function onClaimReward() {
 
     mutateClaimReward({
       rewardAmount: rewardsEssential.value.total,
-      tick: POOL_REWARDS_TICK,
+      tick: selectedPair.fromSymbol,
     })
   } catch (e: any) {
     if (DEBUG) {

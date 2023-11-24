@@ -1,7 +1,8 @@
 import { DEBUG } from '@/data/constants'
 import { ordersApiFetch } from '@/lib/fetch'
+import { raise } from '@/lib/helpers'
 import sign from '@/lib/sign'
-import { useAddressStore, useNetworkStore } from '@/store'
+import { useAddressStore, useFeebStore, useNetworkStore } from '@/store'
 
 type PoolPair = {
   fromPoolSize: string
@@ -401,6 +402,209 @@ export const submitRelease = async ({
 }
 
 /**
+ * Event
+ */
+export const getMyEventRecords = async ({
+  address,
+  tick,
+}: {
+  address: string
+  tick: string
+}): Promise<
+  {
+    amount: number
+    buyerAddress: string
+    calEndBlock: number
+    calStartBlock: number
+    calTotalValue: number
+    calValue: number
+    coinAmount: number
+    coinDecimalNum: number
+    coinPrice: number
+    coinPriceDecimalNum: number
+    coinRatePrice: number
+    dealTxBlock: number
+    dealTxBlockState: number
+    decimalNum: number
+    freeState: 1
+    inscriptionId: string
+    net: string
+    orderId: string
+    orderState: 1
+    orderType: 1
+    percentage: number
+    rewardAmount: number
+    rewardRealAmount: number
+    sellerAddress: string
+    tick: string
+    timestamp: number
+    version: number
+  }[]
+> => {
+  const { publicKey, signature } = await sign()
+
+  const network = 'livenet'
+  const params = new URLSearchParams({
+    net: network,
+    tick,
+    address,
+  })
+
+  return await ordersApiFetch(`event/orders?${params}`, {
+    method: 'GET',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  })
+    .then((res) => {
+      return res?.results || []
+    })
+    .then((orders: any[]) => {
+      // sort by timestamp desc
+      orders.sort((a, b) => {
+        return b.timestamp - a.timestamp
+      })
+
+      return orders
+    })
+}
+
+export const getMyEventRewardsEssential = async ({
+  tick,
+  address,
+}: {
+  tick: string
+  address: string
+}): Promise<RewardsEssential> => {
+  const network = useNetworkStore().network
+  const { publicKey, signature } = await sign()
+
+  const params = new URLSearchParams({
+    tick,
+    address,
+    net: network,
+  })
+
+  return await ordersApiFetch(`event/reward/info?${params}`, {
+    method: 'GET',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  }).then((res) => {
+    if (res.HasReleasePoolOrderCount) {
+      res.hasReleasePoolOrderCount = res.HasReleasePoolOrderCount
+      delete res.HasReleasePoolOrderCount
+    }
+
+    return res
+  })
+}
+
+export const getEventClaimFees = async () => {
+  const feeb = useFeebStore().get ?? raise('Choose a fee rate first.')
+  const { publicKey, signature } = await sign()
+  const params = new URLSearchParams({
+    networkFeeRate: String(feeb),
+    version: '2',
+  })
+
+  return (await ordersApiFetch(`event/reward/cal/fee?${params}`, {
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  })) as {
+    rewardInscriptionFee: number
+    rewardSendFee: number
+    feeAddress: string
+  }
+}
+
+export const claimEventReward = async ({
+  rewardAmount,
+  tick,
+  feeSend,
+  feeInscription,
+  networkFeeRate,
+  feeUtxoTxId,
+  feeRawTx,
+}: {
+  rewardAmount: number
+  tick: string
+  feeSend: number
+  feeInscription: number
+  networkFeeRate: number
+  feeUtxoTxId: string
+  feeRawTx: string
+}) => {
+  const network = useNetworkStore().network
+  const address = useAddressStore().get!
+  const { publicKey, signature } = await sign()
+
+  return await ordersApiFetch(`event/reward/claim`, {
+    method: 'POST',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+    body: JSON.stringify({
+      net: network,
+      rewardAmount,
+      address,
+      tick,
+      version: 2,
+
+      feeInscription,
+      feeSend,
+      feeUtxoTxId,
+      networkFeeRate,
+      feeRawTx,
+    }),
+  })
+}
+
+export const getMyEventRewardsClaimRecords = async ({
+  tick,
+}: {
+  tick: string
+}): Promise<RewardsClaimRecord[]> => {
+  const network = useNetworkStore().network
+  const address = useAddressStore().get!
+  const { publicKey, signature } = await sign()
+
+  const params = new URLSearchParams({
+    tick,
+    address,
+    net: network,
+    rewardType: '12',
+  })
+
+  return await ordersApiFetch(`pool/reward/orders?${params}`, {
+    method: 'GET',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  })
+    .then((res) => {
+      return res?.results || []
+    })
+    .then((res) => {
+      return res.map((item: any) => {
+        if (item.rewardState === 3) {
+          item.rewardState = 'finished'
+        } else {
+          item.rewardState = 'pending'
+        }
+
+        return item
+      })
+    })
+}
+
+/**
  * Rewards
  */
 type RewardsEssential = {
@@ -449,6 +653,7 @@ export type RewardsClaimRecord = {
   pair: string
   rewardCoinAmount: number
   rewardState: 'pending' | 'finished'
+  sendId: string
   tick: string
   timestamp: number
 }

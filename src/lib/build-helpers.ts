@@ -161,6 +161,7 @@ export async function exclusiveChange({
   psbt,
   pubKey,
   extraSize,
+  useSize,
   extraInputValue,
   sighashType = SIGHASH_ALL_ANYONECANPAY,
   estimate = false,
@@ -168,6 +169,7 @@ export async function exclusiveChange({
   psbt: Psbt
   pubKey?: Buffer
   extraSize?: number
+  useSize?: number
   extraInputValue?: number
   sighashType?: number
   estimate?: boolean
@@ -278,7 +280,9 @@ export async function exclusiveChange({
   psbt.addInput(paymentInput)
 
   // Add change output
-  let fee = calcFee(psbt, feeb, extraSize)
+  let fee = useSize
+    ? Math.round(useSize * feeb)
+    : calcFee(psbt, feeb, extraSize)
   const totalOutput = sumOrNaN(psbt.txOutputs)
   const totalInput = sumOrNaN(
     psbt.data.inputs.map(

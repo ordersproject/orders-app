@@ -12,9 +12,15 @@ import PanelAdd from './PanelAdd.vue'
 import PanelRemove from './PanelRemove.vue'
 import PanelRelease from './PanelRelease.vue'
 import PanelClaim from './PanelClaim.vue'
+import PanelEvent from './PanelEvent.vue'
 import { useRoute } from 'vue-router'
 
+const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
+
 const tabLabels = ['Add', 'Remove', 'Release', 'Claim']
+if (selectedPair.fromSymbol === 'rdex') {
+  tabLabels.push('Event🔥')
+}
 
 const loggedIn = ref(!!useAddressStore().get)
 async function connectWallet() {
@@ -35,7 +41,6 @@ if (queryAction === 'release') {
   selectedTab.value = 2
 }
 
-const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
 const addressStore = useAddressStore()
 const { data: rewardsEssential } = useQuery({
   queryKey: [
@@ -89,20 +94,24 @@ const hasReleasable = computed(() => {
         </Tab>
       </TabList>
       <TabPanels>
-        <TabPanel class="pt-12">
+        <TabPanel class="pt-12 focus-visible:outline-none">
           <PanelAdd />
         </TabPanel>
 
-        <TabPanel class="pt-12">
+        <TabPanel class="pt-12 focus-visible:outline-none">
           <PanelRemove />
         </TabPanel>
 
-        <TabPanel class="pt-12">
+        <TabPanel class="pt-12 focus-visible:outline-none">
           <PanelRelease />
         </TabPanel>
 
-        <TabPanel class="pt-12">
+        <TabPanel class="pt-12 focus-visible:outline-none">
           <PanelClaim @go-release="changeTab(2)" />
+        </TabPanel>
+
+        <TabPanel class="pt-12 focus-visible:outline-none">
+          <PanelEvent />
         </TabPanel>
       </TabPanels>
     </TabGroup>

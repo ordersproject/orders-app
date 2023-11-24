@@ -7,7 +7,7 @@ import { ExternalLinkIcon, ChevronRightIcon } from 'lucide-vue-next'
 import { prettyBalance, prettyTimestamp, prettyTxid } from '@/lib/formatters'
 import { type ReleaseHistory } from '@/queries/pool'
 import { POOL_REWARDS_TICK } from '@/data/constants'
-import { toTx, unit, useBtcUnit } from '@/lib/helpers'
+import { toBlock, toTx, unit, useBtcUnit } from '@/lib/helpers'
 
 const props = defineProps<{
   record: ReleaseHistory
@@ -77,6 +77,61 @@ const status = computed(() => {
           </span>
         </div>
 
+        <div class="flex items-center">
+          <span class="w-32 inline-block text-zinc-500">Release Block</span>
+          <div
+            class="flex items-center gap-2 hover:cursor-pointer"
+            @click="toBlock(record.releaseTxBlock)"
+            v-if="record.releaseTxBlock"
+          >
+            <span class="hover:text-orange-300 underline">
+              {{ record.releaseTxBlock }}
+            </span>
+
+            <ExternalLinkIcon class="inline-block w-4 h-4" />
+          </div>
+          <span v-else>-</span>
+        </div>
+
+        <div class="flex items-center">
+          <span class="w-32 inline-block text-zinc-500">Deal Block</span>
+          <div
+            class="flex items-center gap-2 hover:cursor-pointer"
+            @click="toBlock(record.dealCoinTxBlock)"
+            v-if="record.dealCoinTxBlock"
+          >
+            <span class="hover:text-orange-300 underline">
+              {{ record.dealCoinTxBlock }}
+            </span>
+
+            <ExternalLinkIcon class="inline-block w-4 h-4" />
+          </div>
+          <span v-else>-</span>
+        </div>
+
+        <div class="flex items-center">
+          <div class="w-32 inline-block text-zinc-500">
+            Distributing across Blocks
+          </div>
+          <div class="text-zinc-300">
+            {{ record.calStartBlock }} - {{ record.calEndBlock }}
+          </div>
+        </div>
+
+        <div class="flex items-center">
+          <span class="w-32 inline-block text-zinc-500">Release Tx</span>
+          <div
+            class="flex items-center gap-2 hover:cursor-pointer"
+            @click="toTx(record.releaseTx)"
+          >
+            <span class="hover:text-orange-300 underline">
+              {{ prettyTxid(record.releaseTx, 4) }}
+            </span>
+
+            <ExternalLinkIcon class="inline-block w-4 h-4" />
+          </div>
+        </div>
+
         <div class="flex items-baseline">
           <span class="w-32 inline-block text-zinc-500 shrink-0">Rewards</span>
 
@@ -143,28 +198,7 @@ const status = computed(() => {
             </DisclosurePanel>
           </Disclosure>
 
-          <span v-else> -</span>
-
-          <!-- <div class="text-xs text-zinc-500">
-              <span
-                >{{ record.rewardAmount }} * (1 -
-                {{ record.decreasing }}%)</span
-              >
-            </div> -->
-        </div>
-
-        <div class="flex items-center">
-          <span class="w-32 inline-block text-zinc-500">Tx Record</span>
-          <div
-            class="flex items-center gap-2 hover:cursor-pointer"
-            @click="toTx(record.releaseTx)"
-          >
-            <span class="hover:text-orange-300 underline">
-              {{ prettyTxid(record.releaseTx, 4) }}
-            </span>
-
-            <ExternalLinkIcon class="inline-block w-4 h-4" />
-          </div>
+          <span v-else>Calculating...</span>
         </div>
 
         <div class="flex items-center">

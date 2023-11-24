@@ -18,6 +18,13 @@ export const EXTREME_FEEB = 1
 export const FEEB_MULTIPLIER = 1.3
 export const MS_FEEB_MULTIPLIER = 2.2
 
+// predefined sizes
+export const RELEASE_TX_SIZE = 490
+export const BUY_TX_SIZE = 500
+export const SELL_TX_SIZE = 2320
+export const BID_TX_SIZE = 750
+export const SEND_TX_SIZE = 140
+
 // Sighash types
 export const SIGHASH_DEFAULT = 0x00
 export const SIGHASH_ALL = 0x01
@@ -40,3 +47,4 @@ export const SERVICE_LIVENET_RDEX_ADDRESS = import.meta.env
 export const BTC_POOL_MODE: 1 | 2 = 1
 
 export const POOL_REWARDS_TICK = 'rdex'
+export const EVENT_REWARDS_TICK = 'orxc'

@@ -6,6 +6,7 @@ export default async function sign() {
 
   // read from store first.
   const credential = credentialsStore.getByAddress(address)
+
   if (credential) return credential
 
   // if not found, then sign and in store.

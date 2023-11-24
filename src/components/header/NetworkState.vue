@@ -18,7 +18,14 @@ import { useNetworkStore, useFeebStore } from '@/store'
 import { FeebPlan, getFeebPlans } from '@/queries/proxy'
 import { calcFiatPrice, unit, useBtcUnit } from '@/lib/helpers'
 import { prettyBalance } from '@/lib/formatters'
-import { getFiatRate } from '@/queries/orders-api'
+import { getFiatRate, getSellFees } from '@/queries/orders-api'
+import {
+  BID_TX_SIZE,
+  BUY_TX_SIZE,
+  RELEASE_TX_SIZE,
+  SELL_TX_SIZE,
+  SEND_TX_SIZE,
+} from '@/data/constants'
 
 // custom feeb plan
 const customFeeb = useStorage('customFeeb', 2)
@@ -40,11 +47,11 @@ function updateCustomFeeb(e: any) {
 const transactionActions = [
   {
     title: 'Buy',
-    size: 500,
+    size: BUY_TX_SIZE,
   },
   {
     title: 'Sell',
-    size: 1120,
+    size: SELL_TX_SIZE,
   },
   {
     title: 'Ask',
@@ -52,7 +59,7 @@ const transactionActions = [
   },
   {
     title: 'Bid',
-    size: 750,
+    size: BID_TX_SIZE,
   },
 ]
 
@@ -63,7 +70,7 @@ const poolActions = [
   },
   {
     title: 'Add 2-Way Liquidity',
-    size: 140,
+    size: SEND_TX_SIZE,
   },
   {
     title: 'Remove Liquidity',
@@ -71,7 +78,7 @@ const poolActions = [
   },
   {
     title: 'Release',
-    size: 700,
+    size: RELEASE_TX_SIZE,
   },
   {
     title: 'Claim Reward',

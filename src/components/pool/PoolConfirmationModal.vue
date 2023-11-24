@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { inject, onMounted, ref, toRaw } from 'vue'
+import { computed, inject, onMounted, ref, toRaw } from 'vue'
 import {
   Dialog,
   DialogPanel,
@@ -15,6 +15,7 @@ import { useAddressStore, useBtcJsStore, useNetworkStore } from '@/store'
 import { BTC_POOL_MODE, DEBUG } from '@/data/constants'
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import assets from '@/data/assets'
+import { useExcludedBalanceQuery } from '@/queries/excluded-balance'
 
 const unisat = window.unisat
 
@@ -46,20 +47,6 @@ function clearBuiltInfo() {
 }
 
 const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
-
-const balance = ref(0)
-async function updateBalance() {
-  if (!unisat) return
-
-  const balanceRes = await unisat.getBalance()
-  if (balanceRes && balanceRes.total) {
-    balance.value = balanceRes.total
-  }
-}
-onMounted(async () => {
-  // update balance
-  await updateBalance()
-})
 
 function getIconFromSymbol(symbol: string) {
   return (

@@ -149,6 +149,10 @@ export const useCredentialsStore = defineStore('credentials', {
 
       this.credentials.push({ publicKey, signature, address })
     },
+
+    remove(address: string) {
+      this.credentials = this.credentials.filter((s) => s.address !== address)
+    },
   },
 })
 

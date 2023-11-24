@@ -1,6 +1,8 @@
 <script lang="ts" setup>
-import { prettyTimestamp } from '@/lib/formatters'
+import { prettyTimestamp, prettyTxid } from '@/lib/formatters'
+import { toTx } from '@/lib/helpers'
 import { type RewardsClaimRecord } from '@/queries/pool'
+import { ExternalLinkIcon } from 'lucide-vue-next'
 import { computed } from 'vue'
 
 const { record } = defineProps<{
@@ -15,23 +17,38 @@ const { record } = defineProps<{
 
     <!-- order amount & timestamp -->
     <div class="items-center flex justify-between mt-4">
-      <div class="flex items-center gap-2">
-        <span class="text-orange-300">
-          {{ `${record.rewardCoinAmount} ${record.tick.toUpperCase()}` }}
-        </span>
+      <div class="">
+        <div class="flex items-center gap-2">
+          <span class="text-orange-300">
+            {{ `${record.rewardCoinAmount} ${record.tick.toUpperCase()}` }}
+          </span>
 
-        <span class="text-zinc-500 text-xs">
-          {{ `${prettyTimestamp(record.timestamp)}` }}
-        </span>
+          <span class="text-zinc-500 text-xs">
+            {{ `${prettyTimestamp(record.timestamp)}` }}
+          </span>
+        </div>
+
+        <div class="flex mt-2 items-center gap-2">
+          <span class="text-zinc-500 text-xs">Claim Tx</span>
+
+          <div
+            class="flex items-center gap-2 hover:cursor-pointer"
+            @click="toTx(record.sendId)"
+          >
+            <span class="hover:text-orange-300 underline">
+              {{ prettyTxid(record.sendId, 4) }}
+            </span>
+
+            <ExternalLinkIcon class="inline-block w-4 h-4" />
+          </div>
+        </div>
       </div>
 
       <!-- order state -->
       <span
         class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-zinc-900 capitalize"
         :class="[
-          record.rewardState === 'pending'
-            ? 'text-orange-300'
-            : 'text-green-500',
+          record.rewardState === 'pending' ? 'text-zinc-500' : 'text-green-500',
         ]"
       >
         {{ record.rewardState }}

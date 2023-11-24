@@ -93,11 +93,13 @@ const { data: fiatRate } = useQuery({
         </span>
       </template>
 
-      <span v-else class="">
-        <span>{{ prettyBalance(order.amount, useBtcUnit) }}</span>
+      <span v-else class="inline-grid grid-cols-5 items-center gap-1">
+        <span class="col-span-3">{{
+          prettyBalance(order.amount, useBtcUnit)
+        }}</span>
 
         <span
-          class="text-xs text-zinc-500 pl-2 min-w-[40px]"
+          class="text-xs text-zinc-500 col-span-2"
           v-if="showFiat && fiatRate"
         >
           {{ '$' + calcFiatPrice(order.amount, fiatRate) }}

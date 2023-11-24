@@ -51,9 +51,8 @@ import {
   useNetworkStore,
 } from '@/store'
 import { buildBuyTake } from '@/lib/order-builder'
-import whitelist from '@/lib/whitelist'
 import { selectPair, selectedPairKey } from '@/data/trading-pairs'
-import { DEBUG } from '@/data/constants'
+import { DEBUG, SELL_TX_SIZE } from '@/data/constants'
 
 import OrderPanelHeader from './PanelHeader.vue'
 import OrderList from './List.vue'
@@ -114,20 +113,6 @@ watch(
   },
   { immediate: true }
 )
-
-const balance = ref(0)
-async function updateBalance() {
-  if (!unisat) return
-
-  const balanceRes = await unisat.getBalance()
-  if (balanceRes && balanceRes.total) {
-    balance.value = balanceRes.total
-  }
-}
-onMounted(async () => {
-  // update balance
-  await updateBalance()
-})
 
 const takeModeTab = ref(0)
 function changeTakeModeTab(index: number) {
@@ -203,7 +188,7 @@ const buyFees = computed(() => {
 const sellFees = computed(() => {
   if (!feebStore.get) return 0
 
-  return 1120 * feebStore.get
+  return SELL_TX_SIZE * feebStore.get
 })
 
 const prettyBuyFees = computed(() => {
@@ -457,26 +442,6 @@ const { data: myBrc20Info } = useQuery({
   ),
 })
 const selectedAskCandidate: Ref<Brc20Transferable | undefined> = ref()
-
-const { data: btcBalance } = useQuery({
-  queryKey: [
-    'btcBalance',
-    {
-      address: addressStore.get,
-      network: networkStore.network,
-    },
-  ],
-  queryFn: () => {
-    if (!addressStore.get) return 0
-
-    type BalanceResult = {
-      total: number
-      unconfirmed: number
-      confirmed: number
-    }
-    return unisat.getBalance().then((res: BalanceResult) => res.total)
-  },
-})
 
 const usePool = selectedPair.hasPool || selectedPair.usePool || false
 const { data: bidCandidates } = useQuery({
@@ -844,13 +809,6 @@ watch(bidExchangePrice, (price) => {
                           useBtcUnit
                         )} ${unit}`
                       }}
-                    </span>
-                  </div>
-
-                  <div class="mt-2 flex items-center justify-between text-sm">
-                    <span class="text-zinc-500">Balance</span>
-                    <span class="text-zinc-300">
-                      {{ `${prettyBalance(btcBalance, useBtcUnit)} ${unit}` }}
                     </span>
                   </div>
 
@@ -1239,21 +1197,6 @@ watch(bidExchangePrice, (price) => {
                 >
                   Buy ${{ selectedPair.fromSymbol.toUpperCase() }}
                 </button>
-
-                <div
-                  class="mt-4 flex items-center justify-center gap-x-2 text-center text-sm"
-                >
-                  <span class="text-zinc-500">Available</span>
-                  <span class="text-zinc-300">
-                    {{ `${prettyBalance(balance, useBtcUnit)} ${unit}` }}
-                  </span>
-                  <button @click="updateBalance">
-                    <RefreshCcwIcon
-                      class="h-4 w-4 text-zinc-300"
-                      aria-hidden="true"
-                    />
-                  </button>
-                </div>
               </div>
             </TabPanel>
 
@@ -1394,21 +1337,6 @@ watch(bidExchangePrice, (price) => {
                 >
                   Sell ${{ selectedPair.fromSymbol.toUpperCase() }}
                 </button>
-
-                <div
-                  class="mt-4 flex items-center justify-center gap-x-2 text-center text-sm"
-                >
-                  <span class="text-zinc-500">Available</span>
-                  <span class="text-zinc-300">
-                    {{ `${prettyBtcDisplay(balance)}` }}
-                  </span>
-                  <button @click="updateBalance">
-                    <RefreshCcwIcon
-                      class="h-4 w-4 text-zinc-300"
-                      aria-hidden="true"
-                    />
-                  </button>
-                </div>
               </div>
             </TabPanel>
           </TabPanels>

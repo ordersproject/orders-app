@@ -54,6 +54,10 @@ export const toTx = (txid: string) => {
   window.open(`https://mempool.space/tx/${txid}`, '_blank')
 }
 
+export const toBlock = (blockId: number) => {
+  window.open(`https://mempool.space/block/${blockId}`, '_blank')
+}
+
 export const calcFiatPrice = (price: number | string, rate: number) => {
   const fiatPrice = new Decimal(price).times(rate)
 

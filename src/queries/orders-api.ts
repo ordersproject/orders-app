@@ -1,8 +1,8 @@
 import Decimal from 'decimal.js'
 import sign from '../lib/sign'
-import { useAddressStore, useNetworkStore } from '../store'
+import { useAddressStore, useFeebStore, useNetworkStore } from '../store'
 import { ordersApiFetch } from '@/lib/fetch'
-import { showFiat } from '@/lib/helpers'
+import { raise, showFiat } from '@/lib/helpers'
 
 export const login = async () => {
   const address = useAddressStore().get as string
@@ -240,6 +240,32 @@ export const constructBidPsbt = async ({
   return constructInfo
 }
 
+export const getSellFees = async () => {
+  const feeb = useFeebStore().get ?? raise('Choose a fee rate first.')
+
+  const params = new URLSearchParams({
+    version: '2',
+    networkFeeRate: String(feeb),
+  })
+
+  const fees: {
+    releaseInscriptionFee: number
+    rewardInscriptionFee: number
+    rewardSendFee: number
+    platformFee: number
+    furtherFee: number
+  } = await ordersApiFetch(`order/bid/cal/fee?${params}`).then((fees) => {
+    fees.furtherFee =
+      fees.releaseInscriptionFee +
+      fees.rewardInscriptionFee +
+      fees.rewardSendFee
+
+    return fees
+  })
+
+  return fees
+}
+
 export type Order = {
   amount: number
   buyerAddress: string
@@ -428,6 +454,7 @@ export const pushSellTake = async ({
   value,
   amount,
   networkFee,
+  networkFeeRate,
 }: {
   network: 'livenet' | 'testnet'
   psbtRaw: string
@@ -436,6 +463,7 @@ export const pushSellTake = async ({
   value: number
   amount: string
   networkFee: number
+  networkFeeRate: number
 }) => {
   const sellRes = await ordersApiFetch(`order/bid/do`, {
     method: 'POST',
@@ -447,6 +475,8 @@ export const pushSellTake = async ({
       value,
       amount,
       networkFee,
+      networkFeeRate,
+      version: 2,
     }),
   })
 

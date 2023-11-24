@@ -12,9 +12,26 @@ import {
 import logo from '@/assets/logo-new.png?url'
 import { VERSION } from '@/data/constants'
 import { useStorage } from '@vueuse/core'
+import { useAddressStore, useCredentialsStore } from '@/store'
+import { ElMessage } from 'element-plus'
 
 const useBtcUnit = useStorage('use-btc-unit', true)
 const showFiatPrice = useStorage('show-fiat-price', true)
+const credentialStore = useCredentialsStore()
+
+function clearCache() {
+  // clear the credential cache of this wallet address
+  const address = useAddressStore().get
+  if (!address) return
+
+  credentialStore.remove(address)
+
+  ElMessage.success('Account cache cleared. Refreshing...')
+
+  setTimeout(() => {
+    window.location.reload()
+  }, 1000)
+}
 </script>
 
 <template>
@@ -98,6 +115,15 @@ const showFiatPrice = useStorage('show-fiat-price', true)
                 ></span>
               </Switch>
             </SwitchGroup>
+          </MenuItem>
+
+          <MenuItem>
+            <button
+              class="p-4 block hover:text-orange-300 transition w-full text-left"
+              @click="clearCache"
+            >
+              Clear Account Cache
+            </button>
           </MenuItem>
 
           <MenuItem>

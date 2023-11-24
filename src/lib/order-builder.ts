@@ -22,6 +22,7 @@ import {
   getListingUtxos,
   getOneBrc20,
   getOneOrder,
+  getSellFees,
 } from '@/queries/orders-api'
 import { getUtxos, type SimpleUtxoFromMempool, getTxHex } from '@/queries/proxy'
 import { type TradingPair } from '@/data/trading-pairs'
@@ -229,7 +230,6 @@ export async function buildBidLimit({
   const {
     feeb,
     fee: payFee,
-    paymentValue,
     changeValue,
   } = await exclusiveChange({
     psbt: payPsbt,
@@ -513,14 +513,15 @@ export async function buildSellTake({
   })
 
   // Step 3: Add service fee
-  let serviceFee = SELL_SERVICE_FEE
+  let sellFees = await getSellFees()
+  let serviceFee = sellFees.platformFee
 
-  const { fee } = await exclusiveChange({
+  let { fee, feeb } = await exclusiveChange({
     psbt: sell,
     extraSize: 943,
-    extraInputValue: -serviceFee,
     estimate: true,
   })
+  // fee += sellFees.furtherFee
 
   // fetch a biggest utxo
   const listingUtxos = await getListingUtxos()
@@ -561,7 +562,8 @@ export async function buildSellTake({
   }
   sell.addInput(paymentInput)
   // add output
-  const changeValue = paymentInput.witnessUtxo.value - serviceFee - fee
+  const changeValue =
+    paymentInput.witnessUtxo.value - serviceFee - fee - sellFees.furtherFee
   if (changeValue < 0) {
     throw new Error(
       'Insufficient balance. Please ensure that the address has a sufficient balance and try again.'
@@ -582,7 +584,9 @@ export async function buildSellTake({
     type: 'sell',
     value: ordinalValue,
     totalPrice: 0,
-    networkFee: fee,
+    networkFee: fee + sellFees.furtherFee,
+    selfFee: fee,
+    networkFeeRate: feeb,
     serviceFee,
     totalSpent: fee + serviceFee,
     fromSymbol: selectedPair.fromSymbol,

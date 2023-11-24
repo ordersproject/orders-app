@@ -1,5 +1,17 @@
 const changelog = [
   {
+    version: '1.2.0',
+    emoji: '⛷️',
+    date: '2023-11-24',
+    changes: [
+      'Add RDEX event panel',
+      'Fix a bug that causes incorrect gas fee when releasing liquidity',
+      'Use dynamic gas fee algorithm when constructing sell transactions',
+      'Asset list panel now shows available assets ratio',
+      'Some ui polishing',
+    ],
+  },
+  {
     version: '1.1.1',
     emoji: '👘',
     date: '2023-11-20',
