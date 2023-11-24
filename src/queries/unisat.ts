@@ -37,6 +37,7 @@ export const connect = async () => {
     // if it's a legacy address(1... or m..., n...), throw error
     if (
       connectRes[0].startsWith('1') ||
+      connectRes[0].startsWith('3') ||
       connectRes[0].startsWith('m') ||
       connectRes[0].startsWith('n')
     ) {
