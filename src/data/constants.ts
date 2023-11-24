@@ -47,4 +47,4 @@ export const SERVICE_LIVENET_RDEX_ADDRESS = import.meta.env
 export const BTC_POOL_MODE: 1 | 2 = 1
 
 export const POOL_REWARDS_TICK = 'rdex'
-export const EVENT_REWARDS_TICK = 'orxc'
+export const EVENT_REWARDS_TICK = 'rdex'

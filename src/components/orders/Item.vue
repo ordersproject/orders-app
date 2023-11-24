@@ -94,7 +94,7 @@ const { data: fiatRate } = useQuery({
       </template>
 
       <span v-else class="inline-grid grid-cols-5 items-center gap-1">
-        <span class="col-span-3">{{
+        <span :class="showFiat && fiatRate ? 'col-span-3' : 'col-span-5'">{{
           prettyBalance(order.amount, useBtcUnit)
         }}</span>
 
