@@ -23,7 +23,7 @@ export const geoGuard = async (to: any, from: any, next: any) => {
   else {
     const geoStore = useGeoStore()
     const geo = await fetchGeo()
-    if (isRestrictedRegion(geo)) {
+    if (!isRestrictedRegion(geo)) {
       geoStore.pass = true
     }
 
