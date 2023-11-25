@@ -5,6 +5,14 @@ import { useLocalStorage, type RemovableRef } from '@vueuse/core'
 
 import { type SimpleUtxoFromMempool } from './queries/proxy'
 
+export const useGeoStore = defineStore('geo', {
+  state: () => {
+    return {
+      pass: false,
+    }
+  },
+})
+
 export const useAddressStore = defineStore('address', {
   state: () => {
     return {

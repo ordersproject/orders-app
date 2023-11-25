@@ -69,3 +69,7 @@ export const calcFiatPrice = (price: number | string, rate: number) => {
 
   return fiatPrice.toFixed(2)
 }
+
+export const isRestrictedRegion = (geo: string) => {
+  return geo === 'CN' || geo === 'HK'
+}
