@@ -11,11 +11,9 @@ declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     AssetsDisplay: typeof import('./src/components/header/AssetsDisplay.vue')['default']
     ConfirmationModal: typeof import('./src/components/ConfirmationModal.vue')['default']
-    copy: typeof import('./src/components/pool/PanelClaimRecords copy.vue')['default']
     ElPopover: typeof import('element-plus/es')['ElPopover']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     EventClaimRecords: typeof import('./src/components/pool/EventClaimRecords.vue')['default']
-    EventConfirmationModal: typeof import('./src/components/pool/EventConfirmationModal.vue')['default']
     Item: typeof import('./src/components/orders/Item.vue')['default']
     List: typeof import('./src/components/orders/List.vue')['default']
     Loading: typeof import('./src/components/overlays/Loading.vue')['default']

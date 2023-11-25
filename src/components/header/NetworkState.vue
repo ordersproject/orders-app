@@ -89,7 +89,7 @@ const poolActions = [
 
 function getPoolActionsPriceDisplay(
   actionSize: number,
-  equalitySymbol?: string = '≈'
+  equalitySymbol: string = '≈'
 ) {
   if (!selectedFeebPlan.value)
     return {
