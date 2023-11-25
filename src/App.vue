@@ -3,13 +3,14 @@ import { onMounted, ref } from 'vue'
 import { useQueryClient } from '@tanstack/vue-query'
 import * as secp256k1 from 'tiny-secp256k1'
 
-import { DEBUG } from './data/constants'
-import { useBtcJsStore } from './store'
+import { DEBUG } from '@/data/constants'
+import { useBtcJsStore, useGeoStore } from '@/store'
 
 import TheHeader from '@/components/header/TheHeader.vue'
 import NotAvailableOverlay from '@/components/overlays/NotAvailable.vue'
 
 const btcJsStore = useBtcJsStore()
+const geoStore = useGeoStore()
 
 // After loaded, check if window width is less than 768px; if so, set isMobile to true
 const isMobile = ref(false)
@@ -41,7 +42,7 @@ queryClient.setDefaultOptions({
   <NotAvailableOverlay v-if="isMobile && !DEBUG" />
 
   <template v-else>
-    <TheHeader />
+    <TheHeader v-if="geoStore.pass" />
     <router-view :key="$route.fullPath"></router-view>
   </template>
 </template>
