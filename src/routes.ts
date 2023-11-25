@@ -1,5 +1,6 @@
 import { fetchGeo } from '@/queries/geo'
 import { useGeoStore } from '@/store'
+import { isRestrictedRegion } from './lib/helpers'
 
 const Home = () => import('./pages/Home.vue')
 const Whitelist = () => import('./pages/Whitelist.vue')
@@ -22,11 +23,12 @@ export const geoGuard = async (to: any, from: any, next: any) => {
   else {
     const geoStore = useGeoStore()
     const geo = await fetchGeo()
-    if (geo !== 'CN') {
+    if (isRestrictedRegion(geo)) {
       geoStore.pass = true
     }
 
-    if (geo === 'CN' && to.path !== '/not-available') next('/not-available')
+    if (isRestrictedRegion(geo) && to.path !== '/not-available')
+      next('/not-available')
     else {
       next()
     }
