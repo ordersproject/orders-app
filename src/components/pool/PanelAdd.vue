@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Ref, computed, inject, ref } from 'vue'
+import { Ref, computed, inject, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
   Listbox,
@@ -14,26 +14,25 @@ import {
 import { CheckIcon, ChevronsUpDownIcon, HelpCircleIcon } from 'lucide-vue-next'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import Decimal from 'decimal.js'
+import { useStorage } from '@vueuse/core'
 
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import { useAddressStore, useNetworkStore } from '@/store'
-import { DEBUG } from '@/data/constants'
 import {
   Brc20Transferable,
   getMarketPrice,
   getOneBrc20,
 } from '@/queries/orders-api'
+import { getMyPooledInscriptions } from '@/queries/pool'
 import {
   buildAddBrcLiquidity,
   buildAddBtcLiquidity,
 } from '@/lib/order-pool-builder'
 import { sleep, unit, useBtcUnit } from '@/lib/helpers'
-import { getMyPooledInscriptions } from '@/queries/pool'
+import { prettyBalance } from '@/lib/formatters'
 
 import OrderConfirmationModal from './PoolConfirmationModal.vue'
 import funArrowSvg from '@/assets/fun-arrow.svg?url'
-import { useStorage } from '@vueuse/core'
-import { prettyBalance } from '@/lib/formatters'
 
 const queryClient = useQueryClient()
 const addressStore = useAddressStore()
@@ -87,7 +86,15 @@ const { data: marketPrice } = useQuery({
 })
 
 const multipliers = [1.2, 1.5, 1.8, 3, 5, 10]
-const selectedMultiplier = ref(multipliers[2])
+const defaultSelectIndex = useStorage('default-multiplier-select-index', 2)
+const selectedMultiplier = ref(multipliers[defaultSelectIndex.value])
+watch(
+  selectedMultiplier,
+  (val) => {
+    defaultSelectIndex.value = multipliers.indexOf(val)
+  },
+  { immediate: true }
+)
 
 const providesBtc = useStorage('provides-btc', true)
 

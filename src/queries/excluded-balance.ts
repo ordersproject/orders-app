@@ -17,40 +17,24 @@ export const useExcludedBalanceQuery = (
             outputIndex: Number(vout),
           }
         })
-        // const balance = allUtxos.reduce((acc, utxo) => {
-        //   // filter out utxos that are in the listing
-        //   const isExcluded = listingUtxos.some(
-        //     (l) => l.txid === utxo.txId && l.outputIndex === utxo.outputIndex
-        //   )
 
-        //   if (isExcluded) {
-        //     return acc
-        //   }
+        // choose 3 biggest utxos that are not in the listing
+        const allNotListingUtxos = allUtxos
+          .filter(
+            (utxo) =>
+              !listingUtxos.some(
+                (l) =>
+                  l.txid === utxo.txId && l.outputIndex === utxo.outputIndex
+              )
+          )
+          .sort((a, b) => {
+            return b.satoshis - a.satoshis
+          })
+        const biggest3 = allNotListingUtxos.slice(0, 3)
 
-        //   return acc + utxo.satoshis
-        // }, 0)
-        const biggestNotListingUtxo = allUtxos.reduce(
-          (acc, utxo) => {
-            // filter out utxos that are in the listing
-            const isExcluded = listingUtxos.some(
-              (l) => l.txid === utxo.txId && l.outputIndex === utxo.outputIndex
-            )
-
-            if (isExcluded) {
-              return acc
-            }
-
-            if (utxo.satoshis > acc.satoshis) {
-              return utxo
-            }
-
-            return acc
-          },
-          { satoshis: 0 }
-        )
-        console.log('biggestNotListingUtxo', biggestNotListingUtxo)
-
-        return biggestNotListingUtxo.satoshis ?? 0
+        return biggest3.reduce((acc, utxo) => {
+          return acc + utxo.satoshis
+        }, 0)
       }
     )
   }

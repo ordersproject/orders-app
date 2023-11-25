@@ -163,6 +163,7 @@ export async function exclusiveChange({
   extraSize,
   useSize,
   extraInputValue,
+  maxUtxosCount = 1,
   sighashType = SIGHASH_ALL_ANYONECANPAY,
   estimate = false,
 }: {
@@ -171,6 +172,7 @@ export async function exclusiveChange({
   extraSize?: number
   useSize?: number
   extraInputValue?: number
+  maxUtxosCount?: number
   sighashType?: number
   estimate?: boolean
 }) {
@@ -180,9 +182,19 @@ export async function exclusiveChange({
     useAddressStore().get ??
     raise('Please connect to your UniSat wallet first.')
 
+  // check if useSize is set but maxUtxosCount is larger than 1
+  if (useSize && maxUtxosCount > 1) {
+    raise('useSize and maxUtxosCount cannot be set at the same time.')
+  }
+
   // Add payment input
   const listingUtxos = await getListingUtxos()
-  const paymentUtxo = await getUtxos(address).then((result) => {
+  console.log('🚀 ~ file: build-helpers.ts:192 ~ listingUtxos:', listingUtxos)
+  const paymentUtxos = await getUtxos(address).then((result) => {
+    console.log(
+      '🚀 ~ file: build-helpers.ts:194 ~ paymentUtxos ~ result:',
+      result
+    )
     // first, filter out all the utxos that are currently listing
     const filtered = result.filter((utxo) => {
       return !listingUtxos.some((listingUtxo) => {
@@ -190,50 +202,43 @@ export async function exclusiveChange({
         return utxo.txId === txId && utxo.outputIndex === Number(outputIndex)
       })
     })
-    console.log({ result, listingUtxos, filtered })
 
-    // choose the largest utxo
-    const utxo = filtered.reduce((prev, curr) => {
-      if (prev.satoshis > curr.satoshis) {
-        return prev
-      } else {
-        return curr
-      }
-    }, result[0])
-    return utxo
+    if (filtered.length === 0) {
+      return []
+    }
+
+    // choose the largest utxos, but not more than maxUtxosCount
+    const utxos = filtered
+      .sort((a, b) => {
+        return b.satoshis - a.satoshis
+      })
+      .slice(0, maxUtxosCount)
+
+    return utxos
   })
 
-  if (!paymentUtxo) {
+  if (!paymentUtxos.length) {
     throw new Error(
-      'You have no usable You have no usable BTC UTXO. Please deposit more BTC into your address to receive additional UTXO. utxo'
+      'You have no usable BTC UTXO. Please deposit more BTC into your address to receive additional UTXO. utxo'
     )
   }
 
-  // query rawTx of the utxo
-  // const rawTx = await getTxHex(paymentUtxo.txId)
-  // // decode rawTx
-  // const btcjs = useBtcJsStore().get!
-  // const tx = btcjs.Transaction.fromHex(rawTx)
-
   // construct input
   const btcjs = useBtcJsStore().get!
-  const paymentPrevOutput = btcjs.address.toOutputScript(address)
-  const paymentWitnessUtxo = {
-    value: paymentUtxo.satoshis,
-    script: paymentPrevOutput,
-  }
-  const paymentInput: any = {
-    hash: paymentUtxo.txId,
-    index: paymentUtxo.outputIndex,
-    witnessUtxo: paymentWitnessUtxo,
-    sighashType,
-  }
-  if (pubKey) {
-    paymentInput.tapInternalPubkey = pubKey
-  }
-  const paymentUtxoValue = paymentUtxo.satoshis
+  const paymentPrevOutputScript = btcjs.address.toOutputScript(address)
 
   if (estimate) {
+    const paymentUtxo = paymentUtxos[0]
+    const paymentWitnessUtxo = {
+      value: paymentUtxo.satoshis,
+      script: paymentPrevOutputScript,
+    }
+    const paymentInput: any = {
+      hash: paymentUtxo.txId,
+      index: paymentUtxo.outputIndex,
+      witnessUtxo: paymentWitnessUtxo,
+      sighashType,
+    }
     const psbtClone = psbt.clone()
     psbtClone.addInput(paymentInput)
 
@@ -252,14 +257,6 @@ export async function exclusiveChange({
       )
     )
     const changeValue = totalInput - totalOutput - fee + (extraInputValue || 0)
-    console.log({
-      changeValue,
-      totalInput,
-      totalOutput,
-      fee,
-      paymentUtxoValue,
-      difference: paymentUtxoValue - changeValue,
-    })
 
     if (changeValue < 0) {
       throw new Error(
@@ -269,128 +266,43 @@ export async function exclusiveChange({
 
     // return the difference，which feans how much we actually paying
     return {
-      difference: paymentUtxoValue - changeValue,
+      difference: paymentUtxo.satoshis - changeValue,
       feeb,
       fee,
-      paymentValue: paymentUtxoValue - changeValue,
+      paymentValue: paymentUtxo.satoshis - changeValue,
       changeValue: 0,
     }
   }
 
-  psbt.addInput(paymentInput)
+  // Add in one by one until we have enough value to pay
 
-  // Add change output
-  let fee = useSize
-    ? Math.round(useSize * feeb)
-    : calcFee(psbt, feeb, extraSize)
-  const totalOutput = sumOrNaN(psbt.txOutputs)
-  const totalInput = sumOrNaN(
-    psbt.data.inputs.map(
-      (input) =>
-        input.witnessUtxo ||
-        input.nonWitnessUtxo ||
-        raise(
-          'Input invalid. Please try again or contact customer service for assistance.'
-        )
-    )
-  )
-  const changeValue = totalInput - totalOutput - fee
-  console.log({ fee, totalInput, totalOutput, changeValue })
-  console.log({ paymentUtxoValue, changeValue })
+  if (paymentUtxos.length === 1) {
+    const paymentUtxo = paymentUtxos[0]
 
-  if (changeValue < 0) {
-    throw new Error(
-      'Insufficient balance. Please ensure that the address has a sufficient balance and try again.'
-    )
-  }
+    const paymentWitnessUtxo = {
+      value: paymentUtxo.satoshis,
+      script: paymentPrevOutputScript,
+    }
+    const paymentInput: any = {
+      hash: paymentUtxo.txId,
+      index: paymentUtxo.outputIndex,
+      witnessUtxo: paymentWitnessUtxo,
+      sighashType,
+    }
 
-  if (changeValue >= DUST_UTXO_VALUE) {
-    psbt.addOutput({
-      address,
-      value: safeOutputValue(changeValue),
-    })
-  } else {
-    fee += changeValue
-  }
+    if (pubKey) {
+      paymentInput.tapInternalPubkey = pubKey
+    }
 
-  return {
-    psbt,
-    fee,
-    paymentValue: paymentUtxo.satoshis,
-    feeb,
-    changeValue,
-  }
-}
-
-export async function change({
-  psbt,
-  pubKey,
-  extraSize,
-  extraInputValue,
-  sighashType = SIGHASH_ALL_ANYONECANPAY,
-  estimate = false,
-}: {
-  psbt: Psbt
-  pubKey?: Buffer
-  extraSize?: number
-  extraInputValue?: number
-  sighashType?: number
-  estimate?: boolean
-}) {
-  // check if address is set
-  const address =
-    useAddressStore().get ??
-    raise('Please connect to your UniSat wallet first.')
-
-  const feeb = useFeebStore().get ?? raise('Choose a fee rate first.')
-
-  // Add payment input
-  const paymentUtxo = await getUtxos(address).then((result) => {
-    // choose the largest utxo
-    const utxo = result.reduce((prev, curr) => {
-      if (prev.satoshis > curr.satoshis) {
-        return prev
-      } else {
-        return curr
-      }
-    }, result[0])
-    return utxo
-  })
-
-  if (!paymentUtxo) {
-    throw new Error(
-      'You have no You have no usable BTC UTXO. Please deposit more BTC into your address to receive additional UTXO. BTC utxo'
-    )
-  }
-
-  // query rawTx of the utxo
-  const rawTx = await getTxHex(paymentUtxo.txId)
-  // decode rawTx
-  const btcjs = useBtcJsStore().get!
-  const tx = btcjs.Transaction.fromHex(rawTx)
-
-  // construct input
-  const paymentInput: any = {
-    hash: paymentUtxo.txId,
-    index: paymentUtxo.outputIndex,
-    witnessUtxo: tx.outs[paymentUtxo.outputIndex],
-    sighashType,
-  }
-  if (pubKey) {
-    paymentInput.tapInternalPubkey = pubKey
-  }
-  const paymentUtxoValue = paymentUtxo.satoshis
-
-  if (estimate) {
-    const psbtClone = psbt.clone()
-    psbtClone.addInput(paymentInput)
+    psbt.addInput(paymentInput)
 
     // Add change output
-    let fee = calcFee(psbtClone, feeb, extraSize)
-    console.log({ fee, feeb, extraSize, extraInputValue })
-    const totalOutput = sumOrNaN(psbtClone.txOutputs)
+    let fee = useSize
+      ? Math.round(useSize * feeb)
+      : calcFee(psbt, feeb, extraSize)
+    const totalOutput = sumOrNaN(psbt.txOutputs)
     const totalInput = sumOrNaN(
-      psbtClone.data.inputs.map(
+      psbt.data.inputs.map(
         (input) =>
           input.witnessUtxo ||
           input.nonWitnessUtxo ||
@@ -399,15 +311,7 @@ export async function change({
           )
       )
     )
-    const changeValue = totalInput - totalOutput - fee + (extraInputValue || 0)
-    console.log({
-      changeValue,
-      totalInput,
-      totalOutput,
-      fee,
-      paymentUtxoValue,
-      difference: paymentUtxoValue - changeValue,
-    })
+    const changeValue = totalInput - totalOutput - fee
 
     if (changeValue < 0) {
       throw new Error(
@@ -415,69 +319,106 @@ export async function change({
       )
     }
 
-    // return the difference，which feans how much we actually paying
+    if (changeValue >= DUST_UTXO_VALUE) {
+      psbt.addOutput({
+        address,
+        value: safeOutputValue(changeValue),
+      })
+    } else {
+      fee += changeValue
+    }
+
     return {
-      difference: paymentUtxoValue - changeValue,
-      feeb,
+      psbt,
       fee,
-      paymentValue: paymentUtxoValue - changeValue,
-      changeValue: 0,
+      paymentValue: paymentUtxo.satoshis,
+      feeb,
+      changeValue,
     }
   }
 
-  psbt.addInput(paymentInput)
+  // multiple change
+  for (const paymentUtxo of paymentUtxos) {
+    const paymentWitnessUtxo = {
+      value: paymentUtxo.satoshis,
+      script: paymentPrevOutputScript,
+    }
+    const paymentInput: any = {
+      hash: paymentUtxo.txId,
+      index: paymentUtxo.outputIndex,
+      witnessUtxo: paymentWitnessUtxo,
+      sighashType,
+    }
 
-  // Add change output
-  let fee = calcFee(psbt, feeb, extraSize)
-  const totalOutput = sumOrNaN(psbt.txOutputs)
-  const totalInput = sumOrNaN(
-    psbt.data.inputs.map(
-      (input) =>
-        input.witnessUtxo ||
-        input.nonWitnessUtxo ||
-        raise(
-          'Input invalid. Please try again or contact customer service for assistance.'
+    if (pubKey) {
+      paymentInput.tapInternalPubkey = pubKey
+    }
+
+    psbt.addInput(paymentInput)
+
+    // Add change output
+    let fee = calcFee(psbt, feeb, extraSize)
+    const totalOutput = sumOrNaN(psbt.txOutputs)
+    const totalInput = sumOrNaN(
+      psbt.data.inputs.map(
+        (input) =>
+          input.witnessUtxo ||
+          input.nonWitnessUtxo ||
+          raise(
+            'Input invalid. Please try again or contact customer service for assistance.'
+          )
+      )
+    )
+    const changeValue = totalInput - totalOutput - fee
+
+    if (changeValue < 0) {
+      // if we run out of utxos, throw an error
+      if (paymentUtxo === paymentUtxos[paymentUtxos.length - 1]) {
+        throw new Error(
+          'Insufficient balance. Please ensure that the address has a sufficient balance and try again.'
         )
-    )
+      }
+
+      // otherwise, continue
+      continue
+    }
+
+    // we have enough satoshis to pay here, let's change now
+    if (changeValue >= DUST_UTXO_VALUE) {
+      psbt.addOutput({
+        address,
+        value: safeOutputValue(changeValue),
+      })
+    } else {
+      fee += safeOutputValue(changeValue)
+    }
+
+    return {
+      psbt,
+      fee,
+      paymentValue: paymentUtxo.satoshis,
+      feeb,
+      changeValue,
+    }
+  }
+
+  throw new Error(
+    'Insufficient balance. Please ensure that the address has a sufficient balance and try again.'
   )
-  const changeValue = totalInput - totalOutput - fee
-  console.log({ fee, totalInput, totalOutput, changeValue })
-  console.log({ paymentUtxoValue, changeValue })
-
-  if (changeValue < 0) {
-    throw new Error(
-      'Insufficient balance. Please ensure that the address has a sufficient balance and try again.'
-    )
-  }
-
-  if (changeValue >= DUST_UTXO_VALUE) {
-    psbt.addOutput({
-      address,
-      value: safeOutputValue(changeValue),
-    })
-  } else {
-    fee += changeValue
-  }
-
-  return {
-    psbt,
-    fee,
-    paymentValue: paymentUtxo.satoshis,
-    feeb,
-    changeValue,
-  }
 }
 
-export function safeOutputValue(value: number | Decimal): number {
+export function safeOutputValue(value: number | Decimal, isMs = false): number {
+  const threshold = isMs ? MS_BRC20_UTXO_VALUE : DUST_UTXO_VALUE
+
   // if value is less than 1k sats, throw an error
   if (typeof value === 'number') {
-    if (value < MS_BRC20_UTXO_VALUE) {
+    if (value < threshold) {
       throw new Error(
         `The amount you are trying is too small. Maybe try a larger amount.`
       )
     }
   } else {
-    if (value.lessThan(MS_BRC20_UTXO_VALUE)) {
+    if (value.lessThan(threshold)) {
       throw new Error(
         `The amount you are trying is too small. Maybe try a larger amount.`
       )

@@ -71,6 +71,7 @@ const poolActions = [
   {
     title: 'Add 2-Way Liquidity',
     size: SEND_TX_SIZE,
+    equalitySymbol: '>=',
   },
   {
     title: 'Remove Liquidity',
@@ -86,14 +87,17 @@ const poolActions = [
   },
 ]
 
-function getPoolActionsPriceDisplay(actionSize: number) {
+function getPoolActionsPriceDisplay(
+  actionSize: number,
+  equalitySymbol?: string = '≈'
+) {
   if (!selectedFeebPlan.value)
     return {
       inCrypto: '-',
       inFiat: '-',
     }
 
-  const prefix = actionSize > 0 ? '≈ ' : ''
+  const prefix = actionSize > 0 ? `${equalitySymbol} ` : ''
   const btcPriceDisplay =
     prettyBalance(
       actionSize * selectedFeebPlan.value.feeRate,
@@ -455,7 +459,12 @@ const { data: fiatRate } = useQuery({
 
                     <div class="text-right flex gap-4">
                       <div class="font-bold">
-                        {{ getPoolActionsPriceDisplay(action.size).inCrypto }}
+                        {{
+                          getPoolActionsPriceDisplay(
+                            action.size,
+                            action?.equalitySymbol
+                          ).inCrypto
+                        }}
                         <div class="pl-2 text-zinc-500 text-xs">
                           {{ getPoolActionsPriceDisplay(action.size).inFiat }}
                         </div>

@@ -1,5 +1,16 @@
 const changelog = [
   {
+    version: '1.2.1',
+    emoji: '🫶',
+    date: '2023-11-25',
+    changes: [
+      'Improve some incorrect helper texts',
+      'Allow multiple UTXO Selection (up to 3) when building 2-way liquidity',
+      'Persist liquidity multiplier selection',
+      'Some cleanup and refactoring',
+    ],
+  },
+  {
     version: '1.2.0',
     emoji: '⛷️',
     date: '2023-11-24',

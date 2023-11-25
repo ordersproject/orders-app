@@ -293,7 +293,7 @@ async function submitOrder() {
                       placement="bottom"
                       :width="400"
                       trigger="hover"
-                      content="You provide BTC liquidity to the pool by sending BTC to the service address."
+                      content="You provide BTC liquidity to the pool by offering a PSBT which spends the BTC UTXO to the multi-sig address. The multi-sig address is controlled by the service provider and the pool participants."
                       popper-class="!bg-zinc-800 !text-zinc-300 !shadow-lg !shadow-orange-400/10"
                     >
                       <template #reference>

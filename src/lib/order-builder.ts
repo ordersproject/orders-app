@@ -545,7 +545,7 @@ export async function buildSellTake({
   })
   if (!paymentUtxo) {
     throw new Error(
-      'You have no usable You have no usable BTC UTXO. Please deposit more BTC into your address to receive additional UTXO. utxo'
+      'You have no usable BTC UTXO. Please deposit more BTC into your address to receive additional UTXO. utxo'
     )
   }
   // add input

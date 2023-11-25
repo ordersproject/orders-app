@@ -12,7 +12,7 @@ import { type SimpleUtxoFromMempool, getTxHex, getUtxos } from '@/queries/proxy'
 import { getEventClaimFees, getPoolCredential } from '@/queries/pool'
 import { type TradingPair } from '@/data/trading-pairs'
 import { raise } from './helpers'
-import { change, exclusiveChange, safeOutputValue } from './build-helpers'
+import { exclusiveChange, safeOutputValue } from './build-helpers'
 import {
   BTC_POOL_MODE,
   MS_BRC20_UTXO_VALUE,
@@ -127,7 +127,7 @@ export async function buildAddBrcLiquidity({
     )
   addLiquidity.addOutput({
     address: multisigAddress,
-    value: safeOutputValue(total),
+    value: safeOutputValue(total, true),
   })
 
   return {
@@ -138,7 +138,7 @@ export async function buildAddBrcLiquidity({
     fromSymbol: selectedPair.fromSymbol,
     toSymbol: selectedPair.toSymbol,
     fromValue: amount,
-    toValue: new Decimal(safeOutputValue(total)),
+    toValue: new Decimal(safeOutputValue(total, true)),
     fromAddress: address,
     toAddress: multisigAddress,
   }
@@ -167,7 +167,7 @@ export async function buildAddBtcLiquidity({ total }: { total: Decimal }) {
       value: safeOutputValue(total),
     })
 
-    const { fee } = await change({
+    await exclusiveChange({
       psbt: addBtcLiquidity,
     })
 
@@ -210,7 +210,7 @@ export async function buildAddBtcLiquidity({ total }: { total: Decimal }) {
       value: safeOutputValue(total),
     })
 
-    await exclusiveChange({ psbt: separatePsbt })
+    await exclusiveChange({ psbt: separatePsbt, maxUtxosCount: 3 })
 
     // 2. create the PSBT with the Utxo (first output of the previous separate tx) as input and MS address as BRC20 output
     // get separate psbt's tx hash

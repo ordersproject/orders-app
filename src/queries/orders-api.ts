@@ -37,8 +37,6 @@ export const getNotifications = async (
     `common/notification/address?address=${address}`
   )
 
-  // console.log({ notifications })
-
   return notifications?.results || []
 }
 
@@ -550,7 +548,6 @@ export const pushBuyTake = async ({
     }),
   })
 
-  console.log({ updateRes })
   return updateRes
 }
 
@@ -684,7 +681,6 @@ export const getListingUtxos: () => Promise<
   const utxos = await ordersApiFetch(
     `order/bid/dummy/${address}?net=${network}`
   ).then(({ results }) => results || [])
-  console.log({ utxos })
 
   return utxos
 }
