@@ -98,7 +98,11 @@ const { data: myBrc20s } = useQuery({
             <span>
               {{ prettyBalance(excludedBalance, useBtcUnit) }} {{ unit }}
             </span>
-            <span class="text-xs" :class="availableBalanceRatioColor">
+            <span
+              class="text-xs"
+              :class="availableBalanceRatioColor"
+              v-if="balance"
+            >
               ({{ ((excludedBalance / balance) * 100).toFixed(0) }}%)
             </span>
 
@@ -146,9 +150,14 @@ const { data: myBrc20s } = useQuery({
                 <!-- usable % -->
                 <div class="flex items-center mt-1 justify-between">
                   <div class="text-xs text-zinc-500">Avaiable BTC %</div>
-                  <div class="text-xs" :class="availableBalanceRatioColor">
+                  <div
+                    class="text-xs"
+                    :class="availableBalanceRatioColor"
+                    v-if="balance"
+                  >
                     {{ ((excludedBalance / balance) * 100).toFixed(2) }}%
                   </div>
+                  <div class="text-xs" v-else>-</div>
                 </div>
 
                 <Disclosure>
