@@ -18,7 +18,7 @@ import { useNetworkStore, useFeebStore } from '@/store'
 import { FeebPlan, getFeebPlans } from '@/queries/proxy'
 import { calcFiatPrice, unit, useBtcUnit } from '@/lib/helpers'
 import { prettyBalance } from '@/lib/formatters'
-import { getFiatRate, getSellFees } from '@/queries/orders-api'
+import { getFiatRate } from '@/queries/orders-api'
 import {
   BID_TX_SIZE,
   BUY_TX_SIZE,
@@ -48,10 +48,12 @@ const transactionActions = [
   {
     title: 'Buy',
     size: BUY_TX_SIZE,
+    equalitySymbol: '>=',
   },
   {
     title: 'Sell',
     size: SELL_TX_SIZE,
+    equalitySymbol: '>=',
   },
   {
     title: 'Ask',
@@ -60,6 +62,7 @@ const transactionActions = [
   {
     title: 'Bid',
     size: BID_TX_SIZE,
+    equalitySymbol: '>=',
   },
 ]
 
@@ -89,7 +92,7 @@ const poolActions = [
 
 function getPoolActionsPriceDisplay(
   actionSize: number,
-  equalitySymbol: string = '≈'
+  equalitySymbol: string = '>='
 ) {
   if (!selectedFeebPlan.value)
     return {
@@ -437,7 +440,12 @@ const { data: fiatRate } = useQuery({
 
                     <div class="text-right flex gap-4">
                       <div class="font-bold">
-                        {{ getPoolActionsPriceDisplay(action.size).inCrypto }}
+                        {{
+                          getPoolActionsPriceDisplay(
+                            action.size,
+                            action?.equalitySymbol
+                          ).inCrypto
+                        }}
                         <div class="pl-2 text-zinc-500 text-xs">
                           {{ getPoolActionsPriceDisplay(action.size).inFiat }}
                         </div>

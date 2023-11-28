@@ -44,6 +44,9 @@ function sumOrNaN(txOutputs: TxOutput[] | Output[]) {
 type PsbtInput = (typeof Psbt.prototype.data.inputs)[0]
 function inputBytes(input: PsbtInput) {
   // todo: script length
+  // if (input.script) {
+  // }
+
   if (isTaprootInput(input)) {
     return TX_INPUT_BASE + TX_INPUT_TAPROOT
   }
@@ -189,12 +192,7 @@ export async function exclusiveChange({
 
   // Add payment input
   const listingUtxos = await getListingUtxos()
-  console.log('🚀 ~ file: build-helpers.ts:192 ~ listingUtxos:', listingUtxos)
   const paymentUtxos = await getUtxos(address).then((result) => {
-    console.log(
-      '🚀 ~ file: build-helpers.ts:194 ~ paymentUtxos ~ result:',
-      result
-    )
     // first, filter out all the utxos that are currently listing
     const filtered = result.filter((utxo) => {
       return !listingUtxos.some((listingUtxo) => {
@@ -311,7 +309,7 @@ export async function exclusiveChange({
           )
       )
     )
-    const changeValue = totalInput - totalOutput - fee
+    const changeValue = totalInput - totalOutput - fee + (extraInputValue || 0)
 
     if (changeValue < 0) {
       throw new Error(
@@ -369,7 +367,7 @@ export async function exclusiveChange({
           )
       )
     )
-    const changeValue = totalInput - totalOutput - fee
+    const changeValue = totalInput - totalOutput - fee + (extraInputValue || 0)
 
     if (changeValue < 0) {
       // if we run out of utxos, throw an error

@@ -1,3 +1,4 @@
+import { USE_UTXO_COUNT_LIMIT } from '@/data/constants'
 import { getListingUtxos } from '@/queries/orders-api'
 import { getUtxos } from '@/queries/proxy'
 import { useQuery } from '@tanstack/vue-query'
@@ -30,9 +31,9 @@ export const useExcludedBalanceQuery = (
           .sort((a, b) => {
             return b.satoshis - a.satoshis
           })
-        const biggest3 = allNotListingUtxos.slice(0, 3)
+        const biggestUtxos = allNotListingUtxos.slice(0, USE_UTXO_COUNT_LIMIT)
 
-        return biggest3.reduce((acc, utxo) => {
+        return biggestUtxos.reduce((acc, utxo) => {
           return acc + utxo.satoshis
         }, 0)
       }

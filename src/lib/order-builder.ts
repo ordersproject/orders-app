@@ -15,7 +15,9 @@ import {
   SERVICE_LIVENET_ADDRESS,
   SERVICE_LIVENET_RDEX_ADDRESS,
   SERVICE_TESTNET_ADDRESS,
+  SIGHASH_ALL_ANYONECANPAY,
   SIGHASH_SINGLE_ANYONECANPAY,
+  USE_UTXO_COUNT_LIMIT,
 } from '@/data/constants'
 import {
   constructBidPsbt,
@@ -208,7 +210,6 @@ export async function buildBidLimit({
   })
 
   // 3. estimate how much we have to pay
-
   const extraInputValue = bid.txOutputs[2].value - total
   const { difference, fee: bidFee } = await exclusiveChange({
     psbt: bid,
@@ -232,23 +233,11 @@ export async function buildBidLimit({
     fee: payFee,
     changeValue,
   } = await exclusiveChange({
+    maxUtxosCount: USE_UTXO_COUNT_LIMIT,
     psbt: payPsbt,
   })
 
-  // according to api, extra input should be no less than 600
-  // so we minus the difference from the bidFee to make up upload fee for api
   const uploadFee = bidFee - (EXTRA_INPUT_MIN_VALUE - extraInputValue)
-
-  // 5. ok, now we have a utxo to actually pay the bill
-  // we add it to the bid
-  // const payTxid = payPsbt
-  // const paymentInput = {
-  //   // hash: payPsbt,
-  //   index: 0,
-  //   witnessUtxo: payPsbt.txOutputs[0],
-  //   sighashType: SIGHASH_ALL | SIGHASH_ANYONECANPAY,
-  // }
-  // bid.addInput(paymentInput)
 
   return {
     order: bid,
@@ -390,6 +379,7 @@ export async function buildBuyTake({
   ]
   const { fee } = await exclusiveChange({
     psbt: buyPsbt,
+    maxUtxosCount: USE_UTXO_COUNT_LIMIT,
   })
   const totalSpent = sellerOutput.value + serviceFee + fee - ordValue
 
@@ -502,8 +492,7 @@ export async function buildSellTake({
     hash: ordinalUtxo.txId,
     index: ordinalUtxo.outputIndex,
     witnessUtxo: ordinalPreTx.outs[ordinalUtxo.outputIndex],
-    sighashType:
-      btcjs.Transaction.SIGHASH_SINGLE | btcjs.Transaction.SIGHASH_ANYONECANPAY,
+    sighashType: SIGHASH_SINGLE_ANYONECANPAY,
   })
 
   // Step 2: Build output as what the seller want (BTC)
@@ -514,70 +503,14 @@ export async function buildSellTake({
 
   // Step 3: Add service fee
   let sellFees = await getSellFees()
-  let serviceFee = sellFees.platformFee
 
-  let { fee, feeb } = await exclusiveChange({
+  const { fee, feeb } = await exclusiveChange({
     psbt: sell,
     extraSize: 943,
-    estimate: true,
-  })
-  // fee += sellFees.furtherFee
-
-  // fetch a biggest utxo
-  const listingUtxos = await getListingUtxos()
-  const paymentUtxo = await getUtxos(address).then((result) => {
-    const filtered = result.filter((utxo) => {
-      return !listingUtxos.some((listingUtxo) => {
-        const [txId, outputIndex] = listingUtxo.dummyId.split(':')
-        return utxo.txId === txId && utxo.outputIndex === Number(outputIndex)
-      })
-    })
-
-    // choose the largest utxo
-    const utxo = filtered.reduce((prev, curr) => {
-      if (prev.satoshis > curr.satoshis) {
-        return prev
-      } else {
-        return curr
-      }
-    }, result[0])
-    return utxo
-  })
-  if (!paymentUtxo) {
-    throw new Error(
-      'You have no usable BTC UTXO. Please deposit more BTC into your address to receive additional UTXO. utxo'
-    )
-  }
-  // add input
-  const paymentPrevOutput = btcjs.address.toOutputScript(address)
-  const paymentWitnessUtxo = {
-    value: paymentUtxo.satoshis,
-    script: paymentPrevOutput,
-  }
-  const paymentInput = {
-    hash: paymentUtxo.txId,
-    index: paymentUtxo.outputIndex,
-    witnessUtxo: paymentWitnessUtxo,
+    maxUtxosCount: USE_UTXO_COUNT_LIMIT,
+    extraInputValue: -(sellFees.furtherFee + sellFees.platformFee),
     sighashType: SIGHASH_SINGLE_ANYONECANPAY,
-  }
-  sell.addInput(paymentInput)
-  // add output
-  const changeValue =
-    paymentInput.witnessUtxo.value - serviceFee - fee - sellFees.furtherFee
-  if (changeValue < 0) {
-    throw new Error(
-      'Insufficient balance. Please ensure that the address has a sufficient balance and try again.'
-    )
-  }
-  // if change is too small, we discard it instead of sending it back to the seller
-  if (changeValue >= DUST_UTXO_VALUE) {
-    sell.addOutput({
-      address,
-      value: safeOutputValue(changeValue),
-    })
-  } else {
-    serviceFee += changeValue
-  }
+  })
 
   return {
     order: sell,
@@ -587,8 +520,8 @@ export async function buildSellTake({
     networkFee: fee + sellFees.furtherFee,
     selfFee: fee,
     networkFeeRate: feeb,
-    serviceFee,
-    totalSpent: fee + serviceFee,
+    serviceFee: sellFees.platformFee,
+    totalSpent: fee + sellFees.platformFee,
     fromSymbol: selectedPair.fromSymbol,
     toSymbol: selectedPair.toSymbol,
     fromValue: amount,
