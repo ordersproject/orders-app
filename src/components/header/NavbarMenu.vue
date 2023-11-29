@@ -16,6 +16,7 @@ import { useAddressStore, useCredentialsStore } from '@/store'
 import { ElMessage } from 'element-plus'
 
 const useBtcUnit = useStorage('use-btc-unit', true)
+const addressStore = useAddressStore()
 const showFiatPrice = useStorage('show-fiat-price', true)
 const credentialStore = useCredentialsStore()
 
@@ -31,6 +32,14 @@ function clearCache() {
   setTimeout(() => {
     window.location.reload()
   }, 1000)
+}
+
+function onDisconnect() {
+  // remove from address store
+  addressStore.disconnect()
+
+  // reload
+  window.location.reload()
 }
 </script>
 
@@ -123,6 +132,15 @@ function clearCache() {
               @click="clearCache"
             >
               Clear Account Cache
+            </button>
+          </MenuItem>
+
+          <MenuItem>
+            <button
+              class="p-4 block hover:text-orange-300 transition w-full text-left"
+              @click="onDisconnect"
+            >
+              Disconnect
             </button>
           </MenuItem>
 

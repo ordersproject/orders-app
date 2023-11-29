@@ -3,7 +3,7 @@ const changelog = [
     version: '1.3.0',
     emoji: '🐳',
     date: '2023-11-28',
-    changes: ['Support OKX wallet extension'],
+    changes: ['Support OKX wallet extension', 'Add disconnect function'],
   },
   {
     version: '1.2.1',
