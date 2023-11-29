@@ -659,11 +659,13 @@ export const getMyRewardsClaimRecords = async ({
   const address = useAddressStore().get!
   const { publicKey, signature } = await sign()
 
+  const rewardType = tick === 'rdex' ? '11' : '0'
   const params = new URLSearchParams({
     tick,
     address,
     net: network,
     rewardState: '100',
+    rewardType,
   })
 
   return await ordersApiFetch(`pool/reward/orders?${params}`, {
