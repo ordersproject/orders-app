@@ -299,7 +299,6 @@ export async function buildReleasePsbt({
     psbt: claim,
     sighashType: SIGHASH_ALL_ANYONECANPAY,
     useSize: RELEASE_TX_SIZE,
-    maxUtxosCount: USE_UTXO_COUNT_LIMIT,
   })
 
   return claim
