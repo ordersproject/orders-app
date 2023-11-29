@@ -189,12 +189,7 @@ export async function exclusiveChange({
 
   // Add payment input
   const listingUtxos = await getListingUtxos()
-  console.log('🚀 ~ file: build-helpers.ts:192 ~ listingUtxos:', listingUtxos)
   const paymentUtxos = await getUtxos(address).then((result) => {
-    console.log(
-      '🚀 ~ file: build-helpers.ts:194 ~ paymentUtxos ~ result:',
-      result
-    )
     // first, filter out all the utxos that are currently listing
     const filtered = result.filter((utxo) => {
       return !listingUtxos.some((listingUtxo) => {
