@@ -133,7 +133,7 @@ const candidateBuyOrders = computed(() => {
   return askOrders.value
     .filter((item) => {
       return (
-        Number(item.coinPrice) === useBuyPrice.value &&
+        Number(item.coinRatePrice) === useBuyPrice.value &&
         item.orderId === useBuyOrderId.value
       )
     })
@@ -146,7 +146,7 @@ const candidateSellOrders = computed(() => {
   return bidOrders.value
     .filter((item) => {
       return (
-        Number(item.coinPrice) === useSellPrice.value &&
+        Number(item.coinRatePrice) === useSellPrice.value &&
         item.orderId === useSellOrderId.value
       )
     })
@@ -461,14 +461,14 @@ const usableBidCandidates = computed(() => {
   if (!bidCandidates.value) return []
 
   return bidCandidates.value.filter((item) => {
-    return item.coinPrice > bidExchangePrice.value
+    return item.coinRatePrice > bidExchangePrice.value
   })
 })
 const unusableBidCandidates = computed(() => {
   if (!bidCandidates.value) return []
 
   return bidCandidates.value.filter((item) => {
-    return item.coinPrice < bidExchangePrice.value
+    return item.coinRatePrice < bidExchangePrice.value
   })
 })
 const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
@@ -476,7 +476,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
 watch(bidExchangePrice, (price) => {
   if (!selectedBidCandidate.value) return
 
-  if (selectedBidCandidate.value.coinPrice < price) {
+  if (selectedBidCandidate.value.coinRatePrice < price) {
     selectedBidCandidate.value = undefined
   }
 })
@@ -1156,7 +1156,10 @@ watch(bidExchangePrice, (price) => {
                           </span>
                           <span class="text-sm text-zinc-500">
                             {{
-                              prettyBalance(Number(psbt.coinPrice), useBtcUnit)
+                              prettyBalance(
+                                Number(psbt.coinRatePrice),
+                                useBtcUnit
+                              )
                             }}
                             {{ unit }}
                           </span>
@@ -1284,7 +1287,10 @@ watch(bidExchangePrice, (price) => {
                           </span>
                           <span class="text-sm text-zinc-500">
                             {{
-                              prettyBalance(Number(psbt.coinPrice), useBtcUnit)
+                              prettyBalance(
+                                Number(psbt.coinRatePrice),
+                                useBtcUnit
+                              )
                             }}
                             {{ unit }}
                           </span>
