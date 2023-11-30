@@ -14,6 +14,7 @@ declare module '@vue/runtime-core' {
     ElPopover: typeof import('element-plus/es')['ElPopover']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     EventClaimRecords: typeof import('./src/components/pool/EventClaimRecords.vue')['default']
+    IssueItem: typeof import('./src/components/recover/IssueItem.vue')['default']
     Item: typeof import('./src/components/orders/Item.vue')['default']
     List: typeof import('./src/components/orders/List.vue')['default']
     Loading: typeof import('./src/components/overlays/Loading.vue')['default']

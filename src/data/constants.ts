@@ -20,6 +20,7 @@ export const MS_FEEB_MULTIPLIER = 2.2
 
 // predefined sizes
 export const RELEASE_TX_SIZE = 490
+export const RECOVER_TX_SIZE = 390 // FIXME: this is not accurate
 export const BUY_TX_SIZE = 500
 export const SELL_TX_SIZE = 2320
 export const BID_TX_SIZE = 750
