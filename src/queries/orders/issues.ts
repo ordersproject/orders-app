@@ -107,10 +107,10 @@ export const getIssueDetail = async ({
 
 export const submitRecover = async ({
   orderId,
-  rewardPsbtRaw,
+  psbtRaw,
 }: {
-  rewardPsbtRaw: string
   orderId: string
+  psbtRaw: string
 }): Promise<IssueDetail> => {
   const { publicKey, signature } = await sign()
 
@@ -118,7 +118,7 @@ export const submitRecover = async ({
     method: 'POST',
     body: JSON.stringify({
       poolOrderid: orderId,
-      psbtRaw: rewardPsbtRaw,
+      psbtRaw,
     }),
     headers: {
       'X-Signature': signature,
