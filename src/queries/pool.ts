@@ -264,6 +264,65 @@ export const removeLiquidity = async ({ orderId }: { orderId: string }) => {
   })
 }
 
+type RewardRecord = {
+  address: string
+  calBigBlock: 0
+  calEndBlock: 0
+  calStartBlock: 0
+  fromOrderAmount: 0
+  fromOrderCoinAmount: 0
+  fromOrderDealBlock: 0
+  fromOrderDealTime: 0
+  fromOrderId: string
+  fromOrderPercentage: 0
+  fromOrderReward: 0
+  fromOrderTick: string
+  net: string
+  orderId: string
+  percentage: 0
+  rewardAmount: 0
+  rewardType: 1
+  tick: string
+}
+/**
+ * Standbys
+ */
+export const getMyStandbys = async ({
+  tick,
+}: {
+  tick: string
+}): Promise<RewardRecord[]> => {
+  const network = useNetworkStore().network
+  const address = useAddressStore().get!
+  const { publicKey, signature } = await sign()
+
+  const params = new URLSearchParams({
+    tick,
+    address,
+    net: network,
+    rewardType: '12', // 12 for standbys
+  })
+
+  return await ordersApiFetch(`pool/reward/records?${params}`, {
+    method: 'GET',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  })
+    .then((res) => {
+      return res?.results || []
+    })
+    .then((orders: any[]) => {
+      // sort by dealTime desc
+      orders.sort((a, b) => {
+        return b.fromOrderDealTime - a.fromOrderDealTime
+      })
+
+      return orders
+    })
+}
+
 /**
  * Release
  */
@@ -410,28 +469,7 @@ export const getMyEventRecords = async ({
 }: {
   address: string
   tick: string
-}): Promise<
-  {
-    address: string
-    calBigBlock: 0
-    calEndBlock: 0
-    calStartBlock: 0
-    fromOrderAmount: 0
-    fromOrderCoinAmount: 0
-    fromOrderDealBlock: 0
-    fromOrderDealTime: 0
-    fromOrderId: string
-    fromOrderPercentage: 0
-    fromOrderReward: 0
-    fromOrderTick: string
-    net: string
-    orderId: string
-    percentage: 0
-    rewardAmount: 0
-    rewardType: 1
-    tick: string
-  }[]
-> => {
+}): Promise<RewardRecord[]> => {
   const { publicKey, signature } = await sign()
 
   const network = 'livenet'
@@ -443,7 +481,6 @@ export const getMyEventRecords = async ({
   })
 
   return await ordersApiFetch(`pool/reward/records?${params}`, {
-    // return await ordersApiFetch(`event/orders?${params}`, {
     method: 'GET',
     headers: {
       'X-Signature': signature,

@@ -11,13 +11,14 @@ import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import PanelAdd from './PanelAdd.vue'
 import PanelRemove from './PanelRemove.vue'
 import PanelRelease from './PanelRelease.vue'
+import PanelStandbys from './PanelStandbys.vue'
 import PanelClaim from './PanelClaim.vue'
 import PanelEvent from './PanelEvent.vue'
 import { useRoute } from 'vue-router'
 
 const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
 
-const tabLabels = ['Add', 'Remove', 'Release', 'Claim']
+const tabLabels = ['Add', 'Remove', 'Release', 'Standbys', 'Claim']
 if (selectedPair.fromSymbol === 'rdex') {
   tabLabels.push('Event🔥')
 }
@@ -38,7 +39,7 @@ function changeTab(index: number) {
 const route = useRoute()
 const queryAction = route.query.action as string | undefined
 if (queryAction === 'release') {
-  selectedTab.value = 2
+  selectedTab.value = tabLabels.indexOf('Release')
 }
 
 const addressStore = useAddressStore()
@@ -107,7 +108,11 @@ const hasReleasable = computed(() => {
         </TabPanel>
 
         <TabPanel class="pt-12 focus-visible:outline-none">
-          <PanelClaim @go-release="changeTab(2)" />
+          <PanelStandbys />
+        </TabPanel>
+
+        <TabPanel class="pt-12 focus-visible:outline-none">
+          <PanelClaim @go-release="changeTab(tabLabels.indexOf('Release'))" />
         </TabPanel>
 
         <TabPanel class="pt-12 focus-visible:outline-none">

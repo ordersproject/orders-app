@@ -1,9 +1,9 @@
 const changelog = [
   {
-    version: '1.3.0',
+    version: '1.2.2',
     emoji: '🐳',
-    date: '2023-11-28',
-    changes: ['Support OKX wallet extension', 'Add disconnect function'],
+    date: '2023-11-30',
+    changes: ['Add Standby Panel to pool page'],
   },
   {
     version: '1.2.1',
