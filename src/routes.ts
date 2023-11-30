@@ -26,15 +26,19 @@ export const geoGuard = async (to: any, from: any, next: any) => {
   } else {
     if (to.path === '/not-available') next()
     else {
-      const geo = await fetchGeo()
-      if (!isRestrictedRegion(geo)) {
-        geoStore.pass = true
-      }
-
-      if (isRestrictedRegion(geo) && to.path !== '/not-available')
-        next('/not-available')
-      else {
+      if (geoStore.pass) {
         next()
+      } else {
+        const geo = await fetchGeo()
+        if (!isRestrictedRegion(geo)) {
+          geoStore.pass = true
+        }
+
+        if (isRestrictedRegion(geo) && to.path !== '/not-available')
+          next('/not-available')
+        else {
+          next()
+        }
       }
     }
   }

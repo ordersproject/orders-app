@@ -28,6 +28,10 @@ export const useAddressStore = defineStore('address', {
     set(address: string) {
       this.address = address
     },
+
+    disconnect() {
+      this.address = undefined
+    },
   },
 })
 
@@ -161,6 +165,22 @@ export const useCredentialsStore = defineStore('credentials', {
     remove(address: string) {
       this.credentials = this.credentials.filter((s) => s.address !== address)
     },
+  },
+})
+
+export type WalletConnection = {
+  wallet: 'unisat' | 'okx'
+  address: string
+  status: 'connected' | 'disconnected'
+}
+export const useConnectionStore = defineStore('connection', {
+  state: () => {
+    return {
+      last: useLocalStorage(
+        'last-connection',
+        undefined as WalletConnection | undefined
+      ) as RemovableRef<WalletConnection>,
+    }
   },
 })
 
