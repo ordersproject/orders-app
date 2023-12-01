@@ -339,3 +339,38 @@ export async function buildEventClaim() {
     feeInscription: rewardInscriptionFee,
   }
 }
+
+export async function buildRecoverPsbt({
+  ordinalMsPsbtRaw,
+  ordinalRecoverPsbtRaw,
+}: {
+  ordinalMsPsbtRaw: string
+  ordinalRecoverPsbtRaw: string
+}) {
+  const btcjs = useBtcJsStore().get!
+
+  const recover = btcjs.Psbt.fromHex(ordinalMsPsbtRaw)
+  const releasePsbt = btcjs.Psbt.fromHex(ordinalRecoverPsbtRaw)
+
+  // Add recover input
+  recover.addInput({
+    hash: releasePsbt.txInputs[0].hash,
+    index: releasePsbt.txInputs[0].index,
+    witnessUtxo: releasePsbt.data.inputs[0].witnessUtxo,
+    partialSig: releasePsbt.data.inputs[0].partialSig,
+    witnessScript: releasePsbt.data.inputs[0].witnessScript,
+    sighashType: SIGHASH_SINGLE_ANYONECANPAY,
+  })
+
+  // Add recover output
+  recover.addOutput(releasePsbt.txOutputs[0])
+
+  // Add change output
+  await exclusiveChange({
+    psbt: recover,
+    sighashType: SIGHASH_SINGLE_ANYONECANPAY,
+    useSize: RELEASE_TX_SIZE,
+  })
+
+  return recover
+}

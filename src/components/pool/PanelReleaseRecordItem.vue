@@ -2,10 +2,8 @@
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { ElMessage } from 'element-plus'
 import { inject, ref } from 'vue'
-import Decimal from 'decimal.js'
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue'
 import {
-  ArrowDownRightIcon,
   HelpCircleIcon,
   ChevronRightIcon,
 } from 'lucide-vue-next'

@@ -4,6 +4,7 @@ import { type ECPairAPI } from 'ecpair'
 import { useLocalStorage, type RemovableRef } from '@vueuse/core'
 
 import { type SimpleUtxoFromMempool } from './queries/proxy'
+import { DEBUG } from '@/data/constants'
 
 export const useGeoStore = defineStore('geo', {
   state: () => {
@@ -21,7 +22,16 @@ export const useAddressStore = defineStore('address', {
   },
 
   getters: {
-    get: (state) => state.address,
+    get: (state) => {
+      if (
+        import.meta.env.VITE_TESTING_ADDRESS &&
+        import.meta.env.VITE_ENVIRONMENT === 'development'
+      ) {
+        return import.meta.env.VITE_TESTING_ADDRESS
+      }
+
+      return state.address
+    },
   },
 
   actions: {
@@ -211,17 +221,3 @@ export const useCooldownerStore = defineStore('cooldowner', {
     },
   },
 })
-
-// export const usePairStore = defineStore('pair', {
-//   state: () => {
-//     return {
-//       id: useLocalStorage('currentPairId', 1) as RemovableRef<number>,
-//     }
-//   },
-
-//   actions: {
-//     set(id: number) {
-//       this.id = id
-//     },
-//   },
-// })
