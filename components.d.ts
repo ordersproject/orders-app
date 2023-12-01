@@ -43,6 +43,7 @@ declare module '@vue/runtime-core' {
     PoolPairSelect: typeof import('./src/components/pool/PoolPairSelect.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    StandbyExplainModal: typeof import('./src/components/pool/StandbyExplainModal.vue')['default']
     TheHeader: typeof import('./src/components/header/TheHeader.vue')['default']
     TheNavbar: typeof import('./src/components/header/TheNavbar.vue')['default']
     Toast: typeof import('./src/components/ui/toast/Toast.vue')['default']
