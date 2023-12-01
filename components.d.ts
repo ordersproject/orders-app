@@ -36,6 +36,7 @@ declare module '@vue/runtime-core' {
     PanelReleaseHistoryItem: typeof import('./src/components/pool/PanelReleaseHistoryItem.vue')['default']
     PanelReleaseRecordItem: typeof import('./src/components/pool/PanelReleaseRecordItem.vue')['default']
     PanelRemove: typeof import('./src/components/pool/PanelRemove.vue')['default']
+    PanelStandbys: typeof import('./src/components/pool/PanelStandbys.vue')['default']
     PoolConfirmationModal: typeof import('./src/components/pool/PoolConfirmationModal.vue')['default']
     PoolPairSelect: typeof import('./src/components/pool/PoolPairSelect.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
