@@ -19,7 +19,8 @@ export const FEEB_MULTIPLIER = 1.3
 export const MS_FEEB_MULTIPLIER = 2.2
 
 // predefined sizes
-export const RELEASE_TX_SIZE = 490
+export const RELEASE_PAYLOAD_SIZE = 391
+export const RELEASE_TX_SIZE = RELEASE_PAYLOAD_SIZE + 68 + 31
 export const BUY_TX_SIZE = 500
 export const SELL_TX_SIZE = 2320
 export const BID_TX_SIZE = 750
@@ -48,3 +49,5 @@ export const BTC_POOL_MODE: 1 | 2 = 1
 
 export const POOL_REWARDS_TICK = 'rdex'
 export const EVENT_REWARDS_TICK = 'rdex'
+
+export const USE_UTXO_COUNT_LIMIT = 5

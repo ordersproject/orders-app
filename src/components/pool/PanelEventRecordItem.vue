@@ -22,15 +22,17 @@ const onCopyOrderId = () => {
     <h3 class="items-center flex justify-between">
       <span class="text-orange-300">
         {{
-          `${record.coinAmount} ${record.tick.toUpperCase()} / ${prettyBalance(
-            record.amount,
+          `${
+            record.fromOrderCoinAmount
+          } ${record.tick.toUpperCase()} / ${prettyBalance(
+            record.fromOrderAmount,
             useBtcUnit
           )} ${unit}`
         }}
       </span>
 
       <span class="text-zinc-500 text-sm">
-        {{ `${prettyTimestamp(record.timestamp)}` }}
+        {{ `${prettyTimestamp(record.fromOrderDealTime)}` }}
       </span>
     </h3>
 
@@ -57,7 +59,7 @@ const onCopyOrderId = () => {
             >Deal Block</span
           >
           <span>
-            {{ record.dealTxBlock || '-' }}
+            {{ record.fromOrderDealBlock || '-' }}
           </span>
         </div>
 
@@ -74,11 +76,8 @@ const onCopyOrderId = () => {
 
         <div class="flex items-center">
           <span class="w-40 shrink-0 inline-block text-zinc-500">Reward</span>
-          <span
-            class="font-bold text-orange-300"
-            v-if="record.rewardRealAmount"
-          >
-            {{ record.rewardRealAmount }} {{ EVENT_REWARDS_TICK.toUpperCase() }}
+          <span class="font-bold text-orange-300" v-if="record.rewardAmount">
+            {{ record.rewardAmount }} {{ EVENT_REWARDS_TICK.toUpperCase() }}
           </span>
           <span v-else class="text-zinc-500">Calculating...</span>
         </div>

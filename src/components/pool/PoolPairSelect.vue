@@ -104,6 +104,12 @@ const choosePair = (pairId: number) => {
                 >
                   New!
                 </span>
+                <span
+                  class="inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium text-red-500 -translate-y-2 -translate-x-4 absolute rotate-6 whitespace-nowrap"
+                  v-if="pair.hasEvent"
+                >
+                  EVENT!🔥
+                </span>
               </div>
             </div>
 

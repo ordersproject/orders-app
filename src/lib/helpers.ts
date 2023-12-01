@@ -71,5 +71,5 @@ export const calcFiatPrice = (price: number | string, rate: number) => {
 }
 
 export const isRestrictedRegion = (geo: string) => {
-  return geo === 'CN' || geo === 'HK'
+  return geo === 'CN'
 }

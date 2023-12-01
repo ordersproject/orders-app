@@ -189,12 +189,7 @@ export async function exclusiveChange({
 
   // Add payment input
   const listingUtxos = await getListingUtxos()
-  console.log('🚀 ~ file: build-helpers.ts:192 ~ listingUtxos:', listingUtxos)
   const paymentUtxos = await getUtxos(address).then((result) => {
-    console.log(
-      '🚀 ~ file: build-helpers.ts:194 ~ paymentUtxos ~ result:',
-      result
-    )
     // first, filter out all the utxos that are currently listing
     const filtered = result.filter((utxo) => {
       return !listingUtxos.some((listingUtxo) => {
@@ -228,7 +223,12 @@ export async function exclusiveChange({
   const paymentPrevOutputScript = btcjs.address.toOutputScript(address)
 
   if (estimate) {
-    const paymentUtxo = paymentUtxos[0]
+    // if estimating, we assume a payment utxo that is absurbly large
+    const paymentUtxo = {
+      txId: '8729586f5352810db997e2ae0f1530ccc6f63740ba09d656da78e6a7751e7a86',
+      outputIndex: 0,
+      satoshis: 100 * 1e8, // 100 btc
+    }
     const paymentWitnessUtxo = {
       value: paymentUtxo.satoshis,
       script: paymentPrevOutputScript,
@@ -244,7 +244,6 @@ export async function exclusiveChange({
 
     // Add change output
     let fee = calcFee(psbtClone, feeb, extraSize)
-    console.log({ fee, feeb, extraSize, extraInputValue })
     const totalOutput = sumOrNaN(psbtClone.txOutputs)
     const totalInput = sumOrNaN(
       psbtClone.data.inputs.map(
@@ -257,6 +256,12 @@ export async function exclusiveChange({
       )
     )
     const changeValue = totalInput - totalOutput - fee + (extraInputValue || 0)
+    console.log({
+      changeValue,
+      fee,
+      extraInputValue,
+      difference: paymentUtxo.satoshis - changeValue,
+    })
 
     if (changeValue < 0) {
       throw new Error(
@@ -269,8 +274,6 @@ export async function exclusiveChange({
       difference: paymentUtxo.satoshis - changeValue,
       feeb,
       fee,
-      paymentValue: paymentUtxo.satoshis - changeValue,
-      changeValue: 0,
     }
   }
 
@@ -311,7 +314,7 @@ export async function exclusiveChange({
           )
       )
     )
-    const changeValue = totalInput - totalOutput - fee
+    const changeValue = totalInput - totalOutput - fee + (extraInputValue || 0)
 
     if (changeValue < 0) {
       throw new Error(
@@ -369,7 +372,7 @@ export async function exclusiveChange({
           )
       )
     )
-    const changeValue = totalInput - totalOutput - fee
+    const changeValue = totalInput - totalOutput - fee + (extraInputValue || 0)
 
     if (changeValue < 0) {
       // if we run out of utxos, throw an error

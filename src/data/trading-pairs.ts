@@ -26,6 +26,7 @@ const tradingPairs = [
     toIcon: btcLogo,
     hasPool: true,
     usePool: true,
+    hasEvent: true,
   },
   {
     id: 2,
@@ -51,7 +52,6 @@ const tradingPairs = [
     toIcon: btcLogo,
     useDecimals: 16,
     hasPool: true,
-    isNew: true,
   },
   {
     id: 5,
@@ -60,7 +60,6 @@ const tradingPairs = [
     fromIcon: ratsLogo,
     toIcon: btcLogo,
     hasPool: true,
-    isNew: true,
   },
   {
     id: 6,
@@ -143,6 +142,7 @@ const tradingPairs = [
   usePool?: boolean
   useDecimals?: number
   isNew?: boolean
+  hasEvent?: boolean
 }[]
 
 export default tradingPairs

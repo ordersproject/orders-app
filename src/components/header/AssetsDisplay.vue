@@ -1,8 +1,12 @@
 <script lang="ts" setup>
-import { useQueries, useQuery } from '@tanstack/vue-query'
+import { useQuery } from '@tanstack/vue-query'
 import { ElMessage } from 'element-plus'
 import { computed, watch } from 'vue'
-import { ChevronsUpDownIcon, Loader2Icon } from 'lucide-vue-next'
+import {
+  ChevronsUpDownIcon,
+  Loader2Icon,
+  HelpCircleIcon,
+} from 'lucide-vue-next'
 import {
   Menu,
   MenuButton,
@@ -19,12 +23,13 @@ import { getBalance } from '@/queries/unisat'
 import { getBrc20s } from '@/queries/orders-api'
 import { useExcludedBalanceQuery } from '@/queries/excluded-balance'
 import { unit, useBtcUnit } from '@/lib/helpers'
-import { HelpCircleIcon } from 'lucide-vue-next'
+import { useToast } from '@/components/ui/toast'
 
 const networkStore = useNetworkStore()
 const addressStore = useAddressStore()
 const address = computed(() => addressStore.get)
 const enabled = computed(() => !!addressStore.get)
+const { toast } = useToast()
 
 const { data: balance } = useQuery({
   queryKey: [
@@ -61,6 +66,11 @@ watch(
   () => balance.value,
   (newBalance) => {
     if (newBalance !== undefined && newBalance < 1200) {
+      // toast({
+      //   title: 'Not enough BTC balance',
+      //   description:
+      //     'Your BTC balance is not enough to start a transaction. Please deposit some BTC to your address.',
+      // })
       ElMessage.warning(
         'Your BTC balance is not enough to start a transaction. Please deposit some BTC to your address.'
       )
@@ -98,7 +108,11 @@ const { data: myBrc20s } = useQuery({
             <span>
               {{ prettyBalance(excludedBalance, useBtcUnit) }} {{ unit }}
             </span>
-            <span class="text-xs" :class="availableBalanceRatioColor">
+            <span
+              class="text-xs"
+              :class="availableBalanceRatioColor"
+              v-if="balance"
+            >
               ({{ ((excludedBalance / balance) * 100).toFixed(0) }}%)
             </span>
 
@@ -146,9 +160,14 @@ const { data: myBrc20s } = useQuery({
                 <!-- usable % -->
                 <div class="flex items-center mt-1 justify-between">
                   <div class="text-xs text-zinc-500">Avaiable BTC %</div>
-                  <div class="text-xs" :class="availableBalanceRatioColor">
+                  <div
+                    class="text-xs"
+                    :class="availableBalanceRatioColor"
+                    v-if="balance"
+                  >
                     {{ ((excludedBalance / balance) * 100).toFixed(2) }}%
                   </div>
+                  <div class="text-xs" v-else>-</div>
                 </div>
 
                 <Disclosure>

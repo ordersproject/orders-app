@@ -18,7 +18,7 @@ import PanelEvent from './PanelEvent.vue'
 
 const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
 
-const tabLabels = ['Add', 'Standbys', 'Remove', 'Release', 'Claim']
+const tabLabels = ['Add', 'Remove', 'Release', 'Standbys', 'Claim']
 if (selectedPair.fromSymbol === 'rdex') {
   tabLabels.push('Event🔥')
 }
@@ -111,8 +111,12 @@ const hasReleasable = computed(() => {
           <PanelRelease />
         </TabPanel>
 
-        <TabPanel class="tab-panel">
-          <PanelClaim @go-release="changeTab(2)" />
+        <TabPanel class="pt-12 focus-visible:outline-none">
+          <PanelStandbys />
+        </TabPanel>
+
+        <TabPanel class="pt-12 focus-visible:outline-none">
+          <PanelClaim @go-release="changeTab(tabLabels.indexOf('Release'))" />
         </TabPanel>
 
         <TabPanel class="tab-panel">

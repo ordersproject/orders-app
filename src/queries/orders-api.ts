@@ -270,6 +270,7 @@ export type Order = {
   coinAmount: number
   coinDecimalNum: number
   coinRatePrice: number
+  coinPrice: number
   net: 'livenet' | 'testnet'
   orderId: string
   orderState: number
