@@ -18,7 +18,7 @@ import PanelEvent from './PanelEvent.vue'
 
 const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
 
-const tabLabels = ['Add', 'Remove', 'Release', 'Standbys', 'Claim']
+const tabLabels = ['Add', 'Standbys', 'Remove', 'Release', 'Claim']
 if (selectedPair.fromSymbol === 'rdex') {
   tabLabels.push('Event🔥')
 }

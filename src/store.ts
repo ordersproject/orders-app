@@ -4,7 +4,6 @@ import { type ECPairAPI } from 'ecpair'
 import { useLocalStorage, type RemovableRef } from '@vueuse/core'
 
 import { type SimpleUtxoFromMempool } from './queries/proxy'
-import { DEBUG } from '@/data/constants'
 
 export const useGeoStore = defineStore('geo', {
   state: () => {

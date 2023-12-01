@@ -682,7 +682,7 @@ export const getListingUtxos: () => Promise<
   }[]
 > = async () => {
   const network = 'livenet'
-  const address = useAddressStore().address!
+  const address = useAddressStore().get!
 
   const utxos = await ordersApiFetch(
     `order/bid/dummy/${address}?net=${network}`

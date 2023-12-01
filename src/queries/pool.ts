@@ -300,7 +300,7 @@ export const getMyStandbys = async ({
     tick,
     address,
     net: network,
-    rewardType: '12', // 12 for standbys
+    rewardType: '15', // 15 for standbys
   })
 
   return await ordersApiFetch(`pool/reward/records?${params}`, {

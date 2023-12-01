@@ -35,7 +35,13 @@ const { data: issues } = useQuery({
       </h3>
     </div>
 
-    <div class="space-y-4 py-4">
+    <div class="space-y-4 py-4 grow flex flex-col justify-center">
+      <div
+        class="text-center text-zinc-500 text-base"
+        v-if="issues && !issues.length"
+      >
+        You have no ongoing issues.
+      </div>
       <IssueItem v-for="issue of issues" :key="issue.orderId" :issue="issue" />
     </div>
   </div>

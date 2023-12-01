@@ -79,7 +79,7 @@ function onDisconnect() {
 
           <MenuItem>
             <router-link
-              to="recover"
+              to="/recover"
               class="p-4 block hover:text-orange-300 transition"
             >
               Recover

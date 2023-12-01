@@ -2,7 +2,7 @@ const changelog = [
   {
     version: '1.2.2',
     emoji: '🐳',
-    date: '2023-11-30',
+    date: '2023-12-01',
     changes: ['Add Standby Panel to pool page'],
   },
   {

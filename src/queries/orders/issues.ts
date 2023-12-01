@@ -62,7 +62,7 @@ export const getIssues = async ({
       'X-Signature': signature,
       'X-Public-Key': publicKey,
     },
-  }).then(({ results }) => results)
+  }).then(({ results }) => results ?? [])
 }
 
 export type IssueDetail = {
