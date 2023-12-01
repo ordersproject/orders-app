@@ -165,6 +165,7 @@ export async function exclusiveChange({
   extraInputValue,
   maxUtxosCount = 1,
   sighashType = SIGHASH_ALL_ANYONECANPAY,
+  otherSighashType,
   estimate = false,
 }: {
   psbt: Psbt
@@ -174,6 +175,7 @@ export async function exclusiveChange({
   extraInputValue?: number
   maxUtxosCount?: number
   sighashType?: number
+  otherSighashType?: number
   estimate?: boolean
 }) {
   const feeb = useFeebStore().get ?? raise('Choose a fee rate first.')
@@ -341,16 +343,19 @@ export async function exclusiveChange({
   }
 
   // multiple change
-  for (const paymentUtxo of paymentUtxos) {
+  for (let i = 0; i < paymentUtxos.length; i++) {
+    const paymentUtxo = paymentUtxos[i]
     const paymentWitnessUtxo = {
       value: paymentUtxo.satoshis,
       script: paymentPrevOutputScript,
     }
+    const toUseSighashType =
+      i > 0 && otherSighashType ? otherSighashType : sighashType
     const paymentInput: any = {
       hash: paymentUtxo.txId,
       index: paymentUtxo.outputIndex,
       witnessUtxo: paymentWitnessUtxo,
-      sighashType,
+      sighashType: toUseSighashType,
     }
 
     if (pubKey) {

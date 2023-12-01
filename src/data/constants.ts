@@ -29,9 +29,11 @@ export const SEND_TX_SIZE = 140
 // Sighash types
 export const SIGHASH_DEFAULT = 0x00
 export const SIGHASH_ALL = 0x01
+export const SIGHASH_NONE = 0x02
 export const SIGHASH_SINGLE = 0x03
 export const SIGHASH_ANYONECANPAY = 0x80
 export const SIGHASH_SINGLE_ANYONECANPAY = 0x83
+export const SIGHASH_NONE_ANYONECANPAY = 0x82
 export const SIGHASH_ALL_ANYONECANPAY = 0x81
 
 // exchange

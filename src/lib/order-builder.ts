@@ -28,6 +28,7 @@ import {
 } from '@/queries/orders-api'
 import { getUtxos, type SimpleUtxoFromMempool, getTxHex } from '@/queries/proxy'
 import { type TradingPair } from '@/data/trading-pairs'
+import { SIGHASH_NONE_ANYONECANPAY } from '../data/constants'
 
 export async function buildAskLimit({
   total,
@@ -419,55 +420,32 @@ export async function buildSellTake({
   // Step 1: Get the ordinal utxo as input
   // if testnet, we use a cardinal utxo as a fake one
   let ordinalUtxo: SimpleUtxoFromMempool
-  if (networkStore.network === 'testnet') {
-    const cardinalUtxo = await getUtxos(address).then((result) => {
-      // choose the smallest utxo, but bigger than 600
-      const smallOne = result.reduce((prev, curr) => {
-        if (
-          (curr.satoshis < prev.satoshis && curr.satoshis > 600) ||
-          (prev && prev.satoshis <= 600)
-        ) {
-          return curr
-        } else {
-          return prev
-        }
-      }, result[0])
 
-      return smallOne
-    })
+  let transferable = await getOneBrc20({
+    tick: selectedPair.fromSymbol,
+    address,
+  }).then((brc20Info) => {
+    // if (DEBUG) {
+    //   return brc20Info.transferBalanceList[0]
+    // }
+    // choose a real ordinal with the right amount, not the white amount (Heil Uncle Roger!)
+    return brc20Info.transferBalanceList.find(
+      (brc20) => Number(brc20.amount) === amount
+    )
+  })
+  if (!transferable) {
+    throw new Error(
+      'No suitable BRC20 tokens. Please ensure that you have enough of the inscribed BRC20 tokens.'
+    )
+  }
 
-    if (!cardinalUtxo) {
-      throw new Error('no utxo')
-    }
-
-    ordinalUtxo = cardinalUtxo
-  } else {
-    let transferable = await getOneBrc20({
-      tick: selectedPair.fromSymbol,
-      address,
-    }).then((brc20Info) => {
-      // if (DEBUG) {
-      //   return brc20Info.transferBalanceList[0]
-      // }
-      // choose a real ordinal with the right amount, not the white amount (Heil Uncle Roger!)
-      return brc20Info.transferBalanceList.find(
-        (brc20) => Number(brc20.amount) === amount
-      )
-    })
-    if (!transferable) {
-      throw new Error(
-        'No suitable BRC20 tokens. Please ensure that you have enough of the inscribed BRC20 tokens.'
-      )
-    }
-
-    // find out the ordinal utxo
-    const ordinalTxId = transferable.inscriptionId.slice(0, -2)
-    ordinalUtxo = {
-      txId: ordinalTxId,
-      satoshis: 546,
-      outputIndex: 0,
-      addressType: 2,
-    }
+  // find out the ordinal utxo
+  const ordinalTxId = transferable.inscriptionId.slice(0, -2)
+  ordinalUtxo = {
+    txId: ordinalTxId,
+    satoshis: 546,
+    outputIndex: 0,
+    addressType: 2,
   }
 
   // fetch and decode rawTx of the utxo
@@ -510,6 +488,7 @@ export async function buildSellTake({
     maxUtxosCount: USE_UTXO_COUNT_LIMIT,
     extraInputValue: -(sellFees.furtherFee + sellFees.platformFee),
     sighashType: SIGHASH_SINGLE_ANYONECANPAY,
+    otherSighashType: SIGHASH_NONE_ANYONECANPAY,
   })
 
   return {
