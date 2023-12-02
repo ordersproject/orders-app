@@ -10,7 +10,7 @@ import { prettyBalance } from '@/lib/formatters'
 import { calcFiatPrice, showFiat, useBtcUnit } from '@/lib/helpers'
 import Decimal from 'decimal.js'
 
-const address = useAddressStore().address
+const address = useAddressStore().get!
 
 const props = defineProps<{
   order: Order

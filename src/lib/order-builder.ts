@@ -489,6 +489,7 @@ export async function buildSellTake({
     extraInputValue: -(sellFees.furtherFee + sellFees.platformFee),
     sighashType: SIGHASH_SINGLE_ANYONECANPAY,
     otherSighashType: SIGHASH_NONE_ANYONECANPAY,
+    partialPay: true,
   })
 
   return {

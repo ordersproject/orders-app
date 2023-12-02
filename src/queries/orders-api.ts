@@ -526,7 +526,7 @@ export const pushBuyTake = async ({
   orderId: string
 }) => {
   // const pushTxId = await window.unisat.pushPsbt(psbtRaw)
-  const address = useAddressStore().address!
+  const address = useAddressStore().get!
 
   const { publicKey, signature } = await sign()
 
@@ -552,7 +552,7 @@ export const pushBuyTake = async ({
 }
 
 export const cancelOrder = async ({ orderId }: { orderId: string }) => {
-  const address = useAddressStore().address!
+  const address = useAddressStore().get!
   const network = useNetworkStore().network
   const { publicKey, signature } = await sign()
 
@@ -676,7 +676,7 @@ export const getListingUtxos: () => Promise<
   }[]
 > = async () => {
   const network = 'livenet'
-  const address = useAddressStore().address!
+  const address = useAddressStore().get!
 
   const utxos = await ordersApiFetch(
     `order/bid/dummy/${address}?net=${network}`
