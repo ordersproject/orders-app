@@ -6,12 +6,9 @@ import {
 } from '@/store'
 import { exclusiveChange, safeOutputValue } from './build-helpers'
 import {
-  DEBUG,
   DUMMY_UTXO_VALUE,
-  DUST_UTXO_VALUE,
   EXTRA_INPUT_MIN_VALUE,
   ONE_SERVICE_FEE,
-  SELL_SERVICE_FEE,
   SERVICE_LIVENET_ADDRESS,
   SERVICE_LIVENET_RDEX_ADDRESS,
   SERVICE_TESTNET_ADDRESS,
@@ -23,6 +20,7 @@ import {
   getOneBrc20,
   getOneOrder,
   getSellFees,
+  getbuyOrderDetail,
 } from '@/queries/orders-api'
 import { getUtxos, type SimpleUtxoFromMempool, getTxHex } from '@/queries/proxy'
 import { type TradingPair } from '@/data/trading-pairs'
@@ -293,7 +291,16 @@ export async function buildBuyTake({
 
   const isFree = order.freeState === 1
 
-  // get sell psbt from order detail api
+  const buyPsbtRaw = await getbuyOrderDetail({
+    orderId: order.orderId,
+    address,
+    tick: selectedPair.fromSymbol,
+    buyerChangeAmount: 0,
+  })
+
+  return
+
+  // get ask psbt from order detail api
   const askPsbtRaw = await getOneOrder({
     orderId: order.orderId,
   }).then((order) => order.psbtRaw)

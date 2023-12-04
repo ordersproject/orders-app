@@ -24,6 +24,7 @@ export const useAddressStore = defineStore('address', {
   getters: {
     get: (state) => {
       if (
+        DEBUG &&
         import.meta.env.VITE_TESTING_ADDRESS &&
         import.meta.env.VITE_ENVIRONMENT === 'development'
       ) {

@@ -350,6 +350,37 @@ export const getOneOrder = async ({
   return order
 }
 
+export const getbuyOrderDetail = async ({
+  orderId,
+  address,
+  tick,
+  buyerChangeAmount,
+}: {
+  orderId: string
+  address: string
+  tick: string
+  buyerChangeAmount: number
+}): Promise<DetailedOrder> => {
+  const { publicKey, signature } = await sign()
+  const params = new URLSearchParams({
+    buyerAddress: address,
+    tick,
+    buyerChangeAmount: String(buyerChangeAmount),
+  })
+
+  const order: DetailedOrder = await ordersApiFetch(
+    `order/${orderId}?${params}`,
+    {
+      headers: {
+        'X-Signature': signature,
+        'X-Public-Key': publicKey,
+      },
+    }
+  )
+
+  return order
+}
+
 export type Ticker = {
   amount: string
   avgPrice: string
