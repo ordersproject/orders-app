@@ -26,7 +26,7 @@ const tradingPairs = [
     toIcon: btcLogo,
     hasPool: true,
     usePool: true,
-    hasEvent: true,
+    hasEvent: false,
   },
   {
     id: 2,

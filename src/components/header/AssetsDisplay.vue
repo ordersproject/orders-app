@@ -1,8 +1,12 @@
 <script lang="ts" setup>
-import { useQueries, useQuery } from '@tanstack/vue-query'
+import { useQuery } from '@tanstack/vue-query'
 import { ElMessage } from 'element-plus'
 import { computed, watch } from 'vue'
-import { ChevronsUpDownIcon, Loader2Icon } from 'lucide-vue-next'
+import {
+  ChevronsUpDownIcon,
+  Loader2Icon,
+  HelpCircleIcon,
+} from 'lucide-vue-next'
 import {
   Menu,
   MenuButton,
@@ -19,12 +23,13 @@ import { getBalance } from '@/queries/unisat'
 import { getBrc20s } from '@/queries/orders-api'
 import { useExcludedBalanceQuery } from '@/queries/excluded-balance'
 import { unit, useBtcUnit } from '@/lib/helpers'
-import { HelpCircleIcon } from 'lucide-vue-next'
+import { useToast } from '@/components/ui/toast'
 
 const networkStore = useNetworkStore()
 const addressStore = useAddressStore()
 const address = computed(() => addressStore.get)
 const enabled = computed(() => !!addressStore.get)
+const { toast } = useToast()
 
 const { data: balance } = useQuery({
   queryKey: [
@@ -61,6 +66,11 @@ watch(
   () => balance.value,
   (newBalance) => {
     if (newBalance !== undefined && newBalance < 1200) {
+      // toast({
+      //   title: 'Not enough BTC balance',
+      //   description:
+      //     'Your BTC balance is not enough to start a transaction. Please deposit some BTC to your address.',
+      // })
       ElMessage.warning(
         'Your BTC balance is not enough to start a transaction. Please deposit some BTC to your address.'
       )
@@ -167,19 +177,34 @@ const { data: myBrc20s } = useQuery({
                     <HelpCircleIcon class="h-4 w-4 text-orange-300" />
                     Why can I only use part of my BTC?
                   </DisclosureButton>
-                  <DisclosurePanel class="text-gray-300 text-xs">
-                    <p class="text-zinc-500">
-                      There are 2 parts of your overall BTC balance that you
-                      don't want to spend. So we can only use the remaining BTC
-                      to pay transactions.
-                    </p>
-                    <p class="mt-1">
-                      1. Those that actually contain BRC-20 / Ordinals.
-                    </p>
-                    <p class="mt-1">
-                      2. Those that are placed in orders (bid / liquidity).
-                    </p>
-                  </DisclosurePanel>
+                  <transition
+                    enter-active-class="transition duration-100 ease-out"
+                    enter-from-class="transform scale-95 opacity-0"
+                    enter-to-class="transform scale-100 opacity-100"
+                    leave-active-class="transition duration-75 ease-out"
+                    leave-from-class="transform scale-100 opacity-100"
+                    leave-to-class="transform scale-95 opacity-0"
+                  >
+                    <DisclosurePanel
+                      class="text-gray-300 text-xs bg-black rounded-md p-2 -mx-2"
+                    >
+                      <p class="">
+                        There are 2 parts of your overall BTC balance that you
+                        don't want to spend.
+                      </p>
+                      <p class="mt-1">
+                        1. Those that actually contain BRC-20 / Ordinals.
+                      </p>
+                      <p class="mt-1">
+                        2. Those that are placed in orders (bid / liquidity).
+                      </p>
+                      <p class="mt-1 text-orange-300">
+                        Plus, currently we only select part of your BTC UTXOs to
+                        spend in each transaction to minimize the transaction
+                        fee.
+                      </p>
+                    </DisclosurePanel>
+                  </transition>
                 </Disclosure>
               </div>
             </MenuItem>

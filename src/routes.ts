@@ -1,6 +1,6 @@
 import { fetchGeo } from '@/queries/geo'
-import { useGeoStore } from '@/store'
-import { isRestrictedRegion } from './lib/helpers'
+import { useAddressStore, useCredentialsStore, useGeoStore } from '@/store'
+import { isRestrictedRegion } from '@/lib/helpers'
 
 const Home = () => import('./pages/Home.vue')
 const Recover = () => import('./pages/Recover.vue')
@@ -28,16 +28,43 @@ export const geoGuard = async (to: any, from: any, next: any) => {
   } else {
     if (to.path === '/not-available') next()
     else {
-      const geo = await fetchGeo()
-      if (!isRestrictedRegion(geo)) {
-        geoStore.pass = true
-      }
-
-      if (isRestrictedRegion(geo) && to.path !== '/not-available')
-        next('/not-available')
-      else {
+      if (geoStore.pass) {
         next()
+      } else {
+        const geo = await fetchGeo()
+        if (!isRestrictedRegion(geo)) {
+          geoStore.pass = true
+        }
+
+        if (isRestrictedRegion(geo) && to.path !== '/not-available')
+          next('/not-available')
+        else {
+          next()
+        }
       }
+    }
+  }
+}
+
+export const credentialGuard = async (to: any, from: any, next: any) => {
+  const addressStore = useAddressStore()
+  const credentialStore = useCredentialsStore()
+
+  const address = addressStore.get
+
+  // only guard pool page
+  if (!to.path.includes('/pool')) {
+    next()
+  } else {
+    if (address) {
+      const credential = credentialStore.getByAddress(address)
+      if (credential) {
+        next()
+      } else {
+        next('/')
+      }
+    } else {
+      next()
     }
   }
 }

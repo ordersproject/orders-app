@@ -165,7 +165,9 @@ export async function exclusiveChange({
   extraInputValue,
   maxUtxosCount = 1,
   sighashType = SIGHASH_ALL_ANYONECANPAY,
+  otherSighashType,
   estimate = false,
+  partialPay = false,
 }: {
   psbt: Psbt
   pubKey?: Buffer
@@ -174,7 +176,9 @@ export async function exclusiveChange({
   extraInputValue?: number
   maxUtxosCount?: number
   sighashType?: number
+  otherSighashType?: number
   estimate?: boolean
+  partialPay?: boolean
 }) {
   const feeb = useFeebStore().get ?? raise('Choose a fee rate first.')
   // check if address is set
@@ -223,7 +227,12 @@ export async function exclusiveChange({
   const paymentPrevOutputScript = btcjs.address.toOutputScript(address)
 
   if (estimate) {
-    const paymentUtxo = paymentUtxos[0]
+    // if estimating, we assume a payment utxo that is absurbly large
+    const paymentUtxo = {
+      txId: '8729586f5352810db997e2ae0f1530ccc6f63740ba09d656da78e6a7751e7a86',
+      outputIndex: 0,
+      satoshis: 100 * 1e8, // 100 btc
+    }
     const paymentWitnessUtxo = {
       value: paymentUtxo.satoshis,
       script: paymentPrevOutputScript,
@@ -238,8 +247,9 @@ export async function exclusiveChange({
     psbtClone.addInput(paymentInput)
 
     // Add change output
-    let fee = calcFee(psbtClone, feeb, extraSize)
-    console.log({ fee, feeb, extraSize, extraInputValue })
+    let fee = useSize
+      ? Math.round(useSize * feeb)
+      : calcFee(psbt, feeb, extraSize)
     const totalOutput = sumOrNaN(psbtClone.txOutputs)
     const totalInput = sumOrNaN(
       psbtClone.data.inputs.map(
@@ -252,6 +262,12 @@ export async function exclusiveChange({
       )
     )
     const changeValue = totalInput - totalOutput - fee + (extraInputValue || 0)
+    console.log({
+      changeValue,
+      fee,
+      extraInputValue,
+      difference: paymentUtxo.satoshis - changeValue,
+    })
 
     if (changeValue < 0) {
       throw new Error(
@@ -264,25 +280,24 @@ export async function exclusiveChange({
       difference: paymentUtxo.satoshis - changeValue,
       feeb,
       fee,
-      paymentValue: paymentUtxo.satoshis - changeValue,
-      changeValue: 0,
     }
   }
 
   // Add in one by one until we have enough value to pay
-
-  if (paymentUtxos.length === 1) {
-    const paymentUtxo = paymentUtxos[0]
-
+  // multiple change
+  for (let i = 0; i < paymentUtxos.length; i++) {
+    const paymentUtxo = paymentUtxos[i]
     const paymentWitnessUtxo = {
       value: paymentUtxo.satoshis,
       script: paymentPrevOutputScript,
     }
+    const toUseSighashType =
+      i > 0 && otherSighashType ? otherSighashType : sighashType
     const paymentInput: any = {
       hash: paymentUtxo.txId,
       index: paymentUtxo.outputIndex,
       witnessUtxo: paymentWitnessUtxo,
-      sighashType,
+      sighashType: toUseSighashType,
     }
 
     if (pubKey) {
@@ -295,76 +310,39 @@ export async function exclusiveChange({
     let fee = useSize
       ? Math.round(useSize * feeb)
       : calcFee(psbt, feeb, extraSize)
-    const totalOutput = sumOrNaN(psbt.txOutputs)
-    const totalInput = sumOrNaN(
-      psbt.data.inputs.map(
-        (input) =>
-          input.witnessUtxo ||
-          input.nonWitnessUtxo ||
-          raise(
-            'Input invalid. Please try again or contact customer service for assistance.'
+    let totalInput, totalOutput
+    if (partialPay) {
+      // we only pay for the fee and some extra value, not the whole transaction
+      totalOutput = 0
+      // totalInput = the inputs we add in now
+      totalInput = sumOrNaN(
+        psbt.data.inputs
+          .slice(1) // exclude the first input, which is the oridinal input
+          .map(
+            (input) =>
+              input.witnessUtxo ||
+              input.nonWitnessUtxo ||
+              raise(
+                'Input invalid. Please try again or contact customer service for assistance.'
+              )
           )
       )
-    )
-    const changeValue = totalInput - totalOutput - fee
-
-    if (changeValue < 0) {
-      throw new Error(
-        'Insufficient balance. Please ensure that the address has a sufficient balance and try again.'
-      )
-    }
-
-    if (changeValue >= DUST_UTXO_VALUE) {
-      psbt.addOutput({
-        address,
-        value: safeOutputValue(changeValue),
-      })
     } else {
-      fee += changeValue
-    }
-
-    return {
-      psbt,
-      fee,
-      paymentValue: paymentUtxo.satoshis,
-      feeb,
-      changeValue,
-    }
-  }
-
-  // multiple change
-  for (const paymentUtxo of paymentUtxos) {
-    const paymentWitnessUtxo = {
-      value: paymentUtxo.satoshis,
-      script: paymentPrevOutputScript,
-    }
-    const paymentInput: any = {
-      hash: paymentUtxo.txId,
-      index: paymentUtxo.outputIndex,
-      witnessUtxo: paymentWitnessUtxo,
-      sighashType,
-    }
-
-    if (pubKey) {
-      paymentInput.tapInternalPubkey = pubKey
-    }
-
-    psbt.addInput(paymentInput)
-
-    // Add change output
-    let fee = calcFee(psbt, feeb, extraSize)
-    const totalOutput = sumOrNaN(psbt.txOutputs)
-    const totalInput = sumOrNaN(
-      psbt.data.inputs.map(
-        (input) =>
-          input.witnessUtxo ||
-          input.nonWitnessUtxo ||
-          raise(
-            'Input invalid. Please try again or contact customer service for assistance.'
-          )
+      // we pay for the whole transaction
+      totalOutput = sumOrNaN(psbt.txOutputs)
+      totalInput = sumOrNaN(
+        psbt.data.inputs.map(
+          (input) =>
+            input.witnessUtxo ||
+            input.nonWitnessUtxo ||
+            raise(
+              'Input invalid. Please try again or contact customer service for assistance.'
+            )
+        )
       )
-    )
-    const changeValue = totalInput - totalOutput - fee
+    }
+
+    const changeValue = totalInput - totalOutput - fee + (extraInputValue || 0)
 
     if (changeValue < 0) {
       // if we run out of utxos, throw an error

@@ -5,7 +5,7 @@ import 'element-plus/theme-chalk/dark/css-vars.css'
 import { VueQueryPlugin } from '@tanstack/vue-query'
 
 import './style.css'
-import routes, { geoGuard } from '@/routes'
+import routes, { credentialGuard, geoGuard } from '@/routes'
 import App from './App.vue'
 
 import { Buffer } from 'buffer'
@@ -17,6 +17,7 @@ const router = VueRouter.createRouter({
   routes,
 })
 router.beforeEach(geoGuard)
+// router.beforeEach(credentialGuard)
 
 const pinia = createPinia()
 

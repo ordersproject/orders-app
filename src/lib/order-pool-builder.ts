@@ -17,7 +17,9 @@ import {
   BTC_POOL_MODE,
   MS_BRC20_UTXO_VALUE,
   RELEASE_TX_SIZE,
+  SIGHASH_ALL_ANYONECANPAY,
   SIGHASH_SINGLE_ANYONECANPAY,
+  USE_UTXO_COUNT_LIMIT,
 } from '@/data/constants'
 
 async function getBothPubKeys(type: 'btc' | 'brc20' = 'brc20') {
@@ -210,7 +212,10 @@ export async function buildAddBtcLiquidity({ total }: { total: Decimal }) {
       value: safeOutputValue(total),
     })
 
-    await exclusiveChange({ psbt: separatePsbt, maxUtxosCount: 3 })
+    await exclusiveChange({
+      psbt: separatePsbt,
+      maxUtxosCount: USE_UTXO_COUNT_LIMIT,
+    })
 
     // 2. create the PSBT with the Utxo (first output of the previous separate tx) as input and MS address as BRC20 output
     // get separate psbt's tx hash

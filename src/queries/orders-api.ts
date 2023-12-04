@@ -5,9 +5,14 @@ import { ordersApiFetch } from '@/lib/fetch'
 import { raise, showFiat } from '@/lib/helpers'
 
 export const login = async () => {
+  const { publicKey, signature } = await sign()
   const address = useAddressStore().get as string
   const loginRes = await ordersApiFetch(`login/in`, {
     method: 'POST',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
     body: JSON.stringify({
       net: 'livenet',
       address,
@@ -215,6 +220,8 @@ export const constructBidPsbt = async ({
   psbtRaw: string
   orderId: string
 }> => {
+  const { publicKey, signature } = await sign()
+
   const address = useAddressStore().get as string
   const body = {
     net: network,
@@ -232,6 +239,10 @@ export const constructBidPsbt = async ({
   }
   const constructInfo = await ordersApiFetch(`order/bid-v2`, {
     method: 'POST',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
     body: JSON.stringify(body),
   })
 
@@ -500,8 +511,14 @@ export const pushSellTake = async ({
   networkFee: number
   networkFeeRate: number
 }) => {
+  const { publicKey, signature } = await sign()
+
   const sellRes = await ordersApiFetch(`order/bid/do`, {
     method: 'POST',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
     body: JSON.stringify({
       net: network,
       psbtRaw,
@@ -563,7 +580,7 @@ export const pushBuyTake = async ({
   orderId: string
 }) => {
   // const pushTxId = await window.unisat.pushPsbt(psbtRaw)
-  const address = useAddressStore().address!
+  const address = useAddressStore().get!
 
   const { publicKey, signature } = await sign()
 
@@ -589,7 +606,7 @@ export const pushBuyTake = async ({
 }
 
 export const cancelOrder = async ({ orderId }: { orderId: string }) => {
-  const address = useAddressStore().address!
+  const address = useAddressStore().get!
   const network = useNetworkStore().network
   const { publicKey, signature } = await sign()
 
@@ -713,7 +730,7 @@ export const getListingUtxos: () => Promise<
   }[]
 > = async () => {
   const network = 'livenet'
-  const address = useAddressStore().address!
+  const address = useAddressStore().get!
 
   const utxos = await ordersApiFetch(
     `order/bid/dummy/${address}?net=${network}`

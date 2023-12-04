@@ -2,6 +2,7 @@
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
 import { computed, inject, ref } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
+import { useRoute } from 'vue-router'
 
 import { useAddressStore } from '@/store'
 import { connect } from '@/queries/unisat'
@@ -10,16 +11,19 @@ import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 
 import PanelAdd from './PanelAdd.vue'
 import PanelRemove from './PanelRemove.vue'
+import PanelStandbys from './PanelStandbys.vue'
 import PanelRelease from './PanelRelease.vue'
 import PanelClaim from './PanelClaim.vue'
 import PanelEvent from './PanelEvent.vue'
-import { useRoute } from 'vue-router'
 
 const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
 
-const tabLabels = ['Add', 'Remove', 'Release', 'Claim']
+const tabLabels = ['Add', 'Standbys', 'Remove', 'Release', 'Claim']
 if (selectedPair.fromSymbol === 'rdex') {
   tabLabels.push('Event🔥')
+
+  // remove Add
+  tabLabels.shift()
 }
 
 const loggedIn = ref(!!useAddressStore().get)
@@ -38,7 +42,7 @@ function changeTab(index: number) {
 const route = useRoute()
 const queryAction = route.query.action as string | undefined
 if (queryAction === 'release') {
-  selectedTab.value = 2
+  selectedTab.value = tabLabels.indexOf('Release')
 }
 
 const addressStore = useAddressStore()
@@ -94,23 +98,27 @@ const hasReleasable = computed(() => {
         </Tab>
       </TabList>
       <TabPanels>
-        <TabPanel class="pt-12 focus-visible:outline-none">
+        <TabPanel class="tab-panel" v-if="selectedPair.fromSymbol !== 'rdex'">
           <PanelAdd />
         </TabPanel>
 
-        <TabPanel class="pt-12 focus-visible:outline-none">
+        <TabPanel class="tab-panel">
+          <PanelStandbys />
+        </TabPanel>
+
+        <TabPanel class="tab-panel">
           <PanelRemove />
         </TabPanel>
 
-        <TabPanel class="pt-12 focus-visible:outline-none">
+        <TabPanel class="tab-panel">
           <PanelRelease />
         </TabPanel>
 
         <TabPanel class="pt-12 focus-visible:outline-none">
-          <PanelClaim @go-release="changeTab(2)" />
+          <PanelClaim @go-release="changeTab(tabLabels.indexOf('Release'))" />
         </TabPanel>
 
-        <TabPanel class="pt-12 focus-visible:outline-none">
+        <TabPanel class="tab-panel">
           <PanelEvent />
         </TabPanel>
       </TabPanels>
@@ -130,3 +138,10 @@ const hasReleasable = computed(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.tab-panel {
+  padding-top: 3rem;
+  outline: none;
+}
+</style>

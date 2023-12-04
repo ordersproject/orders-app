@@ -6,6 +6,7 @@ import * as secp256k1 from 'tiny-secp256k1'
 import { DEBUG } from '@/data/constants'
 import { useBtcJsStore, useGeoStore } from '@/store'
 
+import Toaster from '@/components/ui/toast/Toaster.vue'
 import TheHeader from '@/components/header/TheHeader.vue'
 import NotAvailableOverlay from '@/components/overlays/NotAvailable.vue'
 
@@ -39,6 +40,7 @@ queryClient.setDefaultOptions({
 </script>
 
 <template>
+  <Toaster />
   <NotAvailableOverlay v-if="isMobile && !DEBUG" />
 
   <template v-else>

@@ -96,8 +96,14 @@ export const getMyPooledInscriptions = async ({
     tick,
     address,
   })
+  const { publicKey, signature } = await sign()
 
-  return await ordersApiFetch(`pool/inscription?${params}`).then((res) => {
+  return await ordersApiFetch(`pool/inscription?${params}`, {
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  }).then((res) => {
     if (!res?.availableList) return []
 
     return res.availableList.map((item: any) => {
@@ -232,6 +238,7 @@ export const getMyPoolRecords = async ({
   address: string
   tick: string
 }): Promise<PoolRecord[]> => {
+  const { publicKey, signature } = await sign()
   const network = 'livenet'
   const params = new URLSearchParams({
     net: network,
@@ -241,7 +248,12 @@ export const getMyPoolRecords = async ({
     poolType: '100',
   })
 
-  return await ordersApiFetch(`pool/orders?${params}`).then((res) => {
+  return await ordersApiFetch(`pool/orders?${params}`, {
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  }).then((res) => {
     return res?.results || []
   })
 }
@@ -264,6 +276,68 @@ export const removeLiquidity = async ({ orderId }: { orderId: string }) => {
   })
 }
 
+type RewardRecord = {
+  address: string
+  calBigBlock: 0
+  calEndBlock: 0
+  calStartBlock: 0
+  fromOrderAmount: 0
+  fromOrderCoinAmount: 0
+  fromOrderDealBlock: 0
+  fromOrderDealTime: 0
+  fromOrderId: string
+  fromOrderPercentage: 0
+  fromOrderReward: 0
+  fromOrderTick: string
+  net: string
+  orderId: string
+  percentage: 0
+  rewardAmount: 0
+  rewardType: 1
+  tick: string
+}
+/**
+ * Standbys
+ */
+export const getMyStandbys = async ({
+  tick,
+}: {
+  tick: string
+}): Promise<RewardRecord[]> => {
+  const network = useNetworkStore().network
+  const address = useAddressStore().get!
+  const { publicKey, signature } = await sign()
+
+  const params = new URLSearchParams({
+    tick,
+    address,
+    net: network,
+  })
+  // if tick is rdex, then rewardType is 15; otherwise, don't pass rewardType
+  if (tick === 'rdex') {
+    params.append('rewardType', '15')
+  }
+
+  return await ordersApiFetch(`pool/reward/records?${params}`, {
+    method: 'GET',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  })
+    .then((res) => {
+      return res?.results || []
+    })
+    .then((orders: any[]) => {
+      // sort by dealTime desc
+      orders.sort((a, b) => {
+        return b.fromOrderDealTime - a.fromOrderDealTime
+      })
+
+      return orders
+    })
+}
+
 /**
  * Release
  */
@@ -279,6 +353,8 @@ export const getMyUsedPoolRecords = async ({
   address: string
   tick: string
 }): Promise<PoolRecord[]> => {
+  const { publicKey, signature } = await sign()
+
   const network = 'livenet'
   const params = new URLSearchParams({
     net: network,
@@ -290,7 +366,12 @@ export const getMyUsedPoolRecords = async ({
     sortType: '-1',
   })
 
-  return await ordersApiFetch(`pool/orders?${params}`)
+  return await ordersApiFetch(`pool/orders?${params}`, {
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  })
     .then((res) => {
       return res?.results || []
     })
@@ -315,6 +396,8 @@ export const getMyReleasedRecords = async ({
   address: string
   tick: string
 }): Promise<ReleaseHistory[]> => {
+  const { publicKey, signature } = await sign()
+
   const network = 'livenet'
   const params = new URLSearchParams({
     net: network,
@@ -326,7 +409,12 @@ export const getMyReleasedRecords = async ({
     sortType: '-1',
   })
 
-  return await ordersApiFetch(`pool/orders?${params}`)
+  return await ordersApiFetch(`pool/orders?${params}`, {
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  })
     .then((res) => {
       return res?.results || []
     })
@@ -410,28 +498,7 @@ export const getMyEventRecords = async ({
 }: {
   address: string
   tick: string
-}): Promise<
-  {
-    address: string
-    calBigBlock: 0
-    calEndBlock: 0
-    calStartBlock: 0
-    fromOrderAmount: 0
-    fromOrderCoinAmount: 0
-    fromOrderDealBlock: 0
-    fromOrderDealTime: 0
-    fromOrderId: string
-    fromOrderPercentage: 0
-    fromOrderReward: 0
-    fromOrderTick: string
-    net: string
-    orderId: string
-    percentage: 0
-    rewardAmount: 0
-    rewardType: 1
-    tick: string
-  }[]
-> => {
+}): Promise<RewardRecord[]> => {
   const { publicKey, signature } = await sign()
 
   const network = 'livenet'
@@ -443,7 +510,6 @@ export const getMyEventRecords = async ({
   })
 
   return await ordersApiFetch(`pool/reward/records?${params}`, {
-    // return await ordersApiFetch(`event/orders?${params}`, {
     method: 'GET',
     headers: {
       'X-Signature': signature,
