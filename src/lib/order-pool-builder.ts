@@ -297,7 +297,7 @@ export async function buildReleasePsbt({
   // Add change output
   await exclusiveChange({
     psbt: claim,
-    sighashType: SIGHASH_ALL_ANYONECANPAY,
+    sighashType: SIGHASH_SINGLE_ANYONECANPAY,
     useSize: RELEASE_TX_SIZE,
   })
 
