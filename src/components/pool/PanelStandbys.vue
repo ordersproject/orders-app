@@ -44,7 +44,10 @@ const isModelOpen = ref(false)
       What are these records?
     </button>
 
-    <table class="min-w-full text-center border-separate border-spacing-0">
+    <table
+      class="min-w-full text-center border-separate border-spacing-0"
+      v-if="standbys?.length"
+    >
       <thead>
         <tr>
           <th
@@ -134,5 +137,9 @@ const isModelOpen = ref(false)
         </tr>
       </tbody>
     </table>
+
+    <div class="flex items-center justify-center text-zinc-500 mt-36" v-else>
+      No Records Currently.
+    </div>
   </div>
 </template>
