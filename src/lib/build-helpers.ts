@@ -247,7 +247,9 @@ export async function exclusiveChange({
     psbtClone.addInput(paymentInput)
 
     // Add change output
-    let fee = calcFee(psbtClone, feeb, extraSize)
+    let fee = useSize
+      ? Math.round(useSize * feeb)
+      : calcFee(psbt, feeb, extraSize)
     const totalOutput = sumOrNaN(psbtClone.txOutputs)
     const totalInput = sumOrNaN(
       psbtClone.data.inputs.map(
@@ -305,7 +307,9 @@ export async function exclusiveChange({
     psbt.addInput(paymentInput)
 
     // Add change output
-    let fee = calcFee(psbt, feeb, extraSize)
+    let fee = useSize
+      ? Math.round(useSize * feeb)
+      : calcFee(psbt, feeb, extraSize)
     let totalInput, totalOutput
     if (partialPay) {
       // we only pay for the fee and some extra value, not the whole transaction
