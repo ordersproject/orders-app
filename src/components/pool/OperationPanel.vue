@@ -112,10 +112,6 @@ const hasReleasable = computed(() => {
         </TabPanel>
 
         <TabPanel class="pt-12 focus-visible:outline-none">
-          <PanelStandbys />
-        </TabPanel>
-
-        <TabPanel class="pt-12 focus-visible:outline-none">
           <PanelClaim @go-release="changeTab(tabLabels.indexOf('Release'))" />
         </TabPanel>
 
