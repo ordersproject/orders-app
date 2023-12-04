@@ -412,33 +412,24 @@ export const getMyEventRecords = async ({
   tick: string
 }): Promise<
   {
-    amount: number
-    buyerAddress: string
-    calEndBlock: number
-    calStartBlock: number
-    calTotalValue: number
-    calValue: number
-    coinAmount: number
-    coinDecimalNum: number
-    coinPrice: number
-    coinPriceDecimalNum: number
-    coinRatePrice: number
-    dealTxBlock: number
-    dealTxBlockState: number
-    decimalNum: number
-    freeState: 1
-    inscriptionId: string
+    address: string
+    calBigBlock: 0
+    calEndBlock: 0
+    calStartBlock: 0
+    fromOrderAmount: 0
+    fromOrderCoinAmount: 0
+    fromOrderDealBlock: 0
+    fromOrderDealTime: 0
+    fromOrderId: string
+    fromOrderPercentage: 0
+    fromOrderReward: 0
+    fromOrderTick: string
     net: string
     orderId: string
-    orderState: 1
-    orderType: 1
-    percentage: number
-    rewardAmount: number
-    rewardRealAmount: number
-    sellerAddress: string
+    percentage: 0
+    rewardAmount: 0
+    rewardType: 1
     tick: string
-    timestamp: number
-    version: number
   }[]
 > => {
   const { publicKey, signature } = await sign()
@@ -448,9 +439,11 @@ export const getMyEventRecords = async ({
     net: network,
     tick,
     address,
+    rewardType: '12', // event records
   })
 
-  return await ordersApiFetch(`event/orders?${params}`, {
+  return await ordersApiFetch(`pool/reward/records?${params}`, {
+    // return await ordersApiFetch(`event/orders?${params}`, {
     method: 'GET',
     headers: {
       'X-Signature': signature,
@@ -461,9 +454,9 @@ export const getMyEventRecords = async ({
       return res?.results || []
     })
     .then((orders: any[]) => {
-      // sort by timestamp desc
+      // sort by dealTime desc
       orders.sort((a, b) => {
-        return b.timestamp - a.timestamp
+        return b.fromOrderDealTime - a.fromOrderDealTime
       })
 
       return orders
@@ -666,11 +659,13 @@ export const getMyRewardsClaimRecords = async ({
   const address = useAddressStore().get!
   const { publicKey, signature } = await sign()
 
+  const rewardType = tick === 'rdex' ? '11' : '0'
   const params = new URLSearchParams({
     tick,
     address,
     net: network,
     rewardState: '100',
+    rewardType,
   })
 
   return await ordersApiFetch(`pool/reward/orders?${params}`, {

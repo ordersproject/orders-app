@@ -222,17 +222,3 @@ export const useCooldownerStore = defineStore('cooldowner', {
     },
   },
 })
-
-// export const usePairStore = defineStore('pair', {
-//   state: () => {
-//     return {
-//       id: useLocalStorage('currentPairId', 1) as RemovableRef<number>,
-//     }
-//   },
-
-//   actions: {
-//     set(id: number) {
-//       this.id = id
-//     },
-//   },
-// })

@@ -112,6 +112,11 @@ export const getBidCandidates = async (
 
       candidate.inscriptionId = inscriptionId
 
+      // fix coinRatePrice
+      candidate.coinRatePrice = new Decimal(
+        candidate.coinPrice / 10 ** candidate.coinPriceDecimalNum
+      ).toNumber()
+
       return candidate
     })
   }
@@ -270,6 +275,7 @@ export type Order = {
   coinAmount: number
   coinDecimalNum: number
   coinRatePrice: number
+  coinPrice: number
   net: 'livenet' | 'testnet'
   orderId: string
   orderState: number
@@ -298,7 +304,7 @@ export const getOrders = async ({
     net: network,
     orderType: String(orderType),
     orderState: '1',
-    sortKey: 'coinRatePrice',
+    sortKey: 'coinPrice',
     sortType: String(sortType),
     tick,
     address,

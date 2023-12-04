@@ -3,6 +3,7 @@ import { useGeoStore } from '@/store'
 import { isRestrictedRegion } from './lib/helpers'
 
 const Home = () => import('./pages/Home.vue')
+const Recover = () => import('./pages/Recover.vue')
 const Whitelist = () => import('./pages/Whitelist.vue')
 const Changelog = () => import('./pages/Changelog.vue')
 const Dev = () => import('./pages/Dev.vue')
@@ -14,6 +15,7 @@ const routes = [
   { path: '/whitelist', component: Whitelist },
   { path: '/changelog', component: Changelog },
   { path: '/pool/:pair?', component: Pool },
+  { path: '/recover', component: Recover },
   { path: '/dev', component: Dev },
   { path: '/not-available', component: NoService },
 ]

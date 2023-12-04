@@ -461,14 +461,14 @@ const usableBidCandidates = computed(() => {
   if (!bidCandidates.value) return []
 
   return bidCandidates.value.filter((item) => {
-    return item.coinRatePrice >= bidExchangePrice.value + 1
+    return item.coinRatePrice > bidExchangePrice.value
   })
 })
 const unusableBidCandidates = computed(() => {
   if (!bidCandidates.value) return []
 
   return bidCandidates.value.filter((item) => {
-    return item.coinRatePrice < bidExchangePrice.value + 1
+    return item.coinRatePrice < bidExchangePrice.value
   })
 })
 const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
@@ -476,7 +476,7 @@ const selectedBidCandidate: Ref<BidCandidate | undefined> = ref()
 watch(bidExchangePrice, (price) => {
   if (!selectedBidCandidate.value) return
 
-  if (selectedBidCandidate.value.coinRatePrice < price + 1) {
+  if (selectedBidCandidate.value.coinRatePrice < price) {
     selectedBidCandidate.value = undefined
   }
 })
@@ -570,7 +570,7 @@ watch(bidExchangePrice, (price) => {
                               ? new Decimal(bidExchangePrice)
                                   .dividedBy(1e8)
                                   .toDP()
-                                  .toNumber()
+                                  .toFixed()
                               : bidExchangePrice
                           "
                           @input="(event: any) => updateExchangePrice(event.target.value, 'bid')"
@@ -847,7 +847,7 @@ watch(bidExchangePrice, (price) => {
                               ? new Decimal(askExchangePrice)
                                   .dividedBy(1e8)
                                   .toDP()
-                                  .toNumber()
+                                  .toFixed()
                               : askExchangePrice
                           "
                           @input="(event: any) => updateExchangePrice(event.target.value, 'ask')"
