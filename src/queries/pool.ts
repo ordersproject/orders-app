@@ -300,8 +300,11 @@ export const getMyStandbys = async ({
     tick,
     address,
     net: network,
-    rewardType: '15', // 15 for standbys
   })
+  // if tick is rdex, then rewardType is 15; otherwise, don't pass rewardType
+  if (tick === 'rdex') {
+    params.append('rewardType', '15')
+  }
 
   return await ordersApiFetch(`pool/reward/records?${params}`, {
     method: 'GET',

@@ -75,6 +75,13 @@ defineEmits(['update:isOpen'])
                     <p
                       class="first-letter:text-lg first-letter:font-bold first-letter:mr-0.5"
                     >
+                      Rewards for each liquidity starts to accumulate after 15
+                      days for other BRC-20s, and starts immediately for RDEX.
+                    </p>
+
+                    <p
+                      class="first-letter:text-lg first-letter:font-bold first-letter:mr-0.5"
+                    >
                       Every 144 blocks, the system will calculate the reward of
                       each standby order and generate a corresponding reward
                       record.
