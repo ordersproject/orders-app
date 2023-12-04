@@ -21,6 +21,9 @@ const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
 const tabLabels = ['Add', 'Standbys', 'Remove', 'Release', 'Claim']
 if (selectedPair.fromSymbol === 'rdex') {
   tabLabels.push('Event🔥')
+
+  // remove Add
+  tabLabels.shift()
 }
 
 const loggedIn = ref(!!useAddressStore().get)
@@ -95,7 +98,7 @@ const hasReleasable = computed(() => {
         </Tab>
       </TabList>
       <TabPanels>
-        <TabPanel class="tab-panel">
+        <TabPanel class="tab-panel" v-if="selectedPair.fromSymbol !== 'rdex'">
           <PanelAdd />
         </TabPanel>
 
