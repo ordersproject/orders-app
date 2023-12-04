@@ -1,6 +1,6 @@
 import { fetchGeo } from '@/queries/geo'
-import { useGeoStore } from '@/store'
-import { isRestrictedRegion } from './lib/helpers'
+import { useAddressStore, useCredentialsStore, useGeoStore } from '@/store'
+import { isRestrictedRegion } from '@/lib/helpers'
 
 const Home = () => import('./pages/Home.vue')
 const Recover = () => import('./pages/Recover.vue')
@@ -42,6 +42,29 @@ export const geoGuard = async (to: any, from: any, next: any) => {
           next()
         }
       }
+    }
+  }
+}
+
+export const credentialGuard = async (to: any, from: any, next: any) => {
+  const addressStore = useAddressStore()
+  const credentialStore = useCredentialsStore()
+
+  const address = addressStore.get
+
+  // only guard pool page
+  if (!to.path.includes('/pool')) {
+    next()
+  } else {
+    if (address) {
+      const credential = credentialStore.getByAddress(address)
+      if (credential) {
+        next()
+      } else {
+        next('/')
+      }
+    } else {
+      next()
     }
   }
 }

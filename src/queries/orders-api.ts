@@ -5,9 +5,14 @@ import { ordersApiFetch } from '@/lib/fetch'
 import { raise, showFiat } from '@/lib/helpers'
 
 export const login = async () => {
+  const { publicKey, signature } = await sign()
   const address = useAddressStore().get as string
   const loginRes = await ordersApiFetch(`login/in`, {
     method: 'POST',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
     body: JSON.stringify({
       net: 'livenet',
       address,
@@ -215,6 +220,8 @@ export const constructBidPsbt = async ({
   psbtRaw: string
   orderId: string
 }> => {
+  const { publicKey, signature } = await sign()
+
   const address = useAddressStore().get as string
   const body = {
     net: network,
@@ -232,6 +239,10 @@ export const constructBidPsbt = async ({
   }
   const constructInfo = await ordersApiFetch(`order/bid-v2`, {
     method: 'POST',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
     body: JSON.stringify(body),
   })
 
@@ -469,8 +480,14 @@ export const pushSellTake = async ({
   networkFee: number
   networkFeeRate: number
 }) => {
+  const { publicKey, signature } = await sign()
+
   const sellRes = await ordersApiFetch(`order/bid/do`, {
     method: 'POST',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
     body: JSON.stringify({
       net: network,
       psbtRaw,

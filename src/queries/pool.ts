@@ -96,8 +96,14 @@ export const getMyPooledInscriptions = async ({
     tick,
     address,
   })
+  const { publicKey, signature } = await sign()
 
-  return await ordersApiFetch(`pool/inscription?${params}`).then((res) => {
+  return await ordersApiFetch(`pool/inscription?${params}`, {
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  }).then((res) => {
     if (!res?.availableList) return []
 
     return res.availableList.map((item: any) => {
@@ -232,6 +238,7 @@ export const getMyPoolRecords = async ({
   address: string
   tick: string
 }): Promise<PoolRecord[]> => {
+  const { publicKey, signature } = await sign()
   const network = 'livenet'
   const params = new URLSearchParams({
     net: network,
@@ -241,7 +248,12 @@ export const getMyPoolRecords = async ({
     poolType: '100',
   })
 
-  return await ordersApiFetch(`pool/orders?${params}`).then((res) => {
+  return await ordersApiFetch(`pool/orders?${params}`, {
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  }).then((res) => {
     return res?.results || []
   })
 }
@@ -341,6 +353,8 @@ export const getMyUsedPoolRecords = async ({
   address: string
   tick: string
 }): Promise<PoolRecord[]> => {
+  const { publicKey, signature } = await sign()
+
   const network = 'livenet'
   const params = new URLSearchParams({
     net: network,
@@ -352,7 +366,12 @@ export const getMyUsedPoolRecords = async ({
     sortType: '-1',
   })
 
-  return await ordersApiFetch(`pool/orders?${params}`)
+  return await ordersApiFetch(`pool/orders?${params}`, {
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  })
     .then((res) => {
       return res?.results || []
     })
@@ -377,6 +396,8 @@ export const getMyReleasedRecords = async ({
   address: string
   tick: string
 }): Promise<ReleaseHistory[]> => {
+  const { publicKey, signature } = await sign()
+
   const network = 'livenet'
   const params = new URLSearchParams({
     net: network,
@@ -388,7 +409,12 @@ export const getMyReleasedRecords = async ({
     sortType: '-1',
   })
 
-  return await ordersApiFetch(`pool/orders?${params}`)
+  return await ordersApiFetch(`pool/orders?${params}`, {
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  })
     .then((res) => {
       return res?.results || []
     })
