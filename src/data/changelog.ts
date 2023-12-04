@@ -1,9 +1,13 @@
 const changelog = [
   {
-    version: '1.2.2',
+    version: '1.3.0',
     emoji: '🐳',
-    date: '2023-12-01',
-    changes: ['Add Standby Panel to pool page'],
+    date: '2023-12-04',
+    changes: [
+      'Add Standby Panel to pool page',
+      'Allow multiple UTXO Selection (up to 5) when building various operations',
+      'Some cleanup and refactoring',
+    ],
   },
   {
     version: '1.2.1',
