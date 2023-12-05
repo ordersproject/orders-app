@@ -235,7 +235,7 @@ async function onConfirm() {}
 
         <TabPanel class="grow h-[40vh] nicer-scrollbar overflow-y-scroll">
           <!-- claim records -->
-          <EventClaimRecords class="" />
+          <EventClaimRecords />
         </TabPanel>
       </TabPanels>
     </TabGroup>

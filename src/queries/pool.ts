@@ -745,6 +745,45 @@ export const getMyEventRewardsClaimRecords = async ({
     })
 }
 
+export const getMyStandbyRewardsClaimRecords = async ({
+  tick,
+}: {
+  tick: string
+}): Promise<RewardsClaimRecord[]> => {
+  const network = useNetworkStore().network
+  const address = useAddressStore().get!
+  const { publicKey, signature } = await sign()
+
+  const params = new URLSearchParams({
+    tick,
+    address,
+    net: network,
+    rewardType: '2',
+  })
+
+  return await ordersApiFetch(`pool/reward/orders?${params}`, {
+    method: 'GET',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  })
+    .then((res) => {
+      return res?.results || []
+    })
+    .then((res) => {
+      return res.map((item: any) => {
+        if (item.rewardState === 3) {
+          item.rewardState = 'finished'
+        } else {
+          item.rewardState = 'pending'
+        }
+
+        return item
+      })
+    })
+}
+
 /**
  * Rewards
  */
