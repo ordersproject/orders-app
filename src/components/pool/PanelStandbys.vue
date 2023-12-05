@@ -143,44 +143,46 @@ const isModelOpen = ref(false)
 <template>
   <StandbyExplainModal v-model:is-open="isModelOpen" />
 
-  <!-- title -->
-  <div class="flex items-center gap-4">
-    <h3 class="text-sm font-medium leading-6 text-zinc-300">
-      My Standby Rewards
-    </h3>
-  </div>
-
-  <!-- total -->
-  <div class="mt-2 flex items-center gap-4">
-    <div class="flex items-baseline gap- text-orange-300">
-      <span class="font-bold text-lg">
-        {{ isLoadingRewardsEssential ? '-' : standbyRewardsEssential?.total }}
-      </span>
-
-      <span class="text-sm ml-1 uppercase">
-        ${{ EVENT_REWARDS_TICK.toUpperCase() }}
-      </span>
+  <div class="" v-if="selectedPair.fromSymbol.toUpperCase() !== 'RDEX'">
+    <!-- title -->
+    <div class="flex items-center gap-4">
+      <h3 class="text-sm font-medium leading-6 text-zinc-300">
+        My Standby Rewards
+      </h3>
     </div>
 
-    <!-- claim button -->
-    <button
-      class="rounded bg-orange-300 text-orange-950 px-4 py-1 shadow-md shadow-orange-300/20 text-sm hover:shadow-orange-300/50 disabled:opacity-30 disabled:saturate-50 disabled:shadow-none"
-      @click="onClaimReward"
-      :disabled="
-        !standbyRewardsEssential || standbyRewardsEssential.total === 0
-      "
-      v-if="standbyRewardsEssential && standbyRewardsEssential.total > 0"
-    >
-      Claim
-    </button>
+    <!-- total -->
+    <div class="mt-2 flex items-center gap-4">
+      <div class="flex items-baseline gap- text-orange-300">
+        <span class="font-bold text-lg">
+          {{ isLoadingRewardsEssential ? '-' : standbyRewardsEssential?.total }}
+        </span>
 
-    <el-tooltip
-      content="You need to pay a small amount of gas for claiming rewards."
-      placement="bottom"
-      effect="light"
-    >
-      <HelpCircleIcon class="box-content h-4 w-4 pr-2 text-zinc-300" />
-    </el-tooltip>
+        <span class="text-sm ml-1 uppercase">
+          ${{ EVENT_REWARDS_TICK.toUpperCase() }}
+        </span>
+      </div>
+
+      <!-- claim button -->
+      <button
+        class="rounded bg-orange-300 text-orange-950 px-4 py-1 shadow-md shadow-orange-300/20 text-sm hover:shadow-orange-300/50 disabled:opacity-30 disabled:saturate-50 disabled:shadow-none"
+        @click="onClaimReward"
+        :disabled="
+          !standbyRewardsEssential || standbyRewardsEssential.total === 0
+        "
+        v-if="standbyRewardsEssential && standbyRewardsEssential.total > 0"
+      >
+        Claim
+      </button>
+
+      <el-tooltip
+        content="You need to pay a small amount of gas for claiming rewards."
+        placement="bottom"
+        effect="light"
+      >
+        <HelpCircleIcon class="box-content h-4 w-4 pr-2 text-zinc-300" />
+      </el-tooltip>
+    </div>
   </div>
 
   <div class="h-[40vh] overflow-y-auto nicer-scrollbar pr-2 mt-8">

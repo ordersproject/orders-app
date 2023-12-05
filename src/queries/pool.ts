@@ -545,6 +545,7 @@ export const getMyEventRewardsEssential = async ({
     tick,
     address,
     net: network,
+    rewardType: '12',
   })
 
   return await ordersApiFetch(`event/reward/info?${params}`, {
