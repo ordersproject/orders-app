@@ -680,7 +680,7 @@ export const claimStandbyReward = async ({
   const network = useNetworkStore().network
   const address = useAddressStore().get!
   const { publicKey, signature } = await sign()
-  const rewardType = tick === 'rdex' ? '12' : '2'
+  const rewardType = tick === 'rdex' ? 12 : 2
 
   return await ordersApiFetch(`event/reward/claim`, {
     method: 'POST',
