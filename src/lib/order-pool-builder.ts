@@ -340,6 +340,42 @@ export async function buildEventClaim() {
   }
 }
 
+export async function buildStandbyClaim() {
+  const networkStore = useNetworkStore()
+  const btcjs = useBtcJsStore().get!
+
+  const { feeAddress, rewardInscriptionFee, rewardSendFee } =
+    await getEventClaimFees()
+  const totalFees = new Decimal(rewardInscriptionFee).plus(rewardSendFee)
+
+  // build psbt
+  const standbyClaimPsbt = new btcjs.Psbt({
+    network: btcjs.networks[networkStore.btcNetwork],
+  })
+    .addOutput({
+      address: feeAddress,
+      value: safeOutputValue(rewardInscriptionFee),
+    })
+    .addOutput({
+      address: feeAddress,
+      value: safeOutputValue(rewardSendFee),
+    })
+
+  const { fee, feeb } = await exclusiveChange({
+    psbt: standbyClaimPsbt,
+  })
+
+  return {
+    order: standbyClaimPsbt,
+    type: 'standby reward claiming',
+    amount: new Decimal(safeOutputValue(totalFees)),
+    toAddress: feeAddress,
+    feeb,
+    feeSend: rewardSendFee,
+    feeInscription: rewardInscriptionFee,
+  }
+}
+
 export async function buildRecoverPsbt({
   ordinalMsPsbtRaw,
   ordinalRecoverPsbtRaw,

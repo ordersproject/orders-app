@@ -1,17 +1,22 @@
 <script lang="ts" setup>
-import { useQuery } from '@tanstack/vue-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { computed, inject, ref } from 'vue'
 import { CopyIcon, HelpCircleIcon } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
-import { useAddressStore } from '@/store'
-import { getMyStandbyRewardsEssential, getMyStandbys } from '@/queries/pool'
+import { useAddressStore, useBtcJsStore } from '@/store'
+import {
+  claimStandbyReward,
+  getMyStandbyRewardsEssential,
+  getMyStandbys,
+} from '@/queries/pool'
 import { prettyBalance, prettyTxid } from '@/lib/formatters'
-import { unit, useBtcUnit } from '@/lib/helpers'
+import { sleep, unit, useBtcUnit } from '@/lib/helpers'
+import { buildStandbyClaim } from '@/lib/order-pool-builder'
+import { DEBUG, EVENT_REWARDS_TICK } from '@/data/constants'
 
 import StandbyExplainModal from './StandbyExplainModal.vue'
-import { EVENT_REWARDS_TICK } from '@/data/constants'
 
 const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
 const addressStore = useAddressStore()
@@ -25,10 +30,10 @@ const { data: standbys } = useQuery({
   enabled: computed(() => !!addressStore.get),
 })
 
-const { data: eventRewardsEssential, isLoading: isLoadingRewardsEssential } =
+const { data: standbyRewardsEssential, isLoading: isLoadingRewardsEssential } =
   useQuery({
     queryKey: [
-      'eventRewardsEssential',
+      'standbyRewardsEssential',
       { address: addressStore.get as string, tick: selectedPair.fromSymbol },
     ],
     queryFn: () =>
@@ -47,6 +52,84 @@ const { data: eventRewardsEssential, isLoading: isLoadingRewardsEssential } =
     },
     enabled: computed(() => !!addressStore.get),
   })
+
+const queryClient = useQueryClient()
+const { mutate: mutateClaimStandbyReward } = useMutation({
+  mutationFn: claimStandbyReward,
+  onSuccess: () => {
+    ElMessage.success('Reward claimed')
+    queryClient.invalidateQueries({
+      queryKey: [
+        'standbyRewardsEssential',
+        {
+          address: addressStore.get as string,
+          tick: selectedPair.fromSymbol,
+        },
+      ],
+    })
+    queryClient.invalidateQueries({
+      queryKey: [
+        'standbyRewardsClaimRecords',
+        { address: addressStore.get as string, tick: EVENT_REWARDS_TICK },
+      ],
+    })
+  },
+  onError: (err: any) => {
+    ElMessage.error(err.message)
+  },
+})
+
+const isBuilding = ref(false)
+const isOpenConfirmationModal = ref(false)
+const builtInfo = ref<void | Awaited<ReturnType<typeof buildStandbyClaim>>>()
+async function onClaimReward() {
+  try {
+    if (!standbyRewardsEssential.value) return
+
+    // build pay Tx
+    isOpenConfirmationModal.value = true
+    isBuilding.value = true
+
+    const res = await buildStandbyClaim().catch(async (e) => {
+      await sleep(500)
+      console.log(e)
+
+      ElMessage.error(e.message)
+      builtInfo.value = undefined
+      isOpenConfirmationModal.value = false
+    })
+    isBuilding.value = false
+    builtInfo.value = res
+
+    if (!res) return
+
+    // ask unisat to sign
+    const signed = await window.unisat.signPsbt(res.order.toHex())
+    console.log({ signed })
+    // derive txid from signed psbt
+    const bitcoinjs = useBtcJsStore().get!
+    const signedPsbt = bitcoinjs.Psbt.fromHex(signed)
+    const payTxid = signedPsbt.extractTransaction().getId()
+    const feeRawTx = signedPsbt.extractTransaction().toHex()
+
+    mutateClaimStandbyReward({
+      rewardAmount: standbyRewardsEssential.value.total,
+      tick: selectedPair.fromSymbol,
+      feeSend: res.feeSend,
+      feeInscription: res.feeInscription,
+      networkFeeRate: res.feeb,
+      feeUtxoTxId: payTxid,
+      feeRawTx,
+    })
+  } catch (e: any) {
+    if (DEBUG) {
+      console.log(e)
+      ElMessage.error(e.message)
+    } else {
+      ElMessage.error('Error while claiming reward.')
+    }
+  }
+}
 
 const onCopyOrderId = (orderId: string) => {
   navigator.clipboard.writeText(orderId)
@@ -71,7 +154,7 @@ const isModelOpen = ref(false)
   <div class="mt-2 flex items-center gap-4">
     <div class="flex items-baseline gap- text-orange-300">
       <span class="font-bold text-lg">
-        {{ isLoadingRewardsEssential ? '-' : eventRewardsEssential?.total }}
+        {{ isLoadingRewardsEssential ? '-' : standbyRewardsEssential?.total }}
       </span>
 
       <span class="text-sm ml-1 uppercase">
@@ -82,9 +165,11 @@ const isModelOpen = ref(false)
     <!-- claim button -->
     <button
       class="rounded bg-orange-300 text-orange-950 px-4 py-1 shadow-md shadow-orange-300/20 text-sm hover:shadow-orange-300/50 disabled:opacity-30 disabled:saturate-50 disabled:shadow-none"
-      @click=""
-      :disabled="!eventRewardsEssential || eventRewardsEssential.total === 0"
-      v-if="eventRewardsEssential && eventRewardsEssential.total > 0"
+      @click="onClaimReward"
+      :disabled="
+        !standbyRewardsEssential || standbyRewardsEssential.total === 0
+      "
+      v-if="standbyRewardsEssential && standbyRewardsEssential.total > 0"
     >
       Claim
     </button>

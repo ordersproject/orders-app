@@ -573,10 +573,12 @@ export const getMyStandbyRewardsEssential = async ({
   const network = useNetworkStore().network
   const { publicKey, signature } = await sign()
 
+  const rewardType = tick === 'rdex' ? '12' : '2'
   const params = new URLSearchParams({
     tick,
     address,
     net: network,
+    rewardType,
   })
 
   return await ordersApiFetch(`event/reward/info?${params}`, {
@@ -654,6 +656,51 @@ export const claimEventReward = async ({
       feeUtxoTxId,
       networkFeeRate,
       feeRawTx,
+    }),
+  })
+}
+
+export const claimStandbyReward = async ({
+  rewardAmount,
+  tick,
+  feeSend,
+  feeInscription,
+  networkFeeRate,
+  feeUtxoTxId,
+  feeRawTx,
+}: {
+  rewardAmount: number
+  tick: string
+  feeSend: number
+  feeInscription: number
+  networkFeeRate: number
+  feeUtxoTxId: string
+  feeRawTx: string
+}) => {
+  const network = useNetworkStore().network
+  const address = useAddressStore().get!
+  const { publicKey, signature } = await sign()
+  const rewardType = tick === 'rdex' ? '12' : '2'
+
+  return await ordersApiFetch(`event/reward/claim`, {
+    method: 'POST',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+    body: JSON.stringify({
+      net: network,
+      rewardAmount,
+      address,
+      tick,
+      version: 2,
+
+      feeInscription,
+      feeSend,
+      feeUtxoTxId,
+      networkFeeRate,
+      feeRawTx,
+      rewardType,
     }),
   })
 }
