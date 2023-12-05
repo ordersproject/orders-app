@@ -266,7 +266,7 @@ const { data: fiatRate } = useQuery({
       </span>
     </PopoverButton>
 
-    <PopoverOverlay class="fixed inset-0 z-10 bg-black/50" />
+    <PopoverOverlay class="fixed inset-0 z-50 bg-black/50" />
 
     <transition
       enter-active-class="transition ease-out duration-100"
@@ -277,7 +277,7 @@ const { data: fiatRate } = useQuery({
       leave-to-class="transform opacity-0 scale-95"
     >
       <PopoverPanel
-        class="absolute z-10 right-0 mt-4 w-[720px] origin-top-right overflow-hidden rounded-md bg-zinc-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none px-4 shadow-orange-300/20"
+        class="absolute z-50 right-0 mt-4 w-[720px] origin-top-right overflow-hidden rounded-md bg-zinc-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none px-4 shadow-orange-300/20"
       >
         <div class="divide-y-2 divide-zinc-700">
           <div class="py-4">

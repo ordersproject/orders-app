@@ -563,6 +563,38 @@ export const getMyEventRewardsEssential = async ({
   })
 }
 
+export const getMyStandbyRewardsEssential = async ({
+  tick,
+  address,
+}: {
+  tick: string
+  address: string
+}): Promise<RewardsEssential> => {
+  const network = useNetworkStore().network
+  const { publicKey, signature } = await sign()
+
+  const params = new URLSearchParams({
+    tick,
+    address,
+    net: network,
+  })
+
+  return await ordersApiFetch(`event/reward/info?${params}`, {
+    method: 'GET',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  }).then((res) => {
+    if (res.HasReleasePoolOrderCount) {
+      res.hasReleasePoolOrderCount = res.HasReleasePoolOrderCount
+      delete res.HasReleasePoolOrderCount
+    }
+
+    return res
+  })
+}
+
 export const getEventClaimFees = async () => {
   const feeb = useFeebStore().get ?? raise('Choose a fee rate first.')
   const { publicKey, signature } = await sign()
