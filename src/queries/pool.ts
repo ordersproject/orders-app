@@ -657,6 +657,7 @@ export const claimEventReward = async ({
       feeUtxoTxId,
       networkFeeRate,
       feeRawTx,
+      rewardType: 12,
     }),
   })
 }
