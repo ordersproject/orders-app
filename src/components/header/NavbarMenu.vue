@@ -12,11 +12,16 @@ import {
 import logo from '@/assets/logo-new.png?url'
 import { VERSION } from '@/data/constants'
 import { useStorage } from '@vueuse/core'
-import { useAddressStore, useCredentialsStore } from '@/store'
+import {
+  useAddressStore,
+  useConnectionStore,
+  useCredentialsStore,
+} from '@/store'
 import { ElMessage } from 'element-plus'
 
 const useBtcUnit = useStorage('use-btc-unit', true)
 const addressStore = useAddressStore()
+const connectionStore = useConnectionStore()
 const showFiatPrice = useStorage('show-fiat-price', true)
 const credentialStore = useCredentialsStore()
 
@@ -36,7 +41,7 @@ function clearCache() {
 
 function onDisconnect() {
   // remove from address store
-  addressStore.disconnect()
+  connectionStore.disconnect()
 
   // reload
   window.location.reload()
@@ -144,7 +149,7 @@ function onDisconnect() {
             </button>
           </MenuItem>
 
-          <MenuItem>
+          <MenuItem v-if="connectionStore.has">
             <button
               class="p-4 block hover:text-orange-300 transition w-full text-left"
               @click="onDisconnect"

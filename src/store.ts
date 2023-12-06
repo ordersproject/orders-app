@@ -4,6 +4,7 @@ import { type ECPairAPI } from 'ecpair'
 import { useLocalStorage, type RemovableRef } from '@vueuse/core'
 
 import { type SimpleUtxoFromMempool } from './queries/proxy'
+import * as unisatConnector from '@/queries/unisat'
 import { DEBUG } from '@/data/constants'
 
 export const useGeoStore = defineStore('geo', {
@@ -11,6 +12,53 @@ export const useGeoStore = defineStore('geo', {
     return {
       pass: false,
     }
+  },
+})
+
+export type WalletConnection = {
+  wallet: 'unisat' | 'okx'
+  status: 'connected' | 'disconnected'
+}
+export const useConnectionStore = defineStore('connection', {
+  state: () => {
+    return {
+      last: useLocalStorage('last-connection', {
+        wallet: 'unisat',
+        status: 'disconnected',
+      } as WalletConnection) as RemovableRef<WalletConnection>,
+    }
+  },
+
+  getters: {
+    has: (state) => !!state.last,
+    connected: (state) => state.last.status === 'connected',
+  },
+
+  actions: {
+    async connect(wallet: 'unisat' | 'okx') {
+      if (!this.last) {
+        this.last = {
+          wallet,
+          status: 'connected',
+        }
+      }
+
+      if (wallet === 'unisat') {
+        await unisatConnector.connect()
+      }
+
+      this.last.status = 'connected'
+      this.last.wallet = wallet
+    },
+
+    disconnect() {
+      if (!this.last) return
+
+      this.last.status = 'disconnected'
+
+      // also disconnect from address store
+      useAddressStore().address = undefined
+    },
   },
 })
 
@@ -38,10 +86,6 @@ export const useAddressStore = defineStore('address', {
   actions: {
     set(address: string) {
       this.address = address
-    },
-
-    disconnect() {
-      this.address = undefined
     },
   },
 })
@@ -176,22 +220,6 @@ export const useCredentialsStore = defineStore('credentials', {
     remove(address: string) {
       this.credentials = this.credentials.filter((s) => s.address !== address)
     },
-  },
-})
-
-export type WalletConnection = {
-  wallet: 'unisat' | 'okx'
-  address: string
-  status: 'connected' | 'disconnected'
-}
-export const useConnectionStore = defineStore('connection', {
-  state: () => {
-    return {
-      last: useLocalStorage(
-        'last-connection',
-        undefined as WalletConnection | undefined
-      ) as RemovableRef<WalletConnection>,
-    }
   },
 })
 

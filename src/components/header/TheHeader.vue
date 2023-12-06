@@ -11,6 +11,7 @@ import {
   useDummiesStore,
   useNetworkStore,
   type Network,
+  useConnectionStore,
 } from '@/store'
 import { getAddress, connect } from '@/queries/unisat'
 import utils from '@/utils'
@@ -69,6 +70,19 @@ onBeforeUnmount(() => {
 })
 
 // connect / address related
+const connectionStore = useConnectionStore()
+const { data: address } = useQuery({
+  queryKey: ['address', { network: networkStore.network }],
+  queryFn: async () => getAddress(),
+  retry: 0,
+  enabled: computed(() => connectionStore.connected),
+})
+
+const connectionsModalOpen = ref(false)
+function popConnectionsModal() {
+  connectionsModalOpen.value = true
+}
+
 async function connectWallet() {
   if (!window.unisat) {
     unisatModalOpen.value = true
@@ -78,11 +92,6 @@ async function connectWallet() {
   await connect()
 }
 
-const { data: address } = useQuery({
-  queryKey: ['address', { network: networkStore.network }],
-  queryFn: async () => getAddress(),
-  retry: 0,
-})
 const enabled = computed(() => !!address.value)
 useQuery({
   queryKey: [
@@ -125,6 +134,10 @@ const unisatModalOpen = ref(false)
 </script>
 
 <template>
+  <ConnectionsModal
+    v-model:open="connectionsModalOpen"
+    @open-unisat-modal="unisatModalOpen = true"
+  />
   <UnisatModal v-model:open="unisatModalOpen" />
 
   <header class="flex items-center justify-between px-6 py-4 select-none">
@@ -151,8 +164,8 @@ const unisatModalOpen = ref(false)
 
       <button
         class="h-10 rounded-lg border-2 border-orange-300 px-4 transition hover:text-orange-950 hover:bg-orange-300"
-        @click="connectWallet"
-        v-if="!addressStore.get"
+        @click="popConnectionsModal"
+        v-if="!connectionStore.connected"
       >
         Connect Wallet
       </button>

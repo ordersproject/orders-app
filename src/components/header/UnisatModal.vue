@@ -3,6 +3,7 @@ import {
   Dialog,
   DialogPanel,
   DialogTitle,
+  DialogDescription,
   TransitionChild,
   TransitionRoot,
 } from '@headlessui/vue'
@@ -83,10 +84,10 @@ function goToUnisat() {
                     >Unisat not installed</DialogTitle
                   >
                   <div class="mt-2">
-                    <p class="text-sm text-zinc-500">
+                    <DialogDescription class="text-sm text-zinc-500">
                       Orders.Exchange requires Unisat to be installed. Please
                       install Unisat to continue.
-                    </p>
+                    </DialogDescription>
                   </div>
                 </div>
               </div>
