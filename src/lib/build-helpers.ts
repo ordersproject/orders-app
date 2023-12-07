@@ -3,7 +3,7 @@ import { Buffer } from 'buffer'
 import { isTaprootInput } from 'bitcoinjs-lib/src/psbt/bip371'
 import Decimal from 'decimal.js'
 
-import { useAddressStore, useBtcJsStore, useFeebStore } from '@/store'
+import { useBtcJsStore, useConnectionStore, useFeebStore } from '@/store'
 import {
   DUST_UTXO_VALUE,
   FEEB_MULTIPLIER,
@@ -134,7 +134,7 @@ export function calculatePsbtFee(psbt: Psbt, feeRate: number, isMs?: boolean) {
   // clone a new psbt to mock the finalization
   const clonedPsbt = psbt.clone()
   const address =
-    useAddressStore().get ??
+    useConnectionStore().getAddress ??
     raise('Please connect to your UniSat wallet first.')
 
   // mock the change output
@@ -183,7 +183,7 @@ export async function exclusiveChange({
   const feeb = useFeebStore().get ?? raise('Choose a fee rate first.')
   // check if address is set
   const address =
-    useAddressStore().get ??
+    useConnectionStore().getAddress ??
     raise('Please connect to your UniSat wallet first.')
 
   // check if useSize is set but maxUtxosCount is larger than 1

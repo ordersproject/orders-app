@@ -1,12 +1,8 @@
-import { useAddressStore } from '../store'
 import { ElMessage } from 'element-plus'
-import { login } from './orders-api'
 
 export const getAddress = async () => {
   if (!window.unisat) {
     return ''
-    ElMessage.warning('Please install the Unisat wallet extension first.')
-    throw new Error('Please install the Unisat wallet extension first.')
   }
 
   const addresses = await window.unisat.getAccounts()
@@ -20,18 +16,13 @@ export const getAddress = async () => {
       throw new Error('Please use a SegWit address')
     }
 
-    useAddressStore().set(addresses[0])
-
-    // login to orders api
-    await login()
-
     return addresses[0]
   }
 
   return ''
 }
 
-export const connect = async () => {
+export const connect: () => Promise<string> = async () => {
   const connectRes = await window.unisat.requestAccounts()
   if (connectRes && connectRes.length) {
     // if it's a legacy address(1... or m..., n...), throw error
@@ -41,14 +32,8 @@ export const connect = async () => {
       connectRes[0].startsWith('m') ||
       connectRes[0].startsWith('n')
     ) {
-      ElMessage.error('Please use a SegWit address')
-      return
+      throw new Error('Please use a SegWit address')
     }
-
-    useAddressStore().set(connectRes[0])
-
-    // login to orders api
-    await login()
 
     return connectRes[0]
   }

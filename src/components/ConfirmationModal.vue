@@ -16,7 +16,7 @@ import {
   pushBuyTake,
   pushSellTake,
 } from '@/queries/orders-api'
-import { useAddressStore, useBtcJsStore, useNetworkStore } from '@/store'
+import { useBtcJsStore, useConnectionStore, useNetworkStore } from '@/store'
 import { DEBUG, SIGHASH_ALL_ANYONECANPAY } from '@/data/constants'
 import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
 import assets from '@/data/assets'
@@ -24,7 +24,6 @@ import { useExcludedBalanceQuery } from '@/queries/excluded-balance'
 
 const unisat = window.unisat
 
-const addressStore = useAddressStore()
 const networkStore = useNetworkStore()
 
 const confirmButtonRef = ref<HTMLElement | null>(null)
@@ -50,9 +49,10 @@ function clearBuiltInfo() {
 
 const selectedPair = inject(selectedPairKey, defaultPair)
 
+const connectionStore = useConnectionStore()
 const { data: balance } = useExcludedBalanceQuery(
-  computed(() => addressStore.get),
-  computed(() => !!addressStore.get)
+  computed(() => connectionStore.getAddress),
+  computed(() => !!connectionStore.connected)
 )
 
 function getIconFromSymbol(symbol: string) {
@@ -97,7 +97,7 @@ async function submitBidOrder() {
     const pushRes = await pushBidOrder({
       psbtRaw: signed,
       network: networkStore.ordersNetwork,
-      address: addressStore.get!,
+      address: connectionStore.getAddress,
       tick: selectedPair.fromSymbol,
       feeb: builtInfo.feeb,
       fee: builtInfo.mainFee,
@@ -171,7 +171,7 @@ async function submitOrder() {
           psbtRaw: signed,
           network: networkStore.ordersNetwork,
           orderId: builtInfo.orderId,
-          address: addressStore.get!,
+          address: connectionStore.getAddress,
           value: builtInfo.value,
           amount: builtInfo.amount,
           networkFee: builtInfo.selfFee,
@@ -182,7 +182,7 @@ async function submitOrder() {
         pushRes = await pushBidOrder({
           psbtRaw: signed,
           network: networkStore.ordersNetwork,
-          address: addressStore.get!,
+          address: connectionStore.getAddress,
           tick: selectedPair.fromSymbol,
           feeb: builtInfo.feeb,
           fee: builtInfo.networkFee,
@@ -195,7 +195,7 @@ async function submitOrder() {
         pushRes = await pushAskOrder({
           psbtRaw: signed,
           network: networkStore.ordersNetwork,
-          address: addressStore.get!,
+          address: connectionStore.getAddress,
           tick: selectedPair.fromSymbol,
           amount: builtInfo.amount,
         })

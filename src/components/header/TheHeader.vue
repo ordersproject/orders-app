@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { Ref, computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useQuery } from '@tanstack/vue-query'
 import { ShieldAlertIcon, CheckCircle2 } from 'lucide-vue-next'
@@ -7,23 +7,21 @@ import { ShieldAlertIcon, CheckCircle2 } from 'lucide-vue-next'
 import unisatIcon from '@/assets/unisat-icon.png?url'
 import { prettyAddress } from '@/lib/formatters'
 import {
-  useAddressStore,
   useDummiesStore,
   useNetworkStore,
   type Network,
   useConnectionStore,
 } from '@/store'
-import { getAddress, connect } from '@/queries/unisat'
+import { getAddress } from '@/queries/unisat'
 import utils from '@/utils'
 import whitelist from '@/lib/whitelist'
 
-import UnisatModal from './UnisatModal.vue'
+import WalletMissingModal from './WalletMissingModal.vue'
 import AssetsDisplay from './AssetsDisplay.vue'
 import NetworkState from './NetworkState.vue'
 import Notifications from './Notifications.vue'
 import TheNavbar from './TheNavbar.vue'
 
-const addressStore = useAddressStore()
 const networkStore = useNetworkStore()
 const dummiesStore = useDummiesStore()
 
@@ -42,7 +40,7 @@ onMounted(async () => {
 
     // getNetwork
     const network: Network = await unisat.getNetwork()
-    const address = addressStore.get
+    const address = connectionStore.getAddress
 
     // if not in whitelist, switch to mainnet
     if (network === 'testnet' && address && !whitelist.includes(address)) {
@@ -73,7 +71,8 @@ onBeforeUnmount(() => {
 const connectionStore = useConnectionStore()
 const { data: address } = useQuery({
   queryKey: ['address', { network: networkStore.network }],
-  queryFn: async () => getAddress(),
+  queryFn: async () =>
+    connectionStore.sync().then((connection) => connection?.address),
   retry: 0,
   enabled: computed(() => connectionStore.connected),
 })
@@ -81,15 +80,6 @@ const { data: address } = useQuery({
 const connectionsModalOpen = ref(false)
 function popConnectionsModal() {
   connectionsModalOpen.value = true
-}
-
-async function connectWallet() {
-  if (!window.unisat) {
-    unisatModalOpen.value = true
-    return
-  }
-
-  await connect()
 }
 
 const enabled = computed(() => !!address.value)
@@ -101,7 +91,6 @@ useQuery({
   queryFn: async () =>
     utils.checkAndSelectDummies({
       checkOnly: true,
-      addressParam: address.value,
     }),
   retry: 0,
   enabled,
@@ -125,20 +114,29 @@ async function switchNetwork() {
 
 function copyAddress() {
   // copy address value to clipboard
-  if (!addressStore.get) return
-  navigator.clipboard.writeText(addressStore.get)
+  const address = connectionStore.getAddress
+  if (!address) return
+  navigator.clipboard.writeText(address)
   ElMessage.success('Address copied to clipboard')
 }
 
-const unisatModalOpen = ref(false)
+const walletMissingModalOpen = ref(false)
+const missingWallet: Ref<'unisat' | 'okx'> = ref('unisat')
+function onWalletMissing(wallet: 'unisat' | 'okx') {
+  missingWallet.value = wallet
+  walletMissingModalOpen.value = true
+}
 </script>
 
 <template>
   <ConnectionsModal
     v-model:open="connectionsModalOpen"
-    @open-unisat-modal="unisatModalOpen = true"
+    @wallet-missing="onWalletMissing"
   />
-  <UnisatModal v-model:open="unisatModalOpen" />
+  <WalletMissingModal
+    v-model:open="walletMissingModalOpen"
+    :missing-wallet="missingWallet"
+  />
 
   <header class="flex items-center justify-between px-6 py-4 select-none">
     <TheNavbar />
@@ -151,7 +149,6 @@ const unisatModalOpen = ref(false)
           :content="`Click to switch to ${
             networkStore.network === 'testnet' ? 'livenet' : 'testnet'
           } `"
-          v-if="addressStore.get && whitelist.includes(addressStore.get)"
         >
           <button
             class="h-10 cursor-pointer items-center rounded-lg bg-black/90 px-4 text-sm text-zinc-300 transition hover:text-orange-300"
@@ -181,7 +178,7 @@ const unisatModalOpen = ref(false)
           >
             <img class="h-5" :src="unisatIcon" alt="Unisat" />
             <span class="text-sm text-orange-300">
-              {{ prettyAddress(addressStore.get, 4) }}
+              {{ address ? prettyAddress(address, 4) : '-' }}
             </span>
           </div>
 

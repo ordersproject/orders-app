@@ -10,7 +10,7 @@ import {
   getMyEventRecords,
   getMyEventRewardsEssential,
 } from '@/queries/pool'
-import { useAddressStore, useBtcJsStore } from '@/store'
+import { useBtcJsStore, useConnectionStore } from '@/store'
 import { buildEventClaim } from '@/lib/order-pool-builder'
 import { DEBUG, EVENT_REWARDS_TICK } from '@/data/constants'
 
@@ -20,20 +20,20 @@ import { sleep } from '@/lib/helpers'
 import { HelpCircleIcon } from 'lucide-vue-next'
 
 const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
-const addressStore = useAddressStore()
-const enabled = computed(() => !!addressStore.get)
+const connectionStore = useConnectionStore()
+const enabled = computed(() => connectionStore.connected)
 
 const { data: eventRecords, isLoading: isLoadingEventRecords } = useQuery({
   queryKey: [
     'eventRecords',
     {
-      address: addressStore.get as string,
+      address: connectionStore.getAddress,
       tick: selectedPair.fromSymbol,
     },
   ],
   queryFn: () =>
     getMyEventRecords({
-      address: addressStore.get as string,
+      address: connectionStore.getAddress,
       tick: selectedPair.fromSymbol,
     }),
   enabled,
@@ -43,11 +43,11 @@ const { data: eventRewardsEssential, isLoading: isLoadingRewardsEssential } =
   useQuery({
     queryKey: [
       'eventRewardsEssential',
-      { address: addressStore.get as string, tick: selectedPair.fromSymbol },
+      { address: connectionStore.getAddress, tick: selectedPair.fromSymbol },
     ],
     queryFn: () =>
       getMyEventRewardsEssential({
-        address: addressStore.get as string,
+        address: connectionStore.getAddress,
         tick: selectedPair.fromSymbol,
       }),
     select: (data) => {
@@ -59,7 +59,7 @@ const { data: eventRewardsEssential, isLoading: isLoadingRewardsEssential } =
           data.hadClaimRewardAmount,
       }
     },
-    enabled: computed(() => !!addressStore.get),
+    enabled: computed(() => connectionStore.connected),
   })
 
 const queryClient = useQueryClient()
@@ -71,7 +71,7 @@ const { mutate: mutateClaimEventReward } = useMutation({
       queryKey: [
         'eventRewardsEssential',
         {
-          address: addressStore.get as string,
+          address: connectionStore.getAddress,
           tick: selectedPair.fromSymbol,
         },
       ],
@@ -79,7 +79,7 @@ const { mutate: mutateClaimEventReward } = useMutation({
     queryClient.invalidateQueries({
       queryKey: [
         'eventRewardsClaimRecords',
-        { address: addressStore.get as string, tick: EVENT_REWARDS_TICK },
+        { address: connectionStore.getAddress, tick: EVENT_REWARDS_TICK },
       ],
     })
   },

@@ -2,8 +2,8 @@ import { Buffer } from 'buffer'
 import Decimal from 'decimal.js'
 
 import {
-  useAddressStore,
   useBtcJsStore,
+  useConnectionStore,
   useCredentialsStore,
   useNetworkStore,
 } from '@/store'
@@ -17,13 +17,12 @@ import {
   BTC_POOL_MODE,
   MS_BRC20_UTXO_VALUE,
   RELEASE_TX_SIZE,
-  SIGHASH_ALL_ANYONECANPAY,
   SIGHASH_SINGLE_ANYONECANPAY,
   USE_UTXO_COUNT_LIMIT,
 } from '@/data/constants'
 
 async function getBothPubKeys(type: 'btc' | 'brc20' = 'brc20') {
-  const selfAddress = useAddressStore().get!
+  const selfAddress = useConnectionStore().getAddress
   const credential = useCredentialsStore().getByAddress(selfAddress)
   const selfPubKey =
     credential?.publicKey ??
@@ -64,7 +63,7 @@ export async function buildAddBrcLiquidity({
 }) {
   const networkStore = useNetworkStore()
   const btcjs = useBtcJsStore().get!
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
 
   // Step 1: Get the ordinal utxo as input
   // if testnet, we use a cardinal utxo as a fake one
@@ -182,7 +181,7 @@ export async function buildAddBtcLiquidity({ total }: { total: Decimal }) {
   }
 
   // PSBT mode
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
 
   let input
   let separatePsbt

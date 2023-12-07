@@ -7,17 +7,16 @@ import { LoaderIcon } from 'lucide-vue-next'
 import { sleep } from '@/lib/helpers'
 import { buildClaimTake } from '@/lib/order-builder'
 import { getOneClaim, updateClaim } from '@/queries/orders-api'
-import { useAddressStore } from '@/store'
+import { useConnectionStore } from '@/store'
 
 import ClaimingOverlay from '@/components/overlays/Loading.vue'
 
 const router = useRouter()
-const addressStore = useAddressStore()
 
 const claimingAddress = ref('')
 // If it's not currently connected, warn and redirect to home
 sleep(1000).then(() => {
-  const address = addressStore.get
+  const address = useConnectionStore().getAddress
   if (!address) {
     ElMessage.warning({
       message: 'Please connect to Unisat',

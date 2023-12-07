@@ -3,9 +3,9 @@ import { computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 
 import { getIssues } from '@/queries/orders/issues'
-import { useAddressStore, useNetworkStore } from '@/store'
+import { useConnectionStore, useNetworkStore } from '@/store'
 
-const addressStore = useAddressStore()
+const connectionStore = useConnectionStore()
 const networkStore = useNetworkStore()
 
 const { data: issues } = useQuery({
@@ -13,14 +13,14 @@ const { data: issues } = useQuery({
     'issues',
     {
       network: networkStore.network,
-      address: addressStore.get as string,
+      address: connectionStore.getAddress,
     },
   ],
   queryFn: () =>
     getIssues({
-      address: addressStore.get as string,
+      address: connectionStore.getAddress,
     }),
-  enabled: computed(() => !!addressStore.get),
+  enabled: computed(() => !!connectionStore.connected),
 })
 </script>
 

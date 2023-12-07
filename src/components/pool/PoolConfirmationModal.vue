@@ -11,15 +11,14 @@ import { ElMessage } from 'element-plus'
 
 import { prettyAddress, prettyCoinDisplay } from '@/lib/formatters'
 import { pushAddLiquidity } from '@/queries/pool'
-import { useAddressStore, useBtcJsStore, useNetworkStore } from '@/store'
+import { useBtcJsStore, useConnectionStore, useNetworkStore } from '@/store'
 import { BTC_POOL_MODE, DEBUG } from '@/data/constants'
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import assets from '@/data/assets'
-import { useExcludedBalanceQuery } from '@/queries/excluded-balance'
 
 const unisat = window.unisat
 
-const addressStore = useAddressStore()
+const connectionStore = useConnectionStore()
 const networkStore = useNetworkStore()
 
 const confirmButtonRef = ref<HTMLElement | null>(null)
@@ -88,7 +87,7 @@ async function submitOrder() {
     const bidirectional = !!props.builtBtcInfo
     if (bidirectional && signedPsbts.length < 2) {
       throw new Error(
-        'Invalid signed transation. Please try again or contact customer service for assistance.'
+        'Invalid signed transaction. Please try again or contact customer service for assistance.'
       )
     }
     let btcTxOutputLocation: string = ''
@@ -105,7 +104,7 @@ async function submitOrder() {
       case 'add-liquidity':
         type LiquidityOffer = Parameters<typeof pushAddLiquidity>[0]
         const liquidityOffer: LiquidityOffer = {
-          address: addressStore.get!,
+          address: connectionStore.getAddress,
           amount: builtInfo.toValue.toNumber(),
           btcUtxoId:
             bidirectional && BTC_POOL_MODE === 2

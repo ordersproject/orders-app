@@ -57,5 +57,6 @@ declare module '@vue/runtime-core' {
     ToastTitle: typeof import('./src/components/ui/toast/ToastTitle.vue')['default']
     ToastViewport: typeof import('./src/components/ui/toast/ToastViewport.vue')['default']
     UnisatModal: typeof import('./src/components/header/UnisatModal.vue')['default']
+    WalletMissingModal: typeof import('./src/components/header/WalletMissingModal.vue')['default']
   }
 }

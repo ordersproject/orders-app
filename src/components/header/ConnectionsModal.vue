@@ -11,12 +11,12 @@ import { ref } from 'vue'
 import UnisatIcon from '@/assets/unisat-icon.png?url'
 import OkxIcon from '@/assets/okx-icon.png?url'
 import MetaletIcon from '@/assets/metalet-icon.png?url'
-import { connect } from '@/queries/unisat'
+import { useConnectionStore } from '@/store'
 
 defineProps<{
   open?: boolean
 }>()
-const emit = defineEmits(['update:open', 'openUnisatModal'])
+const emit = defineEmits(['update:open', 'walletMissing'])
 
 const goButtonRef = ref<HTMLElement | null>(null)
 
@@ -24,13 +24,29 @@ function close() {
   emit('update:open', false)
 }
 
-async function connectUnisat() {
+const connectionStore = useConnectionStore()
+async function connectToUnisat() {
   if (!window.unisat) {
-    emit('openUnisatModal')
+    emit('walletMissing', 'unisat')
     return
   }
 
-  await connect()
+  const connection = await connectionStore.connect('unisat')
+  if (connection.status === 'connected') {
+    close()
+  }
+}
+
+async function connectToOkx() {
+  if (!window.okxwallet) {
+    emit('walletMissing', 'okx')
+    return
+  }
+
+  const connection = await connectionStore.connect('okx')
+  if (connection.status === 'connected') {
+    close()
+  }
 }
 </script>
 
@@ -83,7 +99,7 @@ async function connectUnisat() {
                 <div class="grid grid-cols-3 gap-4 mt-8 text-base">
                   <button
                     class="flex flex-col gap-2 items-center justify-center rounded-lg bg-zinc-800 text-zinc-100 font-medium transition w-36 py-4 border border-zinc-500/50 hover:shadow-md hover:shadow-orange-300/30 hover:border-orange-300/30 hover:bg-orange-300 hover:text-orange-950"
-                    @click="close"
+                    @click="connectToOkx"
                   >
                     <img class="h-12 rounded" :src="OkxIcon" alt="Metamask" />
                     <span class="">OKX</span>
@@ -91,7 +107,7 @@ async function connectUnisat() {
 
                   <button
                     class="flex flex-col gap-2 items-center justify-center rounded-lg bg-zinc-800 text-zinc-100 font-medium transition w-36 py-4 border border-zinc-500/50 hover:shadow-md hover:shadow-orange-300/30 hover:border-orange-300/30 hover:bg-orange-300 hover:text-orange-950"
-                    @click="connectUnisat"
+                    @click="connectToUnisat"
                   >
                     <img
                       class="h-12 rounded"

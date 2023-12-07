@@ -6,4 +6,5 @@ interface Window {
   bitcoin: BitcoinJs
   ecpair: ECPairFactory
   unisat: any
+  okxwallet: any
 }

@@ -1,12 +1,12 @@
 import { ElMessage } from 'element-plus'
 
 import {
-  useAddressStore,
   useDummiesStore,
   useBtcJsStore,
   DummyUtxo,
   useNetworkStore,
   useFeebStore,
+  useConnectionStore,
 } from '@/store'
 import { getUtxos, getTxHex } from '@/queries/proxy'
 import { calculatePsbtFee } from '@/lib/build-helpers'
@@ -14,12 +14,8 @@ import { DUMMY_UTXO_VALUE } from '@/data/constants'
 import { raise } from '@/lib/helpers'
 
 const utils = {
-  checkAndSelectDummies: async ({
-    checkOnly = false,
-    addressParam = null,
-    collectMode = false,
-  }) => {
-    const address = addressParam || useAddressStore().get!
+  checkAndSelectDummies: async ({ checkOnly = false, collectMode = false }) => {
+    const address = useConnectionStore().getAddress
     const dummiesStore = useDummiesStore()
     const btcjsStore = useBtcJsStore()
     const networkStore = useNetworkStore()

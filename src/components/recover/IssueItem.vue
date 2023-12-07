@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { ref } from 'vue'
+import { useMutation, useQueryClient } from '@tanstack/vue-query'
+import { ElMessage } from 'element-plus'
 
-import { useAddressStore, useNetworkStore } from '@/store'
+import { useConnectionStore, useNetworkStore } from '@/store'
 import {
   getIssueDetail,
   submitRecover,
@@ -11,7 +12,6 @@ import {
 import { prettyTimestamp } from '@/lib/formatters'
 import { buildRecoverPsbt } from '@/lib/order-pool-builder'
 import { DEBUG, SIGHASH_SINGLE_ANYONECANPAY } from '@/data/constants'
-import { ElMessage } from 'element-plus'
 
 import BuildingOverlay from '@/components/overlays/Loading.vue'
 
@@ -19,7 +19,7 @@ const props = defineProps<{
   issue: Issue
 }>()
 
-const addressStore = useAddressStore()
+const connectionStore = useConnectionStore()
 const networkStore = useNetworkStore()
 
 const queryClient = useQueryClient()
@@ -32,7 +32,7 @@ const { mutate: mutateRecover } = useMutation({
         'issues',
         {
           network: networkStore.network,
-          address: addressStore.get as string,
+          address: connectionStore.getAddress,
         },
       ],
     })
@@ -48,7 +48,7 @@ async function onRecover() {
   try {
     // get brc psbt
     const issueDetail = await getIssueDetail({
-      address: addressStore.get as string,
+      address: connectionStore.getAddress,
       orderId: props.issue.orderId,
       tick: props.issue.tick,
     })
@@ -66,17 +66,17 @@ async function onRecover() {
     const toSignInputs: ToSignInput[] = [
       {
         index: 0,
-        address: addressStore.get!,
+        address: connectionStore.getAddress,
         sighashTypes: [SIGHASH_SINGLE_ANYONECANPAY],
       },
       {
         index: 1,
-        address: addressStore.get!,
+        address: connectionStore.getAddress,
         sighashTypes: [SIGHASH_SINGLE_ANYONECANPAY],
       },
       {
         index: 2,
-        address: addressStore.get!,
+        address: connectionStore.getAddress,
         sighashTypes: [SIGHASH_SINGLE_ANYONECANPAY],
       },
     ]

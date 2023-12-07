@@ -12,22 +12,17 @@ import {
 import logo from '@/assets/logo-new.png?url'
 import { VERSION } from '@/data/constants'
 import { useStorage } from '@vueuse/core'
-import {
-  useAddressStore,
-  useConnectionStore,
-  useCredentialsStore,
-} from '@/store'
+import { useConnectionStore, useCredentialsStore } from '@/store'
 import { ElMessage } from 'element-plus'
 
 const useBtcUnit = useStorage('use-btc-unit', true)
-const addressStore = useAddressStore()
 const connectionStore = useConnectionStore()
 const showFiatPrice = useStorage('show-fiat-price', true)
 const credentialStore = useCredentialsStore()
 
 function clearCache() {
   // clear the credential cache of this wallet address
-  const address = useAddressStore().get
+  const address = useConnectionStore().getAddress
   if (!address) return
 
   credentialStore.remove(address)
@@ -82,15 +77,6 @@ function onDisconnect() {
             </router-link>
           </MenuItem>
 
-          <MenuItem>
-            <router-link
-              to="/recover"
-              class="p-4 block hover:text-orange-300 transition"
-            >
-              Recover
-            </router-link>
-          </MenuItem>
-
           <MenuItem :disabled="true">
             <div class="flex items-center p-4 justify-between font-normal">
               <span class="text-zinc-500">Liquidity Mode</span>
@@ -138,6 +124,15 @@ function onDisconnect() {
                 ></span>
               </Switch>
             </SwitchGroup>
+          </MenuItem>
+
+          <MenuItem>
+            <router-link
+              to="/recover"
+              class="p-4 block hover:text-orange-300 transition"
+            >
+              Recover
+            </router-link>
           </MenuItem>
 
           <MenuItem>

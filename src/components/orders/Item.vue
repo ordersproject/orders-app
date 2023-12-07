@@ -4,13 +4,13 @@ import { XCircleIcon, BadgeCheckIcon } from 'lucide-vue-next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { ElMessage } from 'element-plus'
 
-import { useAddressStore } from '@/store'
+import { useConnectionStore } from '@/store'
 import { cancelOrder, type Order, getFiatRate } from '@/queries/orders-api'
 import { prettyBalance } from '@/lib/formatters'
 import { calcFiatPrice, showFiat, useBtcUnit } from '@/lib/helpers'
 import Decimal from 'decimal.js'
 
-const address = useAddressStore().get!
+const address = useConnectionStore().getAddress
 
 const props = defineProps<{
   order: Order

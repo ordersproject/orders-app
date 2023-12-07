@@ -4,8 +4,9 @@ import { type ECPairAPI } from 'ecpair'
 import { useLocalStorage, type RemovableRef } from '@vueuse/core'
 
 import { type SimpleUtxoFromMempool } from './queries/proxy'
-import * as unisatConnector from '@/queries/unisat'
-import { DEBUG } from '@/data/constants'
+import * as unisatQueries from '@/queries/unisat'
+import * as okxQueries from '@/queries/okx'
+import { login } from './queries/orders-api'
 
 export const useGeoStore = defineStore('geo', {
   state: () => {
@@ -18,6 +19,7 @@ export const useGeoStore = defineStore('geo', {
 export type WalletConnection = {
   wallet: 'unisat' | 'okx'
   status: 'connected' | 'disconnected'
+  address: string
 }
 export const useConnectionStore = defineStore('connection', {
   state: () => {
@@ -25,70 +27,115 @@ export const useConnectionStore = defineStore('connection', {
       last: useLocalStorage('last-connection', {
         wallet: 'unisat',
         status: 'disconnected',
+        address: '',
       } as WalletConnection) as RemovableRef<WalletConnection>,
     }
   },
 
   getters: {
     has: (state) => !!state.last,
-    connected: (state) => state.last.status === 'connected',
+    connected: (state) =>
+      state.last.status === 'connected' && !!state.last.address,
+    getAddress: (state) => state.last.address,
+    provider: (state) => {
+      if (!state.last) return null
+
+      return state.last.wallet === 'unisat' ? window.unisat : window.okxwallet
+    },
+    queries: (state) => {
+      if (!state.last) return null
+
+      const queries: {
+        getAddress: () => Promise<string>
+        connect: () => Promise<string>
+        getBalance: () => Promise<number>
+      } = state.last.wallet === 'unisat' ? unisatQueries : okxQueries
+
+      return queries
+    },
   },
 
   actions: {
     async connect(wallet: 'unisat' | 'okx') {
-      if (!this.last) {
-        this.last = {
-          wallet,
-          status: 'connected',
-        }
+      const connection = this.last ?? {
+        wallet,
+        status: 'connected',
       }
 
-      if (wallet === 'unisat') {
-        await unisatConnector.connect()
-      }
+      const address =
+        wallet === 'unisat'
+          ? await unisatQueries.connect()
+          : await okxQueries.connect()
+
+      connection.address = address
+
+      connection.status = 'connected'
+      connection.wallet = wallet
+
+      this.last = connection
+
+      await login()
+
+      return this.last
+    },
+
+    async sync() {
+      // get address again from wallet
+      if (!this.connected) return
+
+      const address =
+        this.last.wallet === 'unisat'
+          ? await unisatQueries.getAddress()
+          : await okxQueries.getAddress()
 
       this.last.status = 'connected'
-      this.last.wallet = wallet
+      this.last.address = address
+
+      await login()
+
+      return this.last
     },
 
     disconnect() {
       if (!this.last) return
 
       this.last.status = 'disconnected'
-
-      // also disconnect from address store
-      useAddressStore().address = undefined
+      this.last.address = ''
     },
   },
 })
 
-export const useAddressStore = defineStore('address', {
-  state: () => {
-    return {
-      address: undefined as string | undefined,
-    }
-  },
+// export const useAddressStore = defineStore('address', {
+//   state: () => {
+//     return {
+//       address: undefined as string | undefined,
+//     }
+//   },
 
-  getters: {
-    get: (state) => {
-      if (
-        DEBUG &&
-        import.meta.env.VITE_TESTING_ADDRESS &&
-        import.meta.env.VITE_ENVIRONMENT === 'development'
-      ) {
-        return import.meta.env.VITE_TESTING_ADDRESS
-      }
+//   getters: {
+//     get: (state) => {
+//       if (
+//         DEBUG &&
+//         import.meta.env.VITE_TESTING_ADDRESS &&
+//         import.meta.env.VITE_ENVIRONMENT === 'development'
+//       ) {
+//         return import.meta.env.VITE_TESTING_ADDRESS as string
+//       }
 
-      return state.address
-    },
-  },
+//       return state.address
+//     },
+//   },
 
-  actions: {
-    set(address: string) {
-      this.address = address
-    },
-  },
-})
+//   actions: {
+//     set(address: string) {
+//       this.address = address
+//     },
+
+//     remove() {
+//       this.address = undefined
+//     },
+//   },
+// })
 
 export const useFeebStore = defineStore('feeb', {
   state: () => {

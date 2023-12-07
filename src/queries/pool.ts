@@ -1,8 +1,7 @@
-import { DEBUG } from '@/data/constants'
 import { ordersApiFetch } from '@/lib/fetch'
 import { raise } from '@/lib/helpers'
 import sign from '@/lib/sign'
-import { useAddressStore, useFeebStore, useNetworkStore } from '@/store'
+import { useConnectionStore, useFeebStore, useNetworkStore } from '@/store'
 
 type PoolPair = {
   fromPoolSize: string
@@ -305,7 +304,7 @@ export const getMyStandbys = async ({
   tick: string
 }): Promise<RewardRecord[]> => {
   const network = useNetworkStore().network
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
   const { publicKey, signature } = await sign()
 
   const params = new URLSearchParams({
@@ -451,7 +450,7 @@ export const getReleaseEssential = async ({
   tick: string
 }): Promise<ReleaseEssential> => {
   const network = useNetworkStore().network
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
   const { publicKey, signature } = await sign()
 
   return await ordersApiFetch(`pool/order/claim`, {
@@ -636,7 +635,7 @@ export const claimEventReward = async ({
   feeRawTx: string
 }) => {
   const network = useNetworkStore().network
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
   const { publicKey, signature } = await sign()
 
   return await ordersApiFetch(`event/reward/claim`, {
@@ -680,7 +679,7 @@ export const claimStandbyReward = async ({
   feeRawTx: string
 }) => {
   const network = useNetworkStore().network
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
   const { publicKey, signature } = await sign()
   const rewardType = tick === 'rdex' ? 12 : 2
 
@@ -713,7 +712,7 @@ export const getMyEventRewardsClaimRecords = async ({
   tick: string
 }): Promise<RewardsClaimRecord[]> => {
   const network = useNetworkStore().network
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
   const { publicKey, signature } = await sign()
 
   const params = new URLSearchParams({
@@ -752,7 +751,7 @@ export const getMyStandbyRewardsClaimRecords = async ({
   tick: string
 }): Promise<RewardsClaimRecord[]> => {
   const network = useNetworkStore().network
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
   const { publicKey, signature } = await sign()
 
   const params = new URLSearchParams({
@@ -844,7 +843,7 @@ export const getMyRewardsClaimRecords = async ({
   tick: string
 }): Promise<RewardsClaimRecord[]> => {
   const network = useNetworkStore().network
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
   const { publicKey, signature } = await sign()
 
   const rewardType = tick === 'rdex' ? '11' : '0'
@@ -887,7 +886,7 @@ export const claimReward = async ({
   tick: string
 }) => {
   const network = useNetworkStore().network
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
   const { publicKey, signature } = await sign()
 
   return await ordersApiFetch(`pool/reward/claim`, {

@@ -3,15 +3,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { computed } from 'vue'
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 
-import { useAddressStore, useNetworkStore } from '@/store'
+import { useConnectionStore, useNetworkStore } from '@/store'
 import { getNotifications, clearNotifications } from '@/queries/orders-api'
 import { BellRingIcon } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 
 const networkStore = useNetworkStore()
-const addressStore = useAddressStore()
-const address = computed(() => addressStore.get)
-const enabled = computed(() => !!addressStore.get)
+const address = computed(() => useConnectionStore().getAddress)
+const enabled = computed(() => !!useConnectionStore().connected)
 
 const { data: notifications } = useQuery({
   queryKey: [

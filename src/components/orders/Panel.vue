@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Ref, computed, onMounted, provide, ref, watch } from 'vue'
+import { Ref, computed, provide, ref, watch } from 'vue'
 import {
   TabGroup,
   TabList,
@@ -17,22 +17,23 @@ import {
 import {
   CheckIcon,
   ChevronsUpDownIcon,
-  RefreshCcwIcon,
   XIcon,
   BookPlusIcon,
+  ChevronRightIcon,
 } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import { useQuery } from '@tanstack/vue-query'
 import Decimal from 'decimal.js'
+import { get } from '@vueuse/core'
 
-import btcIcon from '@/assets/btc.svg?url'
-import { prettyBalance, prettyBtcDisplay } from '@/lib/formatters'
+import { prettyBalance } from '@/lib/formatters'
 import { sleep, unit, useBtcUnit } from '@/lib/helpers'
 import { calculateFee } from '@/lib/build-helpers'
 import {
   buildAskLimit,
   buildBidLimit,
   buildSellTake,
+  buildBuyTake,
 } from '@/lib/order-builder'
 import {
   getOrdiBalance,
@@ -44,25 +45,19 @@ import {
   type Brc20Transferable,
   type BidCandidate,
 } from '@/queries/orders-api'
-import {
-  useAddressStore,
-  useDummiesStore,
-  useFeebStore,
-  useNetworkStore,
-} from '@/store'
-import { buildBuyTake } from '@/lib/order-builder'
+import { useConnectionStore, useFeebStore, useNetworkStore } from '@/store'
 import { selectPair, selectedPairKey } from '@/data/trading-pairs'
 import { DEBUG, SELL_TX_SIZE } from '@/data/constants'
 
+import btcIcon from '@/assets/btc.svg?url'
 import OrderPanelHeader from './PanelHeader.vue'
 import OrderList from './List.vue'
 import OrderConfirmationModal from '../ConfirmationModal.vue'
-import { ChevronRightIcon } from 'lucide-vue-next'
-import { get } from '@vueuse/core'
 
 const unisat = window.unisat
 
-const addressStore = useAddressStore()
+const connectionStore = useConnectionStore()
+const address = connectionStore.getAddress
 const networkStore = useNetworkStore()
 const feebStore = useFeebStore()
 
@@ -416,30 +411,28 @@ const { data: ordiBalance } = useQuery({
   queryKey: [
     'ordiBalance',
     {
-      address: addressStore.get,
+      address,
       network: networkStore.network,
     },
   ],
-  queryFn: () => getOrdiBalance(addressStore.get!, networkStore.network),
+  queryFn: () => getOrdiBalance(address, networkStore.network),
 })
 const { data: myBrc20Info } = useQuery({
   queryKey: [
     'myBrc20Info',
     {
-      address: addressStore.get,
+      address,
       network: networkStore.network,
       tick: selectedPair.fromSymbol,
     },
   ],
   queryFn: () =>
     getOneBrc20({
-      address: addressStore.get!,
+      address,
       tick: selectedPair.fromSymbol,
     }),
 
-  enabled: computed(
-    () => networkStore.network !== 'testnet' && !!addressStore.get
-  ),
+  enabled: computed(() => networkStore.network !== 'testnet' && !!address),
 })
 const selectedAskCandidate: Ref<Brc20Transferable | undefined> = ref()
 
@@ -448,7 +441,7 @@ const { data: bidCandidates } = useQuery({
   queryKey: [
     'bidCandidates',
     {
-      address: addressStore.get,
+      address,
       network: networkStore.network,
       symbol: selectedPair.fromSymbol,
     },

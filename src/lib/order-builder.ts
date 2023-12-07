@@ -1,6 +1,6 @@
 import {
-  useAddressStore,
   useBtcJsStore,
+  useConnectionStore,
   useDummiesStore,
   useNetworkStore,
 } from '@/store'
@@ -41,7 +41,7 @@ export async function buildAskLimit({
 }) {
   const networkStore = useNetworkStore()
   const btcjs = useBtcJsStore().get!
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
 
   // Get address
   // Step 1: Get the ordinal utxo as input
@@ -166,7 +166,7 @@ export async function buildBidLimit({
   const orderNetwork = networkStore.network
   const btcNetwork = networkStore.btcNetwork
   const btcjs = window.bitcoin
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
   const isPool = !!selectedPair.hasPool
 
   // new version of building bid
@@ -276,7 +276,7 @@ export async function buildBuyTake({
   }
   selectedPair: TradingPair
 }) {
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
   const btcjs = useBtcJsStore().get!
   const btcNetwork = useNetworkStore().btcNetwork
   const dummiesStore = useDummiesStore()
@@ -414,7 +414,7 @@ export async function buildSellTake({
   selectedPair: TradingPair
 }) {
   const networkStore = useNetworkStore()
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
   const btcjs = useBtcJsStore().get!
 
   // Step 1: Get the ordinal utxo as input
@@ -519,7 +519,7 @@ export async function buildClaimTake({
 }: {
   claimPsbtRaw: string
 }) {
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
   const btcjs = useBtcJsStore().get!
   const btcNetwork = useNetworkStore().btcNetwork
   const dummiesStore = useDummiesStore()

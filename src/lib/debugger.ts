@@ -1,4 +1,4 @@
-import { useAddressStore } from '@/store'
+import { useConnectionStore } from '@/store'
 import { calculateFee } from './build-helpers'
 
 export async function debugBidLimit({
@@ -8,7 +8,7 @@ export async function debugBidLimit({
   exchange: any
   paymentInput: any
 }) {
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
   let totalInput = 0
   exchange.addInput(paymentInput)
   totalInput += 546
