@@ -104,7 +104,9 @@ const utils = {
       }
 
       // push
-      const signed = await window.unisat.signPsbt(dummiesPsbt.toHex())
+      const signed = await useConnectionStore().queries.signPsbt(
+        dummiesPsbt.toHex()
+      )
       const pushedTxid = await window.unisat.pushPsbt(signed)
 
       // extract txHex

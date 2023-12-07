@@ -548,7 +548,6 @@ export const pushBuyTake = async ({
   psbtRaw: string
   orderId: string
 }) => {
-  // const pushTxId = await window.unisat.pushPsbt(psbtRaw)
   const address = useConnectionStore().getAddress
 
   const { publicKey, signature } = await sign()

@@ -81,7 +81,7 @@ async function onRecover() {
       },
     ]
 
-    const signed = await window.unisat.signPsbt(releasePsbt.toHex(), {
+    const signed = await connectionStore.queries.signPsbt(releasePsbt.toHex(), {
       autoFinalized: true,
       toSignInputs,
     })

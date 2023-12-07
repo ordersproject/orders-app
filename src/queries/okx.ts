@@ -2,6 +2,13 @@ import { ElMessage } from 'element-plus'
 import { fetchBalance } from './proxy'
 import { useConnectionStore } from '@/store'
 
+function checkOkx() {
+  if (!window.okxwallet) {
+    ElMessage.warning('Please install the Okx wallet extension first.')
+    throw new Error('Please install the Okx wallet extension first.')
+  }
+}
+
 export const getAddress = async () => {
   if (!window.okxwallet) {
     return ''
@@ -52,10 +59,7 @@ export const connect: () => Promise<string> = async () => {
 }
 
 export const getBalance = async () => {
-  if (!window.okxwallet) {
-    ElMessage.warning('Please install the Okx wallet extension first.')
-    throw new Error('Please install the Okx wallet extension first.')
-  }
+  checkOkx()
 
   const address = useConnectionStore().getAddress
 
@@ -63,4 +67,25 @@ export const getBalance = async () => {
     (balanceInfo) => balanceInfo.confirmed + balanceInfo.unconfirmed
   )
   return balance
+}
+
+export const inscribe = async (tick: string) => {
+  checkOkx()
+
+  const address = useConnectionStore().getAddress
+  console.log({ tick })
+
+  return await window.okxwallet.bitcoin.inscribe({
+    type: 51,
+    from: address,
+    tick,
+  })
+}
+
+export const signPsbt = async (psbt: string) => {
+  checkOkx()
+
+  const address = useConnectionStore().getAddress
+
+  return await window.okxwallet.bitcoin.signPsbt(psbt, { from: address })
 }

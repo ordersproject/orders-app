@@ -43,12 +43,14 @@ export const useConnectionStore = defineStore('connection', {
       return state.last.wallet === 'unisat' ? window.unisat : window.okxwallet
     },
     queries: (state) => {
-      if (!state.last) return null
+      if (!state.last) throw new Error('No connection')
 
       const queries: {
         getAddress: () => Promise<string>
         connect: () => Promise<string>
         getBalance: () => Promise<number>
+        inscribe: (tick: string) => Promise<string>
+        signPsbt: (psbt: string, options?: any) => Promise<string>
       } = state.last.wallet === 'unisat' ? unisatQueries : okxQueries
 
       return queries

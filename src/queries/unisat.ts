@@ -1,5 +1,12 @@
 import { ElMessage } from 'element-plus'
 
+function checkUnisat() {
+  if (!window.unisat) {
+    ElMessage.warning('Please install the Unisat wallet extension first.')
+    throw new Error('Please install the Unisat wallet extension first.')
+  }
+}
+
 export const getAddress = async () => {
   if (!window.unisat) {
     return ''
@@ -40,10 +47,7 @@ export const connect: () => Promise<string> = async () => {
 }
 
 export const getBalance = async () => {
-  if (!window.unisat) {
-    ElMessage.warning('Please install the Unisat wallet extension first.')
-    throw new Error('Please install the Unisat wallet extension first.')
-  }
+  checkUnisat()
 
   const balance: number = await window.unisat
     .getBalance()
@@ -52,4 +56,19 @@ export const getBalance = async () => {
         info.total
     )
   return balance
+}
+
+export const inscribe = async (tick: string): Promise<string> => {
+  checkUnisat()
+
+  return await window.unisat.inscribeTransfer(tick)
+}
+
+export const signPsbt = async (
+  psbt: string,
+  options?: any
+): Promise<string> => {
+  checkUnisat()
+
+  return await window.unisat.signPsbt(psbt, options)
 }

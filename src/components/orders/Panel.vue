@@ -338,7 +338,9 @@ async function buildOrder() {
 }
 
 async function goInscribe() {
-  await window.unisat.inscribeTransfer(selectedPair.fromSymbol)
+  const queries = connectionStore.queries
+
+  await queries?.inscribe(selectedPair.fromSymbol)
 }
 
 // confirm modal

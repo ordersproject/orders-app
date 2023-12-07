@@ -121,8 +121,7 @@ async function claim() {
   })
 
   // sign
-  const signed = await window.unisat.signPsbt(order.toHex())
-  console.log({ signed })
+  const signed = await useConnectionStore().queries.signPsbt(order.toHex())
 
   if (!signed) {
     ElMessage.error({

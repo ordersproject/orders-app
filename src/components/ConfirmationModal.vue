@@ -22,8 +22,6 @@ import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
 import assets from '@/data/assets'
 import { useExcludedBalanceQuery } from '@/queries/excluded-balance'
 
-const unisat = window.unisat
-
 const networkStore = useNetworkStore()
 
 const confirmButtonRef = ref<HTMLElement | null>(null)
@@ -50,6 +48,7 @@ function clearBuiltInfo() {
 const selectedPair = inject(selectedPairKey, defaultPair)
 
 const connectionStore = useConnectionStore()
+const queries = connectionStore.queries
 const { data: balance } = useExcludedBalanceQuery(
   computed(() => connectionStore.getAddress),
   computed(() => !!connectionStore.connected)
@@ -73,7 +72,7 @@ async function submitBidOrder() {
 
   try {
     // 1. sign secondary order which is used to create the actual utxo to pay for the bid order
-    const payPsbtSigned = await window.unisat.signPsbt(
+    const payPsbtSigned = await queries.signPsbt(
       builtInfo.secondaryOrder.toHex()
     )
     const payPsbt = btcjs.Psbt.fromHex(payPsbtSigned)
@@ -91,7 +90,7 @@ async function submitBidOrder() {
     })
 
     // 3. we sign the bid order
-    const signed = await unisat.signPsbt(bidPsbt.toHex())
+    const signed = await queries.signPsbt(bidPsbt.toHex())
 
     // 4. push the bid order to the api
     const pushRes = await pushBidOrder({
@@ -153,7 +152,7 @@ async function submitOrder() {
 
   try {
     // 1. sign
-    const signed = await unisat.signPsbt(builtInfo.order.toHex())
+    const signed = await queries.signPsbt(builtInfo.order.toHex())
 
     let pushRes: any
     // 2. push
