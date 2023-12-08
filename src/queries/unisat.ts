@@ -46,6 +46,8 @@ export const connect: () => Promise<string> = async () => {
   }
 }
 
+export const disconnect = async () => {}
+
 export const getBalance = async () => {
   checkUnisat()
 

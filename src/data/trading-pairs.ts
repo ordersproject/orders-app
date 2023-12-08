@@ -21,6 +21,7 @@ const tradingPairs = [
   {
     id: 1,
     fromSymbol: 'rdex',
+    exactName: 'RDEX',
     toSymbol: 'btc',
     fromIcon: rdexLogo,
     toIcon: btcLogo,
@@ -31,6 +32,7 @@ const tradingPairs = [
   {
     id: 2,
     fromSymbol: 'ordi',
+    exactName: 'ordi',
     toSymbol: 'btc',
     fromIcon: ordiLogo,
     toIcon: btcLogo,
@@ -39,6 +41,7 @@ const tradingPairs = [
   {
     id: 3,
     fromSymbol: 'oxbt',
+    exactName: 'OXBT',
     toSymbol: 'btc',
     fromIcon: oxbtLogo,
     toIcon: btcLogo,
@@ -47,6 +50,7 @@ const tradingPairs = [
   {
     id: 4,
     fromSymbol: 'sats',
+    exactName: 'sats',
     toSymbol: 'btc',
     fromIcon: satsLogo,
     toIcon: btcLogo,
@@ -56,6 +60,7 @@ const tradingPairs = [
   {
     id: 5,
     fromSymbol: 'rats',
+    exactName: 'rats',
     toSymbol: 'btc',
     fromIcon: ratsLogo,
     toIcon: btcLogo,
@@ -64,6 +69,7 @@ const tradingPairs = [
   {
     id: 6,
     fromSymbol: 'vmpx',
+    exactName: 'VMPX',
     toSymbol: 'btc',
     fromIcon: vmpxLogo,
     toIcon: btcLogo,
@@ -72,6 +78,7 @@ const tradingPairs = [
   {
     id: 7,
     fromSymbol: 'trac',
+    exactName: 'trac',
     toSymbol: 'btc',
     fromIcon: tracLogo,
     toIcon: btcLogo,
@@ -80,6 +87,7 @@ const tradingPairs = [
   {
     id: 8,
     fromSymbol: 'btcs',
+    exactName: 'BTCs',
     toSymbol: 'btc',
     fromIcon: btcsLogo,
     toIcon: btcLogo,
@@ -88,6 +96,7 @@ const tradingPairs = [
   {
     id: 9,
     fromSymbol: 'ibtc',
+    exactName: 'IBTC',
     toSymbol: 'btc',
     fromIcon: ibtcLogo,
     toIcon: btcLogo,
@@ -96,6 +105,7 @@ const tradingPairs = [
   {
     id: 10,
     fromSymbol: 'bili',
+    exactName: 'bili',
     toSymbol: 'btc',
     fromIcon: biliLogo,
     toIcon: btcLogo,
@@ -104,6 +114,7 @@ const tradingPairs = [
   {
     id: 11,
     fromSymbol: 'cats',
+    exactName: 'cats',
     toSymbol: 'btc',
     fromIcon: catsLogo,
     toIcon: btcLogo,
@@ -112,6 +123,7 @@ const tradingPairs = [
   {
     id: 12,
     fromSymbol: 'fish',
+    exactName: 'fish',
     toSymbol: 'btc',
     fromIcon: fishLogo,
     toIcon: btcLogo,
@@ -120,6 +132,7 @@ const tradingPairs = [
   {
     id: 14,
     fromSymbol: 'sayc',
+    exactName: 'sayc',
     toSymbol: 'btc',
     fromIcon: saycLogo,
     toIcon: btcLogo,
@@ -135,6 +148,7 @@ const tradingPairs = [
 ] as {
   id: number
   fromSymbol: string
+  exactName: string
   toSymbol: string
   fromIcon: string
   toIcon: string

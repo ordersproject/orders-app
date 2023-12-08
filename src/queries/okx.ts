@@ -1,6 +1,6 @@
 import { ElMessage } from 'element-plus'
 import { fetchBalance } from './proxy'
-import { useConnectionStore } from '@/store'
+import { useBtcJsStore, useConnectionStore } from '@/store'
 import { generateRandomString } from '@/lib/helpers'
 
 function checkOkx() {
@@ -59,6 +59,10 @@ export const connect: () => Promise<string> = async () => {
   return ''
 }
 
+export const disconnect = async () => {
+  await window.okxwallet.bitcoin.disconnect()
+}
+
 export const getBalance = async () => {
   checkOkx()
 
@@ -113,12 +117,17 @@ export const pushPsbt = async (psbt: string): Promise<string> => {
   const address = useConnectionStore().getAddress
   const randomId = generateRandomString(8)
 
+  // extract raw tx from psbt
+  const bitcoinjs = useBtcJsStore().get!
+  const psbtObj = bitcoinjs.Psbt.fromHex(psbt)
+  const txHex = psbtObj.extractTransaction().toHex()
+
   return await window.okxwallet.bitcoin
     .sendPsbt(
       [
         {
           itemId: randomId,
-          signedTx: psbt,
+          signedTx: txHex,
           type: 52,
         },
       ],

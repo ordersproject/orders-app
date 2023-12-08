@@ -48,6 +48,7 @@ export const useConnectionStore = defineStore('connection', {
       const queries: {
         getAddress: () => Promise<string>
         connect: () => Promise<string>
+        disconnect: () => Promise<void>
         getBalance: () => Promise<number>
         inscribe: (tick: string) => Promise<string>
         signPsbt: (psbt: string, options?: any) => Promise<string>
@@ -100,8 +101,12 @@ export const useConnectionStore = defineStore('connection', {
       return this.last
     },
 
-    disconnect() {
+    async disconnect() {
       if (!this.last) return
+
+      if (this.last.wallet === 'okx') {
+        this.queries.disconnect()
+      }
 
       this.last.status = 'disconnected'
       this.last.address = ''

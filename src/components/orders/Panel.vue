@@ -338,7 +338,7 @@ async function buildOrder() {
 async function goInscribe() {
   const queries = connectionStore.queries
 
-  await queries?.inscribe(selectedPair.fromSymbol)
+  await queries?.inscribe(selectedPair.exactName)
 }
 
 // confirm modal

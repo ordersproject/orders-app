@@ -20,6 +20,7 @@ interface Window {
         address: string
         publicKey: string
       }>
+      disconnect: () => Promise<void>
       signMessage: (
         message: string,
         { from }: { from: string }
