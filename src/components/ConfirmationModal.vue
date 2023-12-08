@@ -21,6 +21,7 @@ import { DEBUG, SIGHASH_ALL_ANYONECANPAY } from '@/data/constants'
 import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
 import assets from '@/data/assets'
 import { useExcludedBalanceQuery } from '@/queries/excluded-balance'
+import BtcHelpers from '@/lib/btc-helpers'
 
 const networkStore = useNetworkStore()
 
@@ -72,10 +73,14 @@ async function submitBidOrder() {
 
   try {
     // 1. sign secondary order which is used to create the actual utxo to pay for the bid order
+    console.log({ before: builtInfo.secondaryOrder.toHex() })
     const payPsbtSigned = await queries.signPsbt(
       builtInfo.secondaryOrder.toHex()
     )
     const payPsbt = btcjs.Psbt.fromHex(payPsbtSigned)
+    console.log({ after: payPsbtSigned })
+    console.log({ payPsbt })
+    return
 
     // 2. now we can add that utxo to the bid order
     const bidPsbt = builtInfo.order
@@ -88,28 +93,36 @@ async function submitBidOrder() {
       },
       sighashType: SIGHASH_ALL_ANYONECANPAY,
     })
+    console.log(
+      '🚀 ~ file: ConfirmationModal.vue:83 ~ submitBidOrder ~ bidPsbt:',
+      bidPsbt
+    )
+    return
 
     // 3. we sign the bid order
     const signed = await queries.signPsbt(bidPsbt.toHex())
 
-    // 4. push the bid order to the api
-    const pushRes = await pushBidOrder({
-      psbtRaw: signed,
-      network: networkStore.ordersNetwork,
-      address: connectionStore.getAddress,
-      tick: selectedPair.fromSymbol,
-      feeb: builtInfo.feeb,
-      fee: builtInfo.mainFee,
-      total: builtInfo.total,
-      using: builtInfo.using,
-      orderId: builtInfo.orderId,
-    })
+    // // 4. push the bid order to the api
+    // const pushRes = await pushBidOrder({
+    //   psbtRaw: signed,
+    //   network: networkStore.ordersNetwork,
+    //   address: connectionStore.getAddress,
+    //   tick: selectedPair.fromSymbol,
+    //   feeb: builtInfo.feeb,
+    //   fee: builtInfo.mainFee,
+    //   total: builtInfo.total,
+    //   using: builtInfo.using,
+    //   orderId: builtInfo.orderId,
+    // })
 
-    // 5. if pushRes is not null, we can now push the secondary order to the blockchain
-    if (pushRes) {
-      const res = await connectionStore.queries.pushPsbt(payPsbtSigned)
-    }
+    // // 5. if pushRes is not null, we can now push the secondary order to the blockchain
+    // if (pushRes) {
+    //   const res = await connectionStore.queries.pushPsbt(payPsbtSigned)
+    // }
   } catch (err: any) {
+    if (DEBUG) {
+      console.error(err)
+    }
     // if error message contains missingorspent / mempool-conflict, show a more user-friendly message
     if (
       err.message.includes('missingorspent') ||

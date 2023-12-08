@@ -62,10 +62,12 @@ export const useConnectionStore = defineStore('connection', {
 
   actions: {
     async connect(wallet: 'unisat' | 'okx') {
-      const connection = this.last ?? {
-        wallet,
-        status: 'connected',
-      }
+      const connection = this.last
+        ? JSON.parse(JSON.stringify(this.last))
+        : {
+            wallet,
+            status: 'connected',
+          }
 
       const address =
         wallet === 'unisat'

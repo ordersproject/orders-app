@@ -66,7 +66,7 @@ function onDisconnect() {
     >
       <MenuItems class="absolute left-0 z-10 mt-1 flex w-screen max-w-min">
         <div
-          class="w-56 shrink rounded-xl bg-zinc-800 text-sm font-semibold leading-6 text-zinc-300 shadow-lg ring-1 ring-zinc-900/5 overflow-hidden divide-y divide-zinc-700"
+          class="w-56 shrink rounded-xl bg-zinc-800 text-sm font-semibold leading-6 text-zinc-300 shadow-lg ring-1 ring-zinc-900/5 overflow-hidden divide-y divide-zinc-700 shadow-orange-300/20"
         >
           <MenuItem>
             <router-link

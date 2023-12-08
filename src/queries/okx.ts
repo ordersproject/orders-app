@@ -69,7 +69,8 @@ export const getBalance = async () => {
   const address = useConnectionStore().getAddress
 
   const balance: number = await fetchBalance(address).then(
-    (balanceInfo) => balanceInfo.confirmed + balanceInfo.unconfirmed
+    (balanceInfo) =>
+      Math.round(balanceInfo.confirmed) + Math.round(balanceInfo.unconfirmed)
   )
   return balance
 }
@@ -91,8 +92,15 @@ export const signPsbt = async (psbt: string) => {
   checkOkx()
 
   const address = useConnectionStore().getAddress
+  console.log('🚀 ~ file: okx.ts:95 ~ signPsbt ~ address:', address)
 
-  return await window.okxwallet.bitcoin.signPsbt(psbt, { from: address })
+  const signed = await window.okxwallet.bitcoin.signPsbt(psbt, {
+    from: address,
+  })
+
+  console.log({ equal: psbt === signed })
+
+  return signed
 }
 
 export const signPsbts = async (psbts: string[], options: any[]) => {
