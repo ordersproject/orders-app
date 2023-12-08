@@ -1,6 +1,7 @@
 import { ElMessage } from 'element-plus'
 import { fetchBalance } from './proxy'
 import { useConnectionStore } from '@/store'
+import { generateRandomString } from '@/lib/helpers'
 
 function checkOkx() {
   if (!window.okxwallet) {
@@ -88,4 +89,42 @@ export const signPsbt = async (psbt: string) => {
   const address = useConnectionStore().getAddress
 
   return await window.okxwallet.bitcoin.signPsbt(psbt, { from: address })
+}
+
+export const signPsbts = async (psbts: string[], options: any[]) => {
+  checkOkx()
+
+  const address = useConnectionStore().getAddress
+  const signRes = []
+
+  for (const psbt of psbts) {
+    const signed = await window.okxwallet.bitcoin.signPsbt(psbt, {
+      from: address,
+    })
+    signRes.push(signed)
+  }
+
+  return signRes
+}
+
+export const pushPsbt = async (psbt: string): Promise<string> => {
+  checkOkx()
+
+  const address = useConnectionStore().getAddress
+  const randomId = generateRandomString(8)
+
+  return await window.okxwallet.bitcoin
+    .sendPsbt(
+      [
+        {
+          itemId: randomId,
+          signedTx: psbt,
+          type: 52,
+        },
+      ],
+      address
+    )
+    .then((res) => {
+      return res[0][randomId]
+    })
 }

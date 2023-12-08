@@ -51,6 +51,8 @@ export const useConnectionStore = defineStore('connection', {
         getBalance: () => Promise<number>
         inscribe: (tick: string) => Promise<string>
         signPsbt: (psbt: string, options?: any) => Promise<string>
+        signPsbts: (psbts: string[], options?: any) => Promise<string[]>
+        pushPsbt: (psbt: string) => Promise<string>
       } = state.last.wallet === 'unisat' ? unisatQueries : okxQueries
 
       return queries

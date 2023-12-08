@@ -9,8 +9,12 @@ interface Window {
   unisat: {
     inscribeTransfer: (tick: string) => Promise<string>
     signPsbt: (psbt: string) => Promise<string>
+    pushPsbt: (psbt: string) => Promise<string>
+    signPsbts: (psbts: string[], options: any[]) => Promise<string[]>
   }
   okxwallet: {
+    on: (event: string, callback: (data: any) => void) => void
+    removeListener: (event: string, callback: (data: any) => void) => void
     bitcoin: {
       connect: () => Promise<{
         address: string
@@ -41,7 +45,19 @@ interface Window {
         from: string
         tick: string
       }) => Promise<string>
-      sendPsbt: any
+      sendPsbt: (
+        txs: {
+          itemId: string
+          signedTx: string
+          type: 52 | 22 | 59 // 22: NFT, 52: BRC20, 59: BRC20-s
+        }[],
+        from: string
+      ) => Promise<
+        Record<
+          string, // unique id
+          string // txid
+        >[]
+      >
     }
   }
 }

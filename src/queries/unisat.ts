@@ -72,3 +72,18 @@ export const signPsbt = async (
 
   return await window.unisat.signPsbt(psbt, options)
 }
+
+export const signPsbts = async (
+  psbts: string[],
+  options?: any[]
+): Promise<string[]> => {
+  checkUnisat()
+
+  return await window.unisat.signPsbts(psbts, options)
+}
+
+export const pushPsbt = async (psbt: string): Promise<string> => {
+  checkUnisat()
+
+  return await window.unisat.pushPsbt(psbt)
+}

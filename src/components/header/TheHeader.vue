@@ -4,7 +4,6 @@ import { ElMessage } from 'element-plus'
 import { useQuery } from '@tanstack/vue-query'
 import { ShieldAlertIcon, CheckCircle2 } from 'lucide-vue-next'
 
-import unisatIcon from '@/assets/unisat-icon.png?url'
 import { prettyAddress } from '@/lib/formatters'
 import {
   useDummiesStore,
@@ -12,7 +11,6 @@ import {
   type Network,
   useConnectionStore,
 } from '@/store'
-import { getAddress } from '@/queries/unisat'
 import utils from '@/utils'
 import whitelist from '@/lib/whitelist'
 
@@ -21,29 +19,43 @@ import AssetsDisplay from './AssetsDisplay.vue'
 import NetworkState from './NetworkState.vue'
 import Notifications from './Notifications.vue'
 import TheNavbar from './TheNavbar.vue'
+import unisatIcon from '@/assets/unisat-icon.png?url'
+import okxIcon from '@/assets/okx-icon.png?url'
 
 const networkStore = useNetworkStore()
 const dummiesStore = useDummiesStore()
 
+const unisatAccountsChangedHandler = (accounts: string[]) => {
+  ElMessage.warning({
+    message: 'Unisat account changed. Refreshing page...',
+    type: 'warning',
+    onClose: () => {
+      window.location.reload()
+    },
+  })
+}
+const okxAcountsChangedHandler = (accounts: string[]) => {
+  ElMessage.warning({
+    message: 'Okx account changed. Refreshing page...',
+    type: 'warning',
+    onClose: () => {
+      window.location.reload()
+    },
+  })
+}
+
 onMounted(async () => {
   if (window.unisat) {
     const unisat = window.unisat
-    unisat.on('accountsChanged', (accounts: string[]) => {
-      ElMessage.warning({
-        message: 'Unisat account changed. Refreshing page...',
-        type: 'warning',
-        onClose: () => {
-          window.location.reload()
-        },
-      })
-    })
+    unisat.on('accountsChanged', unisatAccountsChangedHandler)
 
     // getNetwork
-    const network: Network = await unisat.getNetwork()
+    // const network: Network = await unisat.getNetwork()
+    const network: Network = 'livenet'
     const address = connectionStore.getAddress
 
     // if not in whitelist, switch to mainnet
-    if (network === 'testnet' && address && !whitelist.includes(address)) {
+    if (network !== 'livenet' && address && !whitelist.includes(address)) {
       const switchRes = await unisat.switchNetwork('livenet').catch(() => false)
       if (!switchRes) {
         ElMessage({
@@ -61,10 +73,15 @@ onMounted(async () => {
     }
     networkStore.set(network)
   }
+
+  if (window.okxwallet) {
+    window.okxwallet.on('accountsChanged', okxAcountsChangedHandler)
+  }
 })
 onBeforeUnmount(() => {
   // remove event listener
-  window.unisat?.removeListener('accountsChanged', () => {})
+  window.unisat?.removeListener('accountsChanged', unisatAccountsChangedHandler)
+  window.okxwallet?.removeListener('accountsChanged', okxAcountsChangedHandler)
 })
 
 // connect / address related
@@ -111,6 +128,14 @@ async function switchNetwork() {
   // reload page
   window.location.reload()
 }
+
+const walletIcon = computed(() => {
+  const connection = connectionStore.last
+
+  if (!connection) return null
+
+  return connection.wallet === 'unisat' ? unisatIcon : okxIcon
+})
 
 function copyAddress() {
   // copy address value to clipboard
@@ -176,7 +201,7 @@ function onWalletMissing(wallet: 'unisat' | 'okx') {
             @click="copyAddress"
             title="copy address"
           >
-            <img class="h-5" :src="unisatIcon" alt="Unisat" />
+            <img class="h-5" :src="walletIcon" alt="Unisat" v-if="walletIcon" />
             <span class="text-sm text-orange-300">
               {{ address ? prettyAddress(address, 4) : '-' }}
             </span>

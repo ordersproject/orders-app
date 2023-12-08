@@ -55,5 +55,4 @@ const generateMsAddress = async () => {
   <button class="border p-2 ml-4" @click="generateMsAddress">
     生成多签地址
   </button>
-  <button class="border p-2 ml-4" @click="debugTx">Debug Tx</button>
 </template>

@@ -16,8 +16,6 @@ import { BTC_POOL_MODE, DEBUG } from '@/data/constants'
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import assets from '@/data/assets'
 
-const unisat = window.unisat
-
 const connectionStore = useConnectionStore()
 const networkStore = useNetworkStore()
 
@@ -73,14 +71,16 @@ async function submitOrder() {
       toSigns.push(toRaw(props.builtBtcInfo).order.toHex())
     }
     // 1. sign
-    const signedPsbts = await unisat.signPsbts(
+    const signedPsbts = await connectionStore.queries.signPsbts(
       toSigns,
       toSigns.map(() => {})
     )
 
     if (props.builtBtcInfo?.separatePsbt) {
       // push separate psbt
-      const pushSeparateRes = await unisat.pushPsbt(signedPsbts[1])
+      const pushSeparateRes = await connectionStore.queries.pushPsbt(
+        signedPsbts[1]
+      )
     }
 
     // extract btc tx and get its txid

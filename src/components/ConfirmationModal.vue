@@ -107,7 +107,7 @@ async function submitBidOrder() {
 
     // 5. if pushRes is not null, we can now push the secondary order to the blockchain
     if (pushRes) {
-      const res = await window.unisat.pushPsbt(payPsbtSigned)
+      const res = await connectionStore.queries.pushPsbt(payPsbtSigned)
     }
   } catch (err: any) {
     // if error message contains missingorspent / mempool-conflict, show a more user-friendly message

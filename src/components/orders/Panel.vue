@@ -54,8 +54,6 @@ import OrderPanelHeader from './PanelHeader.vue'
 import OrderList from './List.vue'
 import OrderConfirmationModal from '../ConfirmationModal.vue'
 
-const unisat = window.unisat
-
 const connectionStore = useConnectionStore()
 const address = connectionStore.getAddress
 const networkStore = useNetworkStore()
