@@ -21,7 +21,8 @@ import { DEBUG, SIGHASH_ALL_ANYONECANPAY } from '@/data/constants'
 import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
 import assets from '@/data/assets'
 import { useExcludedBalanceQuery } from '@/queries/excluded-balance'
-import BtcHelpers from '@/lib/btc-helpers'
+import BtcHelpers, { toXOnly } from '@/lib/btc-helpers'
+import { Buffer } from 'buffer'
 
 const networkStore = useNetworkStore()
 
@@ -92,6 +93,7 @@ async function submitBidOrder() {
         value: payPsbt.extractTransaction().outs[0].value,
       },
       sighashType: SIGHASH_ALL_ANYONECANPAY,
+      tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
     })
     console.log(
       '🚀 ~ file: ConfirmationModal.vue:83 ~ submitBidOrder ~ bidPsbt:',

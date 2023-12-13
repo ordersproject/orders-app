@@ -15,6 +15,7 @@ import { getTxHex, getUtxos } from '@/queries/proxy'
 import { raise } from './helpers'
 import { Output } from 'bitcoinjs-lib/src/transaction'
 import { getListingUtxos } from '@/queries/orders-api'
+import { toXOnly } from '@/lib/btc-helpers'
 
 const TX_EMPTY_SIZE = 4 + 1 + 1 + 4
 const TX_INPUT_BASE = 32 + 4 + 1 + 4 // 41
@@ -237,11 +238,13 @@ export async function exclusiveChange({
       value: paymentUtxo.satoshis,
       script: paymentPrevOutputScript,
     }
-    const paymentInput: any = {
+    const pubKey = toXOnly(Buffer.from(useConnectionStore().getPubKey))
+    const paymentInput = {
       hash: paymentUtxo.txId,
       index: paymentUtxo.outputIndex,
       witnessUtxo: paymentWitnessUtxo,
       sighashType,
+      tapInternalKey: pubKey,
     }
     const psbtClone = psbt.clone()
     psbtClone.addInput(paymentInput)
@@ -293,16 +296,18 @@ export async function exclusiveChange({
     }
     const toUseSighashType =
       i > 0 && otherSighashType ? otherSighashType : sighashType
-    const paymentInput: any = {
+    const pubKey = toXOnly(Buffer.from(useConnectionStore().getPubKey))
+    const paymentInput = {
       hash: paymentUtxo.txId,
       index: paymentUtxo.outputIndex,
       witnessUtxo: paymentWitnessUtxo,
       sighashType: toUseSighashType,
+      tapInternalKey: pubKey,
     }
 
-    if (pubKey) {
-      paymentInput.tapInternalPubkey = pubKey
-    }
+    // if (pubKey) {
+    //   paymentInput.tapInternalPubkey = pubKey
+    // }
 
     psbt.addInput(paymentInput)
 

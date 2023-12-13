@@ -29,6 +29,8 @@ import {
 import { getUtxos, type SimpleUtxoFromMempool, getTxHex } from '@/queries/proxy'
 import { type TradingPair } from '@/data/trading-pairs'
 import { SIGHASH_NONE_ANYONECANPAY } from '../data/constants'
+import { toXOnly } from '@/lib/btc-helpers'
+import { Buffer } from 'buffer'
 
 export async function buildAskLimit({
   total,
@@ -119,6 +121,7 @@ export async function buildAskLimit({
     witnessUtxo: ordinalPreTx.outs[ordinalUtxo.outputIndex],
     sighashType:
       btcjs.Transaction.SIGHASH_SINGLE | btcjs.Transaction.SIGHASH_ANYONECANPAY,
+    tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
   })
 
   // Step 2: Build output as what the seller want (BTC)
@@ -311,6 +314,7 @@ export async function buildBuyTake({
       index: dummyUtxo.outputIndex,
       witnessUtxo: dummyTx.outs[dummyUtxo.outputIndex],
       sighashType: btcjs.Transaction.SIGHASH_ALL,
+      tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
     }
     buyPsbt.addInput(dummyInput)
     totalInput += dummyUtxo.satoshis
@@ -336,6 +340,7 @@ export async function buildBuyTake({
     index: askPsbt.txInputs[0].index,
     witnessUtxo: askPsbt.data.inputs[0].witnessUtxo,
     finalScriptWitness: askPsbt.data.inputs[0].finalScriptWitness,
+    tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
   }
 
   buyPsbt.addInput(sellerInput)
@@ -471,6 +476,7 @@ export async function buildSellTake({
     index: ordinalUtxo.outputIndex,
     witnessUtxo: ordinalPreTx.outs[ordinalUtxo.outputIndex],
     sighashType: SIGHASH_SINGLE_ANYONECANPAY,
+    tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
   })
 
   // Step 2: Build output as what the seller want (BTC)
@@ -549,6 +555,7 @@ export async function buildClaimTake({
       index: dummyUtxo.outputIndex,
       witnessUtxo: dummyTx.outs[dummyUtxo.outputIndex],
       sighashType: btcjs.Transaction.SIGHASH_ALL,
+      tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
     }
     takePsbt.addInput(dummyInput)
     totalInput += dummyUtxo.satoshis
@@ -574,6 +581,7 @@ export async function buildClaimTake({
     index: claimPsbt.txInputs[0].index,
     witnessUtxo: claimPsbt.data.inputs[0].witnessUtxo,
     finalScriptWitness: claimPsbt.data.inputs[0].finalScriptWitness,
+    tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
   }
 
   takePsbt.addInput(sellerInput)

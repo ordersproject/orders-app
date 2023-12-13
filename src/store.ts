@@ -20,6 +20,7 @@ export type WalletConnection = {
   wallet: 'unisat' | 'okx'
   status: 'connected' | 'disconnected'
   address: string
+  pubKey: string
 }
 export const useConnectionStore = defineStore('connection', {
   state: () => {
@@ -28,6 +29,7 @@ export const useConnectionStore = defineStore('connection', {
         wallet: 'unisat',
         status: 'disconnected',
         address: '',
+        pubKey: '',
       } as WalletConnection) as RemovableRef<WalletConnection>,
     }
   },
@@ -37,6 +39,7 @@ export const useConnectionStore = defineStore('connection', {
     connected: (state) =>
       state.last.status === 'connected' && !!state.last.address,
     getAddress: (state) => state.last.address,
+    getPubKey: (state) => state.last.pubKey,
     provider: (state) => {
       if (!state.last) return null
 
@@ -47,7 +50,10 @@ export const useConnectionStore = defineStore('connection', {
 
       const queries: {
         getAddress: () => Promise<string>
-        connect: () => Promise<string>
+        connect: () => Promise<{
+          address: string
+          pubKey: string
+        }>
         disconnect: () => Promise<void>
         getBalance: () => Promise<number>
         inscribe: (tick: string) => Promise<string>
@@ -62,19 +68,23 @@ export const useConnectionStore = defineStore('connection', {
 
   actions: {
     async connect(wallet: 'unisat' | 'okx') {
-      const connection = this.last
-        ? JSON.parse(JSON.stringify(this.last))
+      const connection: WalletConnection = this.last
+        ? (JSON.parse(JSON.stringify(this.last)) as WalletConnection)
         : {
             wallet,
             status: 'connected',
+            address: '',
+            pubKey: '',
           }
 
-      const address =
+      const connectRes =
         wallet === 'unisat'
           ? await unisatQueries.connect()
           : await okxQueries.connect()
 
-      connection.address = address
+      connection.address = connectRes.address
+      connection.pubKey = connectRes.pubKey
+      console.log('pubkey length', connectRes.pubKey.length)
 
       connection.status = 'connected'
       connection.wallet = wallet

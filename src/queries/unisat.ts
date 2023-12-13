@@ -29,7 +29,10 @@ export const getAddress = async () => {
   return ''
 }
 
-export const connect: () => Promise<string> = async () => {
+export const connect: () => Promise<{
+  address: string
+  pubKey: string
+}> = async () => {
   const connectRes = await window.unisat.requestAccounts()
   if (connectRes && connectRes.length) {
     // if it's a legacy address(1... or m..., n...), throw error
@@ -42,7 +45,18 @@ export const connect: () => Promise<string> = async () => {
       throw new Error('Please use a SegWit address')
     }
 
-    return connectRes[0]
+    // get the pubKey from the address
+    const pubKey: string = await window.unisat.getPublicKey()
+
+    return {
+      address: connectRes[0],
+      pubKey,
+    }
+  }
+
+  return {
+    address: '',
+    pubKey: '',
   }
 }
 

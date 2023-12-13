@@ -12,6 +12,8 @@ import { getUtxos, getTxHex } from '@/queries/proxy'
 import { calculatePsbtFee } from '@/lib/build-helpers'
 import { DUMMY_UTXO_VALUE } from '@/data/constants'
 import { raise } from '@/lib/helpers'
+import { Buffer } from 'buffer'
+import { toXOnly } from '@/lib/btc-helpers'
 
 const utils = {
   checkAndSelectDummies: async ({ checkOnly = false, collectMode = false }) => {
@@ -86,6 +88,7 @@ const utils = {
           script: paymentScriptPk,
           value: paymentUtxo.satoshis,
         },
+        tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
       })
 
       dummiesPsbt.addOutput({ address: address, value: DUMMY_UTXO_VALUE })

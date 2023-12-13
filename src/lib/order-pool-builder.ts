@@ -20,6 +20,7 @@ import {
   SIGHASH_SINGLE_ANYONECANPAY,
   USE_UTXO_COUNT_LIMIT,
 } from '@/data/constants'
+import { toXOnly } from '@/lib/btc-helpers'
 
 async function getBothPubKeys(type: 'btc' | 'brc20' = 'brc20') {
   const selfAddress = useConnectionStore().getAddress
@@ -117,6 +118,7 @@ export async function buildAddBrcLiquidity({
     witnessUtxo: ordinalPreTx.outs[ordinalUtxo.outputIndex],
     sighashType:
       btcjs.Transaction.SIGHASH_SINGLE | btcjs.Transaction.SIGHASH_ANYONECANPAY,
+    tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
   })
 
   // Step 2: Build BTC output for the pool
@@ -225,6 +227,7 @@ export async function buildAddBtcLiquidity({ total }: { total: Decimal }) {
       index: 0,
       witnessUtxo: separatePsbt.txOutputs[0],
       sighashType: SIGHASH_SINGLE_ANYONECANPAY,
+      tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
     }
   }
 
@@ -275,6 +278,7 @@ export async function buildReleasePsbt({
     witnessScript: btcPsbt.data.inputs[0].witnessScript,
     partialSig: btcPsbt.data.inputs[0].partialSig,
     sighashType: SIGHASH_SINGLE_ANYONECANPAY,
+    tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
   })
 
   // Add BTC output
@@ -288,6 +292,7 @@ export async function buildReleasePsbt({
     partialSig: releasePsbt.data.inputs[0].partialSig,
     witnessScript: releasePsbt.data.inputs[0].witnessScript,
     sighashType: SIGHASH_SINGLE_ANYONECANPAY,
+    tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
   })
 
   // Add release output
@@ -395,6 +400,7 @@ export async function buildRecoverPsbt({
     partialSig: releasePsbt.data.inputs[0].partialSig,
     witnessScript: releasePsbt.data.inputs[0].witnessScript,
     sighashType: SIGHASH_SINGLE_ANYONECANPAY,
+    tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
   })
 
   // Add recover output

@@ -36,7 +36,10 @@ export const getAddress = async () => {
   return address
 }
 
-export const connect: () => Promise<string> = async () => {
+export const connect: () => Promise<{
+  address: string
+  pubKey: string
+}> = async () => {
   const account: {
     address: string
     publicKey: string
@@ -53,10 +56,16 @@ export const connect: () => Promise<string> = async () => {
       throw new Error('Please use a SegWit or Taproot address')
     }
 
-    return address
+    return {
+      address,
+      pubKey: account.publicKey,
+    }
   }
 
-  return ''
+  return {
+    address: '',
+    pubKey: '',
+  }
 }
 
 export const disconnect = async () => {

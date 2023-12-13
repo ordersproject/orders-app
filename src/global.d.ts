@@ -7,6 +7,7 @@ interface Window {
   ecpair: ECPairFactory
   unisat: any
   unisat: {
+    requestAccounts: () => Promise<string[]>
     inscribeTransfer: (tick: string) => Promise<string>
     signPsbt: (psbt: string) => Promise<string>
     pushPsbt: (psbt: string) => Promise<string>
