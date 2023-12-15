@@ -167,7 +167,10 @@ async function submitOrder() {
 
   try {
     // 1. sign
+    console.log('before', builtInfo.order.toHex())
     const signed = await queries.signPsbt(builtInfo.order.toHex())
+    console.log('after', signed)
+    return
 
     let pushRes: any
     // 2. push

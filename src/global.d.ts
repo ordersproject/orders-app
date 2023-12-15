@@ -37,7 +37,10 @@ interface Window {
         value: string // in btc
         satBytes?: string
       }) => Promise<string>
-      signPsbt: (psbt: string, { from }: { from: string }) => Promise<string>
+      signPsbt: (
+        psbt: string,
+        { from, type }: { from: string; type: any }
+      ) => Promise<string>
       inscribe: ({
         type,
         from,

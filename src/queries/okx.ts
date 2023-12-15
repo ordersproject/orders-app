@@ -105,6 +105,7 @@ export const signPsbt = async (psbt: string) => {
 
   const signed = await window.okxwallet.bitcoin.signPsbt(psbt, {
     from: address,
+    type: 'list',
   })
 
   console.log({ equal: psbt === signed })
