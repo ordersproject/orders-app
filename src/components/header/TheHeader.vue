@@ -26,6 +26,8 @@ const networkStore = useNetworkStore()
 const dummiesStore = useDummiesStore()
 
 const unisatAccountsChangedHandler = (accounts: string[]) => {
+  if (useConnectionStore().last.wallet !== 'unisat') return
+
   ElMessage.warning({
     message: 'Unisat account changed. Refreshing page...',
     type: 'warning',
@@ -35,6 +37,8 @@ const unisatAccountsChangedHandler = (accounts: string[]) => {
   })
 }
 const okxAcountsChangedHandler = (accounts: string[]) => {
+  if (useConnectionStore().last.wallet !== 'okx') return
+
   ElMessage.warning({
     message: 'Okx account changed. Refreshing page...',
     type: 'warning',
