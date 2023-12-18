@@ -287,6 +287,7 @@ export async function buildBuyTake({
     tick: selectedPair.fromSymbol,
     buyerChangeAmount: 0,
   })
+  console.log('🚀 ~ file: order-builder.ts:290 ~ buyPsbtRaw:', buyPsbtRaw)
 
   return
 

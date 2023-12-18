@@ -124,14 +124,14 @@ const tradingPairs = [
     fromIcon: saycLogo,
     toIcon: btcLogo,
   },
-  // {
-  //   id: 15,
-  //   fromSymbol: 'orxc',
-  //   toSymbol: 'btc',
-  //   fromIcon: rdexLogo,
-  //   toIcon: btcLogo,
-  //   hasPool: true,
-  // },
+  {
+    id: 15,
+    fromSymbol: 'orxc',
+    toSymbol: 'btc',
+    fromIcon: rdexLogo,
+    toIcon: btcLogo,
+    hasPool: true,
+  },
 ] as {
   id: number
   fromSymbol: string
