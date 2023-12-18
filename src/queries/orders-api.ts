@@ -361,7 +361,7 @@ export const getOneOrder = async ({
   return order
 }
 
-export const getbuyOrderDetail = async ({
+export const getAskOrderDetail = async ({
   orderId,
   address,
   tick,

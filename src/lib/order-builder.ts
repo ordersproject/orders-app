@@ -22,7 +22,7 @@ import {
   getOneBrc20,
   getOneOrder,
   getSellFees,
-  getbuyOrderDetail,
+  getAskOrderDetail,
 } from '@/queries/orders-api'
 import { getUtxos, type SimpleUtxoFromMempool, getTxHex } from '@/queries/proxy'
 import { type TradingPair } from '@/data/trading-pairs'
@@ -281,24 +281,20 @@ export async function buildBuyTake({
 
   const isFree = order.freeState === 1
 
-  const buyPsbtRaw = await getbuyOrderDetail({
+  const askPsbtRaw = await getAskOrderDetail({
     orderId: order.orderId,
     address,
     tick: selectedPair.fromSymbol,
     buyerChangeAmount: 0,
-  })
-  console.log('🚀 ~ file: order-builder.ts:290 ~ buyPsbtRaw:', buyPsbtRaw)
-
-  return
-
-  // get ask psbt from order detail api
-  const askPsbtRaw = await getOneOrder({
-    orderId: order.orderId,
-  }).then((order) => order.psbtRaw)
+  }).then((result) => result.psbtRaw)
+  console.log('🚀 ~ file: order-builder.ts:290 ~ askPsbtRaw:', askPsbtRaw)
 
   const askPsbt = btcjs.Psbt.fromHex(askPsbtRaw, {
     network: btcjs.networks[btcNetwork],
   })
+  console.log('🚀 ~ file: order-builder.ts:293 ~ askPsbt:', askPsbt)
+
+  return
 
   const buyPsbt = new btcjs.Psbt({
     network: btcjs.networks[btcNetwork],
