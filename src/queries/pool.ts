@@ -140,7 +140,7 @@ type LiquidityOfferParams = {
   tick: string
   poolState: 1
   poolType: 1 | 3
-  btcPoolMode?: 1 | 2 // 1 for psbt, 2 for custody; default to 2
+  btcPoolMode?: 1 | 2 | 3 // 1 for psbt, 2 for custody, 3 for cascade; default to 3
 }
 export const pushAddLiquidity = async ({
   address,

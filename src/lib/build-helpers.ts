@@ -243,13 +243,26 @@ export async function exclusiveChange({
       witnessUtxo: paymentWitnessUtxo,
       sighashType,
     }
-    const psbtClone = psbt.clone()
+    const vin = psbt.inputCount
+    let psbtClone: Psbt
+    // .clone has bug when there is no input; so we have to manually add the output
+    if (vin === 0) {
+      psbtClone = new btcjs.Psbt()
+      // add outputs manually
+      const vout = psbt.txOutputs.length
+      for (let i = 0; i < vout; i++) {
+        psbtClone.addOutput(psbt.txOutputs[i])
+      }
+    } else {
+      psbtClone = psbt.clone()
+    }
     psbtClone.addInput(paymentInput)
+    console.log({ psbtClone })
 
     // Add change output
     let fee = useSize
       ? Math.round(useSize * feeb)
-      : calcFee(psbt, feeb, extraSize)
+      : calcFee(psbtClone, feeb, extraSize)
     const totalOutput = sumOrNaN(psbtClone.txOutputs)
     const totalInput = sumOrNaN(
       psbtClone.data.inputs.map(
