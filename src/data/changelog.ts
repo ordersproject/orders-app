@@ -1,5 +1,13 @@
 const changelog = [
   {
+    version: '1.3.1',
+    emoji: '🕺',
+    date: '2023-12-05',
+    changes: [
+      'Users now can claim standby rewards from the liquidities they provide',
+    ],
+  },
+  {
     version: '1.3.0',
     emoji: '🐳',
     date: '2023-12-04',

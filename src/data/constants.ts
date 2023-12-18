@@ -2,7 +2,7 @@ import changelog from './changelog'
 
 export const VERSION = changelog[0].version
 export const CHARGE_SERVICE_FEES = false
-export const DEBUG = false
+export const DEBUG = true
 
 // all kinds of satoshis value
 export const DUMMY_UTXO_VALUE = 600
@@ -47,8 +47,8 @@ export const SERVICE_LIVENET_BID_ADDRESS = import.meta.env
 export const SERVICE_LIVENET_RDEX_ADDRESS = import.meta.env
   .VITE_SERVICE_LIVENET_RDEX_ADDRESS
 
-// BTC Liquidity Mode (1 for psbt, 2 for custody)
-export const BTC_POOL_MODE: 1 | 2 = 1
+// BTC Liquidity Mode (1 for psbt, 2 for custody, 3 for cascade)
+export const BTC_POOL_MODE: 1 | 2 | 3 = 3
 
 export const POOL_REWARDS_TICK = 'rdex'
 export const EVENT_REWARDS_TICK = 'rdex'

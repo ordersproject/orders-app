@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Ref, computed, onMounted, provide, ref, watch } from 'vue'
+import { Ref, computed, provide, ref, watch } from 'vue'
 import {
   TabGroup,
   TabList,
@@ -17,7 +17,6 @@ import {
 import {
   CheckIcon,
   ChevronsUpDownIcon,
-  RefreshCcwIcon,
   XIcon,
   BookPlusIcon,
 } from 'lucide-vue-next'
@@ -26,7 +25,7 @@ import { useQuery } from '@tanstack/vue-query'
 import Decimal from 'decimal.js'
 
 import btcIcon from '@/assets/btc.svg?url'
-import { prettyBalance, prettyBtcDisplay } from '@/lib/formatters'
+import { prettyBalance } from '@/lib/formatters'
 import { sleep, unit, useBtcUnit } from '@/lib/helpers'
 import { calculateFee } from '@/lib/build-helpers'
 import {
@@ -44,12 +43,7 @@ import {
   type Brc20Transferable,
   type BidCandidate,
 } from '@/queries/orders-api'
-import {
-  useAddressStore,
-  useDummiesStore,
-  useFeebStore,
-  useNetworkStore,
-} from '@/store'
+import { useAddressStore, useFeebStore, useNetworkStore } from '@/store'
 import { buildBuyTake } from '@/lib/order-builder'
 import { selectPair, selectedPairKey } from '@/data/trading-pairs'
 import { DEBUG, SELL_TX_SIZE } from '@/data/constants'
@@ -59,8 +53,6 @@ import OrderList from './List.vue'
 import OrderConfirmationModal from '../ConfirmationModal.vue'
 import { ChevronRightIcon } from 'lucide-vue-next'
 import { get } from '@vueuse/core'
-
-const unisat = window.unisat
 
 const addressStore = useAddressStore()
 const networkStore = useNetworkStore()

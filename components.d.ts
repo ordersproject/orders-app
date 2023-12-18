@@ -11,7 +11,6 @@ declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     AssetsDisplay: typeof import('./src/components/header/AssetsDisplay.vue')['default']
     ConfirmationModal: typeof import('./src/components/ConfirmationModal.vue')['default']
-    copy: typeof import('./src/components/pool/PanelRemove copy.vue')['default']
     ElPopover: typeof import('element-plus/es')['ElPopover']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     EventClaimRecords: typeof import('./src/components/pool/EventClaimRecords.vue')['default']
@@ -43,6 +42,7 @@ declare module '@vue/runtime-core' {
     PoolPairSelect: typeof import('./src/components/pool/PoolPairSelect.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    StandbyClaimRecords: typeof import('./src/components/pool/StandbyClaimRecords.vue')['default']
     StandbyExplainModal: typeof import('./src/components/pool/StandbyExplainModal.vue')['default']
     TheHeader: typeof import('./src/components/header/TheHeader.vue')['default']
     TheNavbar: typeof import('./src/components/header/TheNavbar.vue')['default']

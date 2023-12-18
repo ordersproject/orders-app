@@ -17,7 +17,6 @@ import { DEBUG, EVENT_REWARDS_TICK } from '@/data/constants'
 import EventClaimRecords from './EventClaimRecords.vue'
 import PanelEventRecordItem from './PanelEventRecordItem.vue'
 import { sleep } from '@/lib/helpers'
-import { BadgeCheckIcon } from 'lucide-vue-next'
 import { HelpCircleIcon } from 'lucide-vue-next'
 
 const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
@@ -236,7 +235,7 @@ async function onConfirm() {}
 
         <TabPanel class="grow h-[40vh] nicer-scrollbar overflow-y-scroll">
           <!-- claim records -->
-          <EventClaimRecords class="" />
+          <EventClaimRecords />
         </TabPanel>
       </TabPanels>
     </TabGroup>

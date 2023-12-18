@@ -140,7 +140,7 @@ type LiquidityOfferParams = {
   tick: string
   poolState: 1
   poolType: 1 | 3
-  btcPoolMode?: 1 | 2 // 1 for psbt, 2 for custody; default to 2
+  btcPoolMode?: 1 | 2 | 3 // 1 for psbt, 2 for custody, 3 for cascade; default to 3
 }
 export const pushAddLiquidity = async ({
   address,
@@ -313,9 +313,11 @@ export const getMyStandbys = async ({
     address,
     net: network,
   })
-  // if tick is rdex, then rewardType is 15; otherwise, don't pass rewardType
+  // if tick is rdex, then rewardType is 15; otherwise, rewardType is 2
   if (tick === 'rdex') {
     params.append('rewardType', '15')
+  } else {
+    params.append('rewardType', '2')
   }
 
   return await ordersApiFetch(`pool/reward/records?${params}`, {
@@ -543,6 +545,41 @@ export const getMyEventRewardsEssential = async ({
     tick,
     address,
     net: network,
+    rewardType: '12',
+  })
+
+  return await ordersApiFetch(`event/reward/info?${params}`, {
+    method: 'GET',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  }).then((res) => {
+    if (res.HasReleasePoolOrderCount) {
+      res.hasReleasePoolOrderCount = res.HasReleasePoolOrderCount
+      delete res.HasReleasePoolOrderCount
+    }
+
+    return res
+  })
+}
+
+export const getMyStandbyRewardsEssential = async ({
+  tick,
+  address,
+}: {
+  tick: string
+  address: string
+}): Promise<RewardsEssential> => {
+  const network = useNetworkStore().network
+  const { publicKey, signature } = await sign()
+
+  const rewardType = tick === 'rdex' ? '12' : '2'
+  const params = new URLSearchParams({
+    tick,
+    address,
+    net: network,
+    rewardType,
   })
 
   return await ordersApiFetch(`event/reward/info?${params}`, {
@@ -620,6 +657,52 @@ export const claimEventReward = async ({
       feeUtxoTxId,
       networkFeeRate,
       feeRawTx,
+      rewardType: 12,
+    }),
+  })
+}
+
+export const claimStandbyReward = async ({
+  rewardAmount,
+  tick,
+  feeSend,
+  feeInscription,
+  networkFeeRate,
+  feeUtxoTxId,
+  feeRawTx,
+}: {
+  rewardAmount: number
+  tick: string
+  feeSend: number
+  feeInscription: number
+  networkFeeRate: number
+  feeUtxoTxId: string
+  feeRawTx: string
+}) => {
+  const network = useNetworkStore().network
+  const address = useAddressStore().get!
+  const { publicKey, signature } = await sign()
+  const rewardType = tick === 'rdex' ? 12 : 2
+
+  return await ordersApiFetch(`event/reward/claim`, {
+    method: 'POST',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+    body: JSON.stringify({
+      net: network,
+      rewardAmount,
+      address,
+      tick,
+      version: 2,
+
+      feeInscription,
+      feeSend,
+      feeUtxoTxId,
+      networkFeeRate,
+      feeRawTx,
+      rewardType,
     }),
   })
 }
@@ -638,6 +721,45 @@ export const getMyEventRewardsClaimRecords = async ({
     address,
     net: network,
     rewardType: '12',
+  })
+
+  return await ordersApiFetch(`pool/reward/orders?${params}`, {
+    method: 'GET',
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  })
+    .then((res) => {
+      return res?.results || []
+    })
+    .then((res) => {
+      return res.map((item: any) => {
+        if (item.rewardState === 3) {
+          item.rewardState = 'finished'
+        } else {
+          item.rewardState = 'pending'
+        }
+
+        return item
+      })
+    })
+}
+
+export const getMyStandbyRewardsClaimRecords = async ({
+  tick,
+}: {
+  tick: string
+}): Promise<RewardsClaimRecord[]> => {
+  const network = useNetworkStore().network
+  const address = useAddressStore().get!
+  const { publicKey, signature } = await sign()
+
+  const params = new URLSearchParams({
+    tick,
+    address,
+    net: network,
+    rewardType: '2',
   })
 
   return await ordersApiFetch(`pool/reward/orders?${params}`, {
