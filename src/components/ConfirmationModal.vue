@@ -182,19 +182,19 @@ async function submitOrder() {
           networkFeeRate: builtInfo.networkFeeRate,
         })
         break
-      case 'bid':
-        pushRes = await pushBidOrder({
-          psbtRaw: signed,
-          network: networkStore.ordersNetwork,
-          address: addressStore.get!,
-          tick: selectedPair.fromSymbol,
-          feeb: builtInfo.feeb,
-          fee: builtInfo.networkFee,
-          total: builtInfo.total,
-          using: builtInfo.using,
-          orderId: builtInfo.orderId,
-        })
-        break
+      // case 'bid':
+      //   pushRes = await pushBidOrder({
+      //     psbtRaw: signed,
+      //     network: networkStore.ordersNetwork,
+      //     address: addressStore.get!,
+      //     tick: selectedPair.fromSymbol,
+      //     feeb: builtInfo.feeb,
+      //     fee: builtInfo.networkFee,
+      //     total: builtInfo.total,
+      //     using: builtInfo.using,
+      //     orderId: builtInfo.orderId,
+      //   })
+      //   break
       case 'ask':
         pushRes = await pushAskOrder({
           psbtRaw: signed,
