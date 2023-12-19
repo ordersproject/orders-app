@@ -132,7 +132,6 @@ export async function buildAddBrcLiquidity({
     address,
     value: safeOutputValue(total),
   })
-  console.log({ multisigAddress })
 
   return {
     order: addLiquidity,
@@ -317,9 +316,14 @@ async function buildInCascadeMode(total: Decimal) {
 
   // get the needed utxo and add it to the child
   const neededUtxo = parent.txOutputs[0]
+  // get parents' tx hash
+  const parentTx = (parent.data.globalMap.unsignedTx as any).tx
+  const parentTxHash: string = (parentTx as any).getId()
+  console.log('est tx id', parentTxHash)
+
   child.addInput({
-    hash: parent.txInputs[0].hash,
-    index: parent.txInputs[0].index,
+    hash: parentTxHash,
+    index: 0,
     witnessUtxo: neededUtxo,
     sighashType: SIGHASH_ALL_ANYONECANPAY,
   })

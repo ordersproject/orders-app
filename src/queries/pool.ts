@@ -133,6 +133,7 @@ type LiquidityOfferParams = {
   coinAmount: number
   coinPsbtRaw: string
   psbtRaw?: string
+  preTxRaw?: string
   btcUtxoId?: string
   ratio?: number
   net: 'livenet' | 'testnet'
@@ -150,6 +151,7 @@ export const pushAddLiquidity = async ({
   coinPsbtRaw,
   ratio,
   psbtRaw,
+  preTxRaw,
   net,
   pair,
   tick,
@@ -173,6 +175,7 @@ export const pushAddLiquidity = async ({
       coinPsbtRaw,
       ratio,
       psbtRaw,
+      preTxRaw,
       net,
       pair,
       tick,
