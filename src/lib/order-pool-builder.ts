@@ -418,6 +418,8 @@ export async function buildRewardClaim() {
 
   const { fee, feeb } = await exclusiveChange({
     psbt: rewardClaimPsbt,
+    maxUtxosCount: USE_UTXO_COUNT_LIMIT,
+    sighashType: SIGHASH_ALL,
   })
 
   return {
@@ -454,6 +456,8 @@ export async function buildEventClaim() {
 
   const { fee, feeb } = await exclusiveChange({
     psbt: eventClaimPsbt,
+    maxUtxosCount: USE_UTXO_COUNT_LIMIT,
+    sighashType: SIGHASH_ALL,
   })
 
   return {
@@ -490,6 +494,8 @@ export async function buildStandbyClaim() {
 
   const { fee, feeb } = await exclusiveChange({
     psbt: standbyClaimPsbt,
+    maxUtxosCount: USE_UTXO_COUNT_LIMIT,
+    sighashType: SIGHASH_ALL,
   })
 
   return {
