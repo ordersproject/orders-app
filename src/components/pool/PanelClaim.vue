@@ -2,14 +2,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { HelpCircleIcon } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
-import { computed, inject } from 'vue'
+import { computed, inject, ref } from 'vue'
 
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
-import { useAddressStore } from '@/store'
+import { useAddressStore, useBtcJsStore } from '@/store'
 import { getMyRewardsEssential, claimReward } from '@/queries/pool'
-import { DEBUG, POOL_REWARDS_TICK } from '@/data/constants'
+import { DEBUG, IS_DEV, POOL_REWARDS_TICK } from '@/data/constants'
 
 import ClaimRecords from '@/components/pool/PanelClaimRecords.vue'
+import { sleep } from '@/lib/helpers'
+import { buildRewardClaim } from '@/lib/order-pool-builder'
 
 const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
 const addressStore = useAddressStore()
@@ -26,12 +28,16 @@ const { data: rewardsEssential, isLoading: isLoadingRewardsEssential } =
         tick: selectedPair.fromSymbol,
       }),
     select: (data) => {
+      let total =
+        data.totalRewardAmount +
+        data.totalRewardExtraAmount -
+        data.hadClaimRewardAmount
+      if (total < 0) total = 0
+      if (!total && IS_DEV) total = 100
+
       return {
         ...data,
-        total:
-          data.totalRewardAmount +
-          data.totalRewardExtraAmount -
-          data.hadClaimRewardAmount,
+        total,
       }
     },
     enabled: computed(() => !!addressStore.get),
@@ -65,13 +71,46 @@ const { mutate: mutateClaimReward } = useMutation({
   },
 })
 
+const isBuilding = ref(false)
+const isOpenConfirmationModal = ref(false)
+const builtInfo = ref<void | Awaited<ReturnType<typeof buildRewardClaim>>>()
 async function onClaimReward() {
   try {
     if (!rewardsEssential.value) return
 
+    // build pay Tx
+    isOpenConfirmationModal.value = true
+    isBuilding.value = true
+
+    const res = await buildRewardClaim().catch(async (e) => {
+      await sleep(500)
+      console.log(e)
+
+      ElMessage.error(e.message)
+      builtInfo.value = undefined
+      isOpenConfirmationModal.value = false
+    })
+    isBuilding.value = false
+    builtInfo.value = res
+
+    if (!res) return
+
+    // ask unisat to sign
+    const signed = await window.unisat.signPsbt(res.order.toHex())
+    // derive txid from signed psbt
+    const bitcoinjs = useBtcJsStore().get!
+    const signedPsbt = bitcoinjs.Psbt.fromHex(signed)
+    const payTxid = signedPsbt.extractTransaction().getId()
+    const feeRawTx = signedPsbt.extractTransaction().toHex()
+
     mutateClaimReward({
       rewardAmount: rewardsEssential.value.total,
       tick: selectedPair.fromSymbol,
+      feeSend: res.feeSend,
+      feeInscription: res.feeInscription,
+      networkFeeRate: res.feeb,
+      feeUtxoTxId: payTxid,
+      feeRawTx,
     })
   } catch (e: any) {
     if (DEBUG) {

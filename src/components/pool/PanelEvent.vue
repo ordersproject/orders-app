@@ -51,12 +51,15 @@ const { data: eventRewardsEssential, isLoading: isLoadingRewardsEssential } =
         tick: selectedPair.fromSymbol,
       }),
     select: (data) => {
+      let total =
+        data.totalRewardAmount +
+        data.totalRewardExtraAmount -
+        data.hadClaimRewardAmount
+      if (total < 0) total = 0
+
       return {
         ...data,
-        total:
-          data.totalRewardAmount +
-          data.totalRewardExtraAmount -
-          data.hadClaimRewardAmount,
+        total,
       }
     },
     enabled: computed(() => !!addressStore.get),
@@ -114,7 +117,6 @@ async function onClaimReward() {
 
     // ask unisat to sign
     const signed = await window.unisat.signPsbt(res.order.toHex())
-    console.log({ signed })
     // derive txid from signed psbt
     const bitcoinjs = useBtcJsStore().get!
     const signedPsbt = bitcoinjs.Psbt.fromHex(signed)

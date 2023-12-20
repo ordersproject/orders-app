@@ -9,7 +9,11 @@ import {
 } from '@/store'
 import { getOneBrc20 } from '@/queries/orders-api'
 import { type SimpleUtxoFromMempool, getTxHex, getUtxos } from '@/queries/proxy'
-import { getEventClaimFees, getPoolCredential } from '@/queries/pool'
+import {
+  getEventClaimFees,
+  getPoolCredential,
+  getRewardClaimFees,
+} from '@/queries/pool'
 import { type TradingPair } from '@/data/trading-pairs'
 import { raise } from './helpers'
 import { exclusiveChange, safeOutputValue } from './build-helpers'
@@ -389,6 +393,42 @@ export async function buildReleasePsbt({
   })
 
   return claim
+}
+
+export async function buildRewardClaim() {
+  const networkStore = useNetworkStore()
+  const btcjs = useBtcJsStore().get!
+
+  const { feeAddress, rewardInscriptionFee, rewardSendFee } =
+    await getRewardClaimFees()
+  const totalFees = new Decimal(rewardInscriptionFee).plus(rewardSendFee)
+
+  // build psbt
+  const rewardClaimPsbt = new btcjs.Psbt({
+    network: btcjs.networks[networkStore.btcNetwork],
+  })
+    .addOutput({
+      address: feeAddress,
+      value: safeOutputValue(rewardInscriptionFee),
+    })
+    .addOutput({
+      address: feeAddress,
+      value: safeOutputValue(rewardSendFee),
+    })
+
+  const { fee, feeb } = await exclusiveChange({
+    psbt: rewardClaimPsbt,
+  })
+
+  return {
+    order: rewardClaimPsbt,
+    type: 'pool reward claiming',
+    amount: new Decimal(safeOutputValue(totalFees)),
+    toAddress: feeAddress,
+    feeb,
+    feeSend: rewardSendFee,
+    feeInscription: rewardInscriptionFee,
+  }
 }
 
 export async function buildEventClaim() {

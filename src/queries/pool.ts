@@ -601,6 +601,26 @@ export const getMyStandbyRewardsEssential = async ({
   })
 }
 
+export const getRewardClaimFees = async () => {
+  const feeb = useFeebStore().get ?? raise('Choose a fee rate first.')
+  const { publicKey, signature } = await sign()
+  const params = new URLSearchParams({
+    networkFeeRate: String(feeb),
+    version: '2',
+  })
+
+  return (await ordersApiFetch(`event/reward/cal/fee?${params}`, {
+    headers: {
+      'X-Signature': signature,
+      'X-Public-Key': publicKey,
+    },
+  })) as {
+    rewardInscriptionFee: number
+    rewardSendFee: number
+    feeAddress: string
+  }
+}
+
 export const getEventClaimFees = async () => {
   const feeb = useFeebStore().get ?? raise('Choose a fee rate first.')
   const { publicKey, signature } = await sign()
@@ -885,9 +905,19 @@ export const getMyRewardsClaimRecords = async ({
 export const claimReward = async ({
   rewardAmount,
   tick,
+  feeSend,
+  feeInscription,
+  networkFeeRate,
+  feeUtxoTxId,
+  feeRawTx,
 }: {
   rewardAmount: number
   tick: string
+  feeSend: number
+  feeInscription: number
+  networkFeeRate: number
+  feeUtxoTxId: string
+  feeRawTx: string
 }) => {
   const network = useNetworkStore().network
   const address = useAddressStore().get!
@@ -904,6 +934,14 @@ export const claimReward = async ({
       rewardAmount,
       address,
       tick,
+      version: 2,
+
+      feeInscription,
+      feeSend,
+      feeUtxoTxId,
+      networkFeeRate,
+      feeRawTx,
+      rewardType: 1,
     }),
   })
 }
