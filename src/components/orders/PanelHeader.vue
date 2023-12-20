@@ -1,15 +1,15 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 import { useAddressStore } from '@/store'
 
 import PairSelect from './PairSelect.vue'
-
+import Echart from '@/components/orders/Echart.vue'
 defineProps(['isLimitExchangeMode'])
 defineEmits(['update:isLimitExchangeMode'])
 
 const addressStore = useAddressStore()
-
+const isOpen = ref(false)
 const inWhitelist = computed(() => {
   return addressStore.get
 })
@@ -22,6 +22,12 @@ const inWhitelist = computed(() => {
     <!-- pair select -->
     <div class="col-span-2 flex items-center justify-center gap-2">
       <PairSelect />
+      <button
+        class="col-span-2 rounded-md bg-black px-4 py-2.5 text-sm transition-all hover:bg-opacity-80"
+        @click="isOpen = true"
+      >
+        <span class="font-bold text-orange-300">Kline</span>
+      </button>
     </div>
 
     <!-- limit exchange button -->
@@ -40,4 +46,5 @@ const inWhitelist = computed(() => {
       </button>
     </div>
   </div>
+  <Echart :isOpen="isOpen"></Echart>
 </template>

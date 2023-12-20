@@ -1,5 +1,80 @@
+<!-- <template> -->
 <template>
-  <div ref="chartRef" class="chart"></div>
+  <TransitionRoot appear :show="isOpen" as="template">
+    <Dialog as="div" @close="closeModal" class="z-999 fixed inset-0">
+      <TransitionChild
+        as="template"
+        enter="duration-300 ease-out"
+        enter-from="opacity-0"
+        enter-to="opacity-100"
+        leave="duration-200 ease-in"
+        leave-from="opacity-100"
+        leave-to="opacity-0"
+      >
+        <div class="fixed inset-0 bg-black/25" />
+      </TransitionChild>
+
+      <div class="fixed inset-0 overflow-y-auto">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0 scale-95"
+          enter-to="opacity-100 scale-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100 scale-100"
+          leave-to="opacity-0 scale-95"
+        >
+          <DialogPanel
+            class="h-full w-screen transform overflow-hidden rounded-2xl bg-zinc-900 p-6 text-left align-middle shadow-xl transition-all"
+          >
+            <DialogTitle
+              as="h3"
+              class="text-lg font-medium leading-6 text-gray-900"
+            >
+              Payment successful
+            </DialogTitle>
+            <div class="mt-2">
+              <p class="text-sm text-gray-500">
+                Your payment has been successfully submitted. We’ve sent you an
+                email with all of the details of your order.
+              </p>
+            </div>
+
+            <div class="mt-4">
+              <button
+                type="button"
+                class="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                @click="closeModal"
+              >
+                Got it, thanks!
+              </button>
+            </div>
+          </DialogPanel>
+        </TransitionChild>
+      </div>
+    </Dialog>
+  </TransitionRoot>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import {
+  TransitionRoot,
+  TransitionChild,
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+} from '@headlessui/vue'
+
+defineEmits(['update:openEchart'])
+const props = defineProps(['isOpen'])
+
+function closeModal() {
+  // isOpen = false
+}
+</script>
+
+<!-- <div ref="chartRef" class="chart"></div>
 
   <div @click="updateChart">update</div>
 </template>
@@ -1065,12 +1140,25 @@ async function initKlines() {
       textColor: 'white',
       background: { type: 'gradient', color: '#171222' },
     },
+    crosshair: {
+      mode: 0,
+    },
+    grid: {
+      vertLines: {
+        color: 'rgba(138, 138, 138,0.3)',
+      },
+      horzLines: {
+        color: 'rgba(138, 138, 138,0.3)',
+      },
+    },
+
     localization: {
       locale: 'en',
     },
   }
-
+  chartRef.value.style.cursor = 'crosshair'
   const chart = createChart(chartRef.value, chartOptions)
+
   const candleStickData = generateCandlestickData()
   const mainSeries = chart.addCandlestickSeries()
   mainSeries.setData(candleStickData)
@@ -1130,6 +1218,7 @@ onMounted(() => {
 
 <style scoped>
 .chart {
+  padding-top: 200px;
   z-index: 99;
   width: 90vw;
   height: 350px;
@@ -1139,4 +1228,4 @@ onMounted(() => {
   margin-top: 12px;
   background: #171222;
 }
-</style>
+</style> -->

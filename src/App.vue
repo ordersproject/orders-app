@@ -40,6 +40,8 @@ queryClient.setDefaultOptions({
 </script>
 
 <template>
+  <!-- <Echart></Echart> -->
+
   <Toaster />
   <NotAvailableOverlay v-if="isMobile && !DEBUG" />
 
