@@ -184,7 +184,7 @@ watch(
 
     feebStore.set(plan.feeRate)
 
-    if ()
+    // if ()
     sleep(1000).then(async () => {
       await getClaimFee()
     })
