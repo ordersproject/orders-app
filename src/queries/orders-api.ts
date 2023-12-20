@@ -254,12 +254,13 @@ export const constructBidPsbt = async ({
   return constructInfo
 }
 
-export const getSellFees = async () => {
+export const getSellFees = async ({ orderId }: { orderId: string }) => {
   const feeb = useFeebStore().get ?? raise('Choose a fee rate first.')
 
   const params = new URLSearchParams({
     version: '2',
     networkFeeRate: String(feeb),
+    orderId,
   })
 
   const fees: {

@@ -300,6 +300,7 @@ async function buildOrder() {
           total,
           amount: selectedSellCoinAmount.value,
           selectedPair,
+          orderId: selectedSellOrders.value[0].orderId,
         }).catch(async (err) => {
           await sleep(500)
 

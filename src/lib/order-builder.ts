@@ -405,10 +405,12 @@ export async function buildBuyTake({
 }
 
 export async function buildSellTake({
+  orderId,
   total,
   amount,
   selectedPair,
 }: {
+  orderId: string
   total: number
   amount: number
   selectedPair: TradingPair
@@ -480,7 +482,7 @@ export async function buildSellTake({
   })
 
   // Step 3: Add service fee
-  let sellFees = await getSellFees()
+  let sellFees = await getSellFees({ orderId })
 
   const { fee, feeb } = await exclusiveChange({
     psbt: sell,
