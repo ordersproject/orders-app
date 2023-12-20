@@ -77,6 +77,8 @@ async function submitBidOrder() {
       builtInfo.secondaryOrder.toHex()
     )
     const payPsbt = btcjs.Psbt.fromHex(payPsbtSigned)
+    // extract tx from signed payPsbt
+    const preTxRaw = payPsbt.extractTransaction().toHex()
 
     // 2. now we can add that utxo to the bid order
     const bidPsbt = builtInfo.order
@@ -96,6 +98,7 @@ async function submitBidOrder() {
     // 4. push the bid order to the api
     const pushRes = await pushBidOrder({
       psbtRaw: signed,
+      preTxRaw: preTxRaw,
       network: networkStore.ordersNetwork,
       address: addressStore.get!,
       tick: selectedPair.fromSymbol,
@@ -106,10 +109,11 @@ async function submitBidOrder() {
       orderId: builtInfo.orderId,
     })
 
-    // 5. if pushRes is not null, we can now push the secondary order to the blockchain
-    if (pushRes) {
-      const res = await window.unisat.pushPsbt(payPsbtSigned)
-    }
+    // // 5. if pushRes is not null, we can now push the secondary order to the blockchain
+    // if (pushRes) {
+    //   const res = await window.unisat.pushPsbt(payPsbtSigned)
+    //   console.log('unisat push result', res)
+    // }
   } catch (err: any) {
     // if error message contains missingorspent / mempool-conflict, show a more user-friendly message
     if (
@@ -178,19 +182,19 @@ async function submitOrder() {
           networkFeeRate: builtInfo.networkFeeRate,
         })
         break
-      case 'bid':
-        pushRes = await pushBidOrder({
-          psbtRaw: signed,
-          network: networkStore.ordersNetwork,
-          address: addressStore.get!,
-          tick: selectedPair.fromSymbol,
-          feeb: builtInfo.feeb,
-          fee: builtInfo.networkFee,
-          total: builtInfo.total,
-          using: builtInfo.using,
-          orderId: builtInfo.orderId,
-        })
-        break
+      // case 'bid':
+      //   pushRes = await pushBidOrder({
+      //     psbtRaw: signed,
+      //     network: networkStore.ordersNetwork,
+      //     address: addressStore.get!,
+      //     tick: selectedPair.fromSymbol,
+      //     feeb: builtInfo.feeb,
+      //     fee: builtInfo.networkFee,
+      //     total: builtInfo.total,
+      //     using: builtInfo.using,
+      //     orderId: builtInfo.orderId,
+      //   })
+      //   break
       case 'ask':
         pushRes = await pushAskOrder({
           psbtRaw: signed,

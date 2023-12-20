@@ -630,6 +630,7 @@ export const pushBidOrder = async ({
   address,
   tick,
   psbtRaw,
+  preTxRaw,
   feeb,
   fee,
   total,
@@ -640,6 +641,7 @@ export const pushBidOrder = async ({
   address: string
   tick: string
   psbtRaw: string
+  preTxRaw: string
   feeb: number
   fee: number
   total: number
@@ -659,6 +661,7 @@ export const pushBidOrder = async ({
         address,
         tick,
         psbtRaw,
+        preTxRaw,
         rate: feeb,
         fee,
         amount: total,

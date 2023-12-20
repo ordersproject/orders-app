@@ -16,6 +16,7 @@ import { BTC_POOL_MODE, DEBUG } from '@/data/constants'
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import assets from '@/data/assets'
 import { useExcludedBalanceQuery } from '@/queries/excluded-balance'
+import { sleep } from '@/lib/helpers'
 
 const unisat = window.unisat
 
@@ -61,8 +62,6 @@ function discardOrder() {
 }
 
 async function submitOrder() {
-  console.log({ props })
-
   const builtInfo = toRaw(props.builtInfo)
   try {
     const toSigns = []
@@ -79,11 +78,12 @@ async function submitOrder() {
       toSigns.map(() => {})
     )
 
+    let preTxRaw: string | undefined
     if (props.builtBtcInfo?.separatePsbt) {
-      // push separate psbt
-      // const pushSeparateRes = await unisat.pushPsbt(signedPsbts[1])
+      // instead of push psbt, we extract the signed tx
+      const btcjs = useBtcJsStore().get!
+      preTxRaw = btcjs.Psbt.fromHex(signedPsbts[1]).extractTransaction().toHex()
     }
-    console.log({ signedPsbts })
 
     // extract btc tx and get its txid
     const bidirectional = !!props.builtBtcInfo
@@ -101,7 +101,6 @@ async function submitOrder() {
       ).extractTransaction()
       const btcTxid = btcTx.getId()
       btcTxOutputLocation = btcTxid + '_0'
-      console.log({ btcTxid })
     }
 
     let pushRes: any
@@ -119,6 +118,7 @@ async function submitOrder() {
           psbtRaw: bidirectional
             ? signedPsbts[signedPsbts.length - 1]
             : undefined,
+          preTxRaw: preTxRaw || undefined,
           coinAmount: builtInfo.fromValue.toNumber(),
           coinPsbtRaw: signedPsbts[0],
           net: networkStore.network,
