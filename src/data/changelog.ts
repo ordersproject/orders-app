@@ -1,5 +1,14 @@
 const changelog = [
   {
+    version: '1.4.0',
+    emoji: '🚤',
+    date: '2023-12-21',
+    changes: [
+      'Refactor the mechanism of liquidity entirely to enhance security',
+      'Revamp reward claiming process',
+    ],
+  },
+  {
     version: '1.3.1',
     emoji: '🕺',
     date: '2023-12-05',
