@@ -483,6 +483,7 @@ export async function buildSellTake({
 
   // Step 3: Add service fee
   let sellFees = await getSellFees({ orderId })
+  console.log({ sellFees })
 
   const { fee, feeb } = await exclusiveChange({
     psbt: sell,
