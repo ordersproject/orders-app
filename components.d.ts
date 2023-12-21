@@ -11,6 +11,7 @@ declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     AssetsDisplay: typeof import('./src/components/header/AssetsDisplay.vue')['default']
     ConfirmationModal: typeof import('./src/components/ConfirmationModal.vue')['default']
+    copy: typeof import('./src/components/pool/PanelRelease copy.vue')['default']
     ElPopover: typeof import('element-plus/es')['ElPopover']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     EventClaimRecords: typeof import('./src/components/pool/EventClaimRecords.vue')['default']
@@ -33,6 +34,7 @@ declare module '@vue/runtime-core' {
     PanelEvent: typeof import('./src/components/pool/PanelEvent.vue')['default']
     PanelEventRecordItem: typeof import('./src/components/pool/PanelEventRecordItem.vue')['default']
     PanelHeader: typeof import('./src/components/orders/PanelHeader.vue')['default']
+    PanelHistory: typeof import('./src/components/pool/PanelHistory.vue')['default']
     PanelRelease: typeof import('./src/components/pool/PanelRelease.vue')['default']
     PanelReleaseHistoryItem: typeof import('./src/components/pool/PanelReleaseHistoryItem.vue')['default']
     PanelReleaseRecordItem: typeof import('./src/components/pool/PanelReleaseRecordItem.vue')['default']

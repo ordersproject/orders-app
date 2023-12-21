@@ -13,12 +13,13 @@ import PanelAdd from './PanelAdd.vue'
 import PanelRemove from './PanelRemove.vue'
 import PanelStandbys from './PanelStandbys.vue'
 import PanelRelease from './PanelRelease.vue'
+import PanelHistory from './PanelHistory.vue'
 import PanelClaim from './PanelClaim.vue'
 import PanelEvent from './PanelEvent.vue'
 
 const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
 
-const tabLabels = ['Add', 'Standbys', 'Remove', 'Release', 'Claim']
+const tabLabels = ['Add', 'Standbys', 'Remove', 'Release', 'History', 'Claim']
 if (selectedPair.fromSymbol === 'rdex') {
   tabLabels.push('Event🔥')
 
@@ -112,6 +113,10 @@ const hasReleasable = computed(() => {
 
         <TabPanel class="tab-panel">
           <PanelRelease />
+        </TabPanel>
+
+        <TabPanel class="tab-panel">
+          <PanelHistory />
         </TabPanel>
 
         <TabPanel class="pt-12 focus-visible:outline-none">
