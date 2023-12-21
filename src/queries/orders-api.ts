@@ -376,7 +376,6 @@ export const getAskOrderDetail = async ({
   const params = new URLSearchParams({
     buyerAddress: address,
     tick,
-    buyerChangeAmount: String(buyerChangeAmount),
   })
 
   const order: DetailedOrder = await ordersApiFetch(
