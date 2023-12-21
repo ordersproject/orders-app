@@ -14,45 +14,23 @@ onMounted(async () => {
   const secp256k1 = await import('tiny-secp256k1')
   btcjs.initEccLib(secp256k1)
   btcJsStore.set(btcjs)
-  const bip32 = BIP32Factory(secp256k1)
-  // init account
-  const mnemonic = import.meta.env.VITE_TEST_MNEMONIC
-  // const seed = bip39.mnemonicToSeedSync(mnemonic)
-  // const root = bip32.fromSeed(seed)
-  // const child1 = root.derivePath("m/86'/0'/0'/0/5")
-  // const child2 = root.derivePath("m/86'/0'/0'/0/6")
-  // const payment = btcjs.payments.p2wsh({
-  //   redeem: btcjs.payments.p2ms({
-  //     m: 2,
-  //     pubkeys: [child1.publicKey, child2.publicKey],
-  //   }),
-  // })
-  // const wshInput = {
-  //   hash: payment.redeem.output,
-  //   index: 0,
-  //   witnessUtxo: {
-  //     script: payment.output,
-  //     value: 100000,
-  //   },
-  //   witnessScript: payment.redeem!.output,
-  // }
-  // const psbt = new btcjs.Psbt().addInput()
 })
 
-const createTx = async () => {}
+function decodePsbt() {
+  const raw =
+    '70736274ff0100f4020000000300000000000000000000000000000000000000000000000000000000000000000000000000ffffffff00000000000000000000000000000000000000000000000000000000000000000100000000fffffffff398a74293539769b23957c7fb6fc71724c0adeb4967c26e46eb84f683a063e20000000000ffffffff0300000000000000001976a914000000000000000000000000000000000000000088ac00000000000000001976a914000000000000000000000000000000000000000088ac80841e00000000002251205a52b80cecb3385052645deddef2d062ce6b971fbf07f5cc036b60e762c4baff000000000001011f0000000000000000160014ae47938f7acd1623e6e10e1ebcc33c2a7cb6e30d0001011f0000000000000000160014ae47938f7acd1623e6e10e1ebcc33c2a7cb6e30d0001012b22020000000000002251205a52b80cecb3385052645deddef2d062ce6b971fbf07f5cc036b60e762c4baff0103048300000001172014ce8cc53f654dff7757a7886ad9317dd2b2ea4223a130338cceb6973857e73b00000000'
+  const raw2 =
+    '70736274ff0100750200000001268171371edff285e937adeea4b37b78000c0566cbb3ad64641713ca42171bf60000000000feffffff02d3dff505000000001976a914d0c59903c5bac2868760e90fd521a4665aa7652088ac00e1f5050000000017a9143545e6e33b832c47050f24d3eeb93c9c03948bc787b32e1300000100fda5010100000000010289a3c71eab4d20e0371bbba4cc698fa295c9463afa2e397f8533ccb62f9567e50100000017160014be18d152a9b012039daf3da7de4f53349eecb985ffffffff86f8aa43a71dff1448893a530a7237ef6b4608bbb2dd2d0171e63aec6a4890b40100000017160014fe3e9ef1a745e974d902c4355943abcb34bd5353ffffffff0200c2eb0b000000001976a91485cff1097fd9e008bb34af709c62197b38978a4888ac72fef84e2c00000017a914339725ba21efd62ac753a9bcd067d6c7a6a39d05870247304402202712be22e0270f394f568311dc7ca9a68970b8025fdd3b240229f07f8a5f3a240220018b38d7dcd314e734c9276bd6fb40f673325bc4baa144c800d2f2f02db2765c012103d2e15674941bad4a996372cb87e1856d3652606d98562fe39c5e9e7e413f210502483045022100d12b852d85dcd961d2f5f4ab660654df6eedcc794c0c33ce5cc309ffb5fce58d022067338a8e0e1725c197fb1a88af59f51e44e4255b20167c8684031c05d1f2592a01210223b72beef0965d10be0778efecd61fcac6f79a4ea169393380734464f84f2ab300000000000000'
 
-const unlockMs = async () => {}
+  const btcjs = btcJsStore.get!
 
-const generateMsAddress = async () => {
-  console.log('hi')
-  // await generateP2wshPayment()
+  const psbt = btcjs.Psbt.fromHex(raw)
+  const input = psbt.txInputs[0]
+
+  console.log({ input })
 }
 </script>
 
 <template>
-  <button class="border p-2" @click="createTx">生成多签输出</button>
-  <button class="border p-2 ml-4" @click="unlockMs">解锁多签</button>
-  <button class="border p-2 ml-4" @click="generateMsAddress">
-    生成多签地址
-  </button>
+  <button class="border p-2" @click="decodePsbt">decode psbt</button>
 </template>
