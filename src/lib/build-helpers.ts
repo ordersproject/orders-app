@@ -252,6 +252,7 @@ export async function exclusiveChange({
       : calcFee(psbt, feeb, extraSize)
     const totalOutput = sumOrNaN(psbtClone.txOutputs)
     const totalInput = sumOrNaN(
+      // @ts-ignore
       psbtClone.data.inputs.map(
         (input) =>
           input.witnessUtxo ||
@@ -316,6 +317,7 @@ export async function exclusiveChange({
       totalOutput = 0
       // totalInput = the inputs we add in now
       totalInput = sumOrNaN(
+        // @ts-ignore
         psbt.data.inputs
           .slice(1) // exclude the first input, which is the oridinal input
           .map(
@@ -331,6 +333,7 @@ export async function exclusiveChange({
       // we pay for the whole transaction
       totalOutput = sumOrNaN(psbt.txOutputs)
       totalInput = sumOrNaN(
+        // @ts-ignore
         psbt.data.inputs.map(
           (input) =>
             input.witnessUtxo ||

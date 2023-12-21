@@ -19,6 +19,7 @@ class BtcHelpers {
   }
 
   public fromPubKey(pubKey: string): any {
+    // @ts-ignore
     return this.ECPair.fromPublicKey(pubKey)
   }
 

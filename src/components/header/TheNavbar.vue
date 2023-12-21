@@ -20,6 +20,7 @@ const links: {
     path: '/pool',
     new: true,
   },
+  { name: 'Nested', path: '/mvcswap' },
   // {
   //   name: 'Whitelist',
   //   path: '/whitelist',
@@ -49,12 +50,12 @@ function isLinkActive(path: string) {
     <nav class="ml-6 flex items-center gap-x-2">
       <component
         :class="[
-          'px-4 py-2 text-sm font-medium rounded-md transition-all',
+          'rounded-md px-4 py-2 text-sm font-medium transition-all',
           isLinkActive(link.path)
             ? 'text-orange-300 underline underline-offset-4 hover:underline-offset-2'
             : 'text-zinc-300',
           link.disabled
-            ? 'text-zinc-500 cursor-default'
+            ? 'cursor-default text-zinc-500'
             : 'hover:bg-black hover:text-orange-300',
         ]"
         v-for="link in links"
@@ -65,7 +66,7 @@ function isLinkActive(path: string) {
       >
         {{ link.name }}
         <span
-          class="inline-flex items-center rounded-md bg-red-400/30 px-1.5 py-0.5 text-xs font-medium text-red-400 -translate-y-2 -translate-x-1 absolute"
+          class="absolute inline-flex -translate-x-1 -translate-y-2 items-center rounded-md bg-red-400/30 px-1.5 py-0.5 text-xs font-medium text-red-400"
           v-if="link.new"
         >
           New

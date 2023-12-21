@@ -7,6 +7,10 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import ElementPlus from 'unplugin-element-plus/vite'
+import { resolve } from 'path'
+
+const root = resolve(__dirname)
+const outDir = resolve(__dirname, 'dist')
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -55,8 +59,14 @@ export default defineConfig({
     port: 5174,
   },
   build: {
+    outDir,
+    emptyOutDir: true,
     rollupOptions: {
-      external: ['bitcoin', 'bitcoin.js'],
+      external: ['bitcoin', 'bitcoin.js', 'react', 'react-dom'],
+      input: {
+        main: resolve(root, 'index.html'),
+        mvcswap: resolve(root, 'mvcswap/index.html'),
+      },
     },
   },
 })
