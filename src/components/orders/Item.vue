@@ -8,7 +8,6 @@ import { useAddressStore } from '@/store'
 import { cancelOrder, type Order, getFiatRate } from '@/queries/orders-api'
 import { prettyBalance } from '@/lib/formatters'
 import { calcFiatPrice, showFiat, useBtcUnit } from '@/lib/helpers'
-import Decimal from 'decimal.js'
 
 const address = useAddressStore().get!
 
@@ -99,7 +98,7 @@ const { data: fiatRate } = useQuery({
         }}</span>
 
         <span
-          class="text-xs text-zinc-500 col-span-2"
+          class="col-span-2 text-xs text-zinc-500"
           v-if="showFiat && fiatRate"
         >
           {{ '$' + calcFiatPrice(order.amount, fiatRate) }}

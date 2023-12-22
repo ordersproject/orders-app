@@ -2,10 +2,14 @@ import { RemovableRef } from '@vueuse/core'
 import dayjs from 'dayjs/esm/index.js'
 import Decimal from 'decimal.js'
 
-export function prettyTimestamp(timestamp: number, isInSeconds = false) {
+export function prettyTimestamp(
+  timestamp: number,
+  isInSeconds = false,
+  format = 'YYYY-MM-DD HH:mm:ss'
+) {
   if (isInSeconds) timestamp = timestamp * 1000
 
-  return dayjs(timestamp).format('YYYY-MM-DD HH:mm:ss')
+  return dayjs(timestamp).format(format)
 }
 
 export const prettyAddress = (address: string, len = 6) => {

@@ -3,6 +3,7 @@ import sign from '../lib/sign'
 import { useAddressStore, useFeebStore, useNetworkStore } from '../store'
 import { ordersApiFetch } from '@/lib/fetch'
 import { raise, showFiat } from '@/lib/helpers'
+import { prettyTimestamp } from '@/lib/formatters'
 
 export const login = async () => {
   const { publicKey, signature } = await sign()
@@ -75,6 +76,43 @@ export const getOrdiBalance = async (
 
   // real data for livenet
   return 1
+}
+
+export const getKline = async (
+  net = 'livenet',
+  tick = 'sats',
+  interval = '1h'
+): Promise<any> => {
+  const params = new URLSearchParams({
+    net,
+    tick,
+    interval,
+  })
+
+  let { list } = await ordersApiFetch(`/kline?${params}`)
+  list = list.sort((a, b) => a.timestamp - b.timestamp)
+  list = list.map((item) => {
+    item.timestamp = prettyTimestamp(
+      new Decimal(item.timestamp).toNumber()
+      // false,
+      // 'YYYY-MM-DD'
+    )
+
+    return {
+      close: +item.close,
+      high: +item.high,
+      low: +item.low,
+      open: +item.open,
+      time: item.timestamp,
+    }
+  })
+
+  list = list.sort((a: any, b: any) => {
+    return a.time - b.time
+  })
+  console.log('list', list)
+  debugger
+  return list
 }
 
 export type BidCandidate = {

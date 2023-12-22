@@ -25,6 +25,7 @@ declare module '@vue/runtime-core' {
     Notifications: typeof import('./src/components/header/Notifications.vue')['default']
     OperationPanel: typeof import('./src/components/pool/OperationPanel.vue')['default']
     PairSelect: typeof import('./src/components/orders/PairSelect.vue')['default']
+    PairSelectForKline: typeof import('./src/components/orders/PairSelectForKline.vue')['default']
     PairSelectorPanel: typeof import('./src/components/pool/PairSelectorPanel.vue')['default']
     Panel: typeof import('./src/components/orders/Panel.vue')['default']
     PanelAdd: typeof import('./src/components/pool/PanelAdd.vue')['default']
