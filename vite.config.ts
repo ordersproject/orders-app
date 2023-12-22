@@ -65,7 +65,7 @@ export default defineConfig({
       external: ['bitcoin', 'bitcoin.js', 'react', 'react-dom'],
       input: {
         main: resolve(root, 'index.html'),
-        mvcswap: resolve(root, 'mvcswap/index.html'),
+        mvcswap: resolve(root, 'mvc20/index.html'),
       },
     },
   },

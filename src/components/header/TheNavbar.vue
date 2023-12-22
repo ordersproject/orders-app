@@ -20,7 +20,7 @@ const links: {
     path: '/pool',
     new: true,
   },
-  { name: 'Nested', path: '/mvcswap' },
+  // { name: 'Nested', path: '/mvc20/' },
   // {
   //   name: 'Whitelist',
   //   path: '/whitelist',
@@ -40,6 +40,10 @@ function isLinkActive(path: string) {
     default:
       return false
   }
+}
+
+function toMvc20() {
+  window.open('/mvc20/', '_current')
 }
 </script>
 
@@ -72,6 +76,13 @@ function isLinkActive(path: string) {
           New
         </span>
       </component>
+
+      <a
+        class="rounded-md px-4 py-2 text-sm font-medium text-zinc-300 cursor-pointer hover:bg-black hover:text-orange-300"
+        @click="toMvc20"
+      >
+        MVC20
+      </a>
     </nav>
   </div>
 </template>
