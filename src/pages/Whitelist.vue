@@ -201,4 +201,3 @@ async function claim() {
     </div>
   </div>
 </template>
-@/stores/store

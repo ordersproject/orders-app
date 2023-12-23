@@ -249,4 +249,3 @@ function onWalletMissing(wallet: 'unisat' | 'okx') {
     </div>
   </header>
 </template>
-@/stores/store

@@ -50,4 +50,3 @@ queryClient.setDefaultOptions({
 </template>
 
 <style scoped></style>
-@/stores/store

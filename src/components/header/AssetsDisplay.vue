@@ -256,4 +256,3 @@ const { data: myBrc20s } = useQuery({
     </span>
   </div>
 </template>
-@/stores/store

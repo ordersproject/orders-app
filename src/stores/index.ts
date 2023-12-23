@@ -4,7 +4,7 @@ import { useNetworkStore, type Network } from './network'
 import { useCooldownerStore } from './cooldowner'
 import { useFeebStore } from './feeb'
 import { useCredentialsStore } from './credentials'
-import { useDummiesStore } from './dummies'
+import { useDummiesStore, type DummyUtxo } from './dummies'
 import { useGeoStore } from './geo'
 
 export {
@@ -18,4 +18,4 @@ export {
   useGeoStore,
 }
 
-export type { Network }
+export type { Network, DummyUtxo }

@@ -498,4 +498,3 @@ const { data: fiatRate } = useQuery({
   @apply text-right text-zinc-300;
 }
 </style>
-@/stores/store

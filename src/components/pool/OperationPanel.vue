@@ -144,4 +144,3 @@ const hasReleasable = computed(() => {
   outline: none;
 }
 </style>
-@/stores/store

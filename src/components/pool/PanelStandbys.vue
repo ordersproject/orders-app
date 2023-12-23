@@ -331,4 +331,3 @@ const isModelOpen = ref(false)
     </TabPanels>
   </TabGroup>
 </template>
-@/stores/store

@@ -1,12 +1,9 @@
 import Decimal from 'decimal.js'
-import sign from '../lib/sign'
-import {
-  useConnectionStore,
-  useFeebStore,
-  useNetworkStore,
-} from '../stores/store'
+
+import { useConnectionStore, useFeebStore, useNetworkStore } from '@/stores'
+import sign from '@/lib/sign'
 import { ordersApiFetch } from '@/lib/fetch'
-import { raise, showFiat } from '@/lib/helpers'
+import { raise } from '@/lib/helpers'
 
 export const login = async () => {
   const { publicKey, signature } = await sign()

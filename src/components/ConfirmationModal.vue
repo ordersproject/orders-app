@@ -424,4 +424,3 @@ async function submitOrder() {
     </div>
   </Dialog>
 </template>
-@/stores/store

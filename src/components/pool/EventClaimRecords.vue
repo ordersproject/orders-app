@@ -50,4 +50,3 @@ const { data: records, isLoading: isLoadingRecords } = useQuery({
     </div>
   </div>
 </template>
-@/stores/store

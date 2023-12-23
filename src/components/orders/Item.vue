@@ -128,4 +128,3 @@ const { data: fiatRate } = useQuery({
   @apply py-1 text-right font-normal;
 }
 </style>
-@/stores/store

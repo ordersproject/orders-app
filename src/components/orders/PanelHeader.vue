@@ -37,4 +37,3 @@ const connectionStore = useConnectionStore()
     </div>
   </div>
 </template>
-@/stores/store

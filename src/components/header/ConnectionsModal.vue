@@ -157,4 +157,3 @@ async function connectToOkx() {
     </Dialog>
   </TransitionRoot>
 </template>
-@/stores/store

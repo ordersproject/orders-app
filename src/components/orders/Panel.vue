@@ -1347,4 +1347,3 @@ watch(bidExchangePrice, (price) => {
     />
   </div>
 </template>
-@/stores/store

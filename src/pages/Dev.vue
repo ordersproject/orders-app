@@ -67,4 +67,3 @@ function decodePsbt() {
     </button>
   </div>
 </template>
-@/stores/store

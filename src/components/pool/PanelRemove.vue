@@ -216,4 +216,3 @@ async function submitRemove() {
     </form>
   </div>
 </template>
-@/stores/store

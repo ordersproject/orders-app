@@ -173,4 +173,3 @@ function onDisconnect() {
     </transition>
   </Menu>
 </template>
-@/stores/store

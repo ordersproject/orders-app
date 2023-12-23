@@ -5,7 +5,7 @@ import {
   useConnectionStore,
   useFeebStore,
   useNetworkStore,
-} from '@/stores/store'
+} from '@/stores'
 
 type PoolPair = {
   fromPoolSize: string

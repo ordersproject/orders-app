@@ -143,4 +143,3 @@ async function onRecover() {
     </div>
   </div>
 </template>
-@/stores/store

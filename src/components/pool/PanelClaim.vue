@@ -155,4 +155,3 @@ async function onClaimReward() {
     <ClaimRecords class="mt-8 overflow-y-scroll nicer-scrollbar" />
   </div>
 </template>
-@/stores/store

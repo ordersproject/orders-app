@@ -122,4 +122,3 @@ const { data: releaseHistory, isLoading: isLoadingReleaseHistory } = useQuery({
     </TabGroup>
   </div>
 </template>
-@/stores/store

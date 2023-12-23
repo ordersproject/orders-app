@@ -1,4 +1,4 @@
-import { useConnectionStore, useCredentialsStore } from '@/stores/store'
+import { useConnectionStore, useCredentialsStore } from '@/stores'
 
 export default async function sign() {
   const connection = useConnectionStore().last

@@ -247,4 +247,3 @@ async function onConfirm() {}
     /> -->
   </div>
 </template>
-@/stores/store

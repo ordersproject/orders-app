@@ -140,4 +140,3 @@ function onClearNotifications() {
     </div>
   </div>
 </template>
-@/stores/store

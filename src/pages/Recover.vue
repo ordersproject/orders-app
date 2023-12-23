@@ -46,4 +46,3 @@ const { data: issues } = useQuery({
     </div>
   </div>
 </template>
-@/stores/store

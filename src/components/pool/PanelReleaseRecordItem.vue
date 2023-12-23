@@ -303,4 +303,3 @@ async function submitReleaseRecord() {
     </div>
   </div>
 </template>
-@/stores/store

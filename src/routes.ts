@@ -1,9 +1,5 @@
 import { fetchGeo } from '@/queries/geo'
-import {
-  useConnectionStore,
-  useCredentialsStore,
-  useGeoStore,
-} from '@/stores/store'
+import { useConnectionStore, useCredentialsStore, useGeoStore } from '@/stores'
 import { isRestrictedRegion } from '@/lib/helpers'
 
 const Home = () => import('./pages/Home.vue')

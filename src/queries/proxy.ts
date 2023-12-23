@@ -1,4 +1,4 @@
-import { useNetworkStore } from '../stores/store'
+import { useNetworkStore } from '@/stores'
 import fetch, { originalFetch } from '@/lib/fetch'
 
 export type SimpleUtxoFromMempool = {

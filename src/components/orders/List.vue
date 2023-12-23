@@ -194,4 +194,3 @@ const { data: fiatRate } = useQuery({
   @apply pb-2 pt-0 text-right text-sm font-normal text-zinc-500;
 }
 </style>
-@/stores/store

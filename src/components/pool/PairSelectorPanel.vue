@@ -131,4 +131,3 @@ const infoMap = computed(() => {
     </div>
   </div>
 </template>
-@/stores/store
