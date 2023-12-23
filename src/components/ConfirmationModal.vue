@@ -50,7 +50,7 @@ function clearBuiltInfo() {
 const selectedPair = inject(selectedPairKey, defaultPair)
 
 const connectionStore = useConnectionStore()
-const queries = connectionStore.queries
+const adapter = connectionStore.adapter
 const { data: balance } = useExcludedBalanceQuery(
   computed(() => connectionStore.getAddress),
   computed(() => !!connectionStore.connected)
@@ -75,7 +75,7 @@ async function submitBidOrder() {
   try {
     // 1. sign secondary order which is used to create the actual utxo to pay for the bid order
     console.log({ before: builtInfo.secondaryOrder.toHex() })
-    const payPsbtSigned = await queries.signPsbt(
+    const payPsbtSigned = await adapter.signPsbt(
       builtInfo.secondaryOrder.toHex()
     )
     const payPsbt = btcjs.Psbt.fromHex(payPsbtSigned)
@@ -102,7 +102,7 @@ async function submitBidOrder() {
     return
 
     // 3. we sign the bid order
-    const signed = await queries.signPsbt(bidPsbt.toHex())
+    const signed = await adapter.signPsbt(bidPsbt.toHex())
 
     // // 4. push the bid order to the api
     // const pushRes = await pushBidOrder({
@@ -119,7 +119,7 @@ async function submitBidOrder() {
 
     // // 5. if pushRes is not null, we can now push the secondary order to the blockchain
     // if (pushRes) {
-    //   const res = await connectionStore.queries.pushPsbt(payPsbtSigned)
+    //   const res = await connectionStore.adapter.pushPsbt(payPsbtSigned)
     // }
   } catch (err: any) {
     if (DEBUG) {
@@ -168,7 +168,7 @@ async function submitOrder() {
   try {
     // 1. sign
     console.log('before', builtInfo.order.toHex())
-    const signed = await queries.signPsbt(builtInfo.order.toHex(), {
+    const signed = await adapter.signPsbt(builtInfo.order.toHex(), {
       type: 'list',
     })
     console.log('after', signed)

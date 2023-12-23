@@ -1,5 +1,6 @@
 import { ElMessage } from 'element-plus'
-import { fetchBalance } from './proxy'
+
+import { fetchBalance } from '../queries/proxy'
 import { useBtcJsStore, useConnectionStore } from '@/stores'
 import { generateRandomString } from '@/lib/helpers'
 import { OKX_TEMPLATE_PSBT } from '@/data/constants'
@@ -9,6 +10,13 @@ function checkOkx() {
     ElMessage.warning('Please install the Okx wallet extension first.')
     throw new Error('Please install the Okx wallet extension first.')
   }
+}
+
+export function initPsbt() {
+  const bitcoinJs = useBtcJsStore().get!
+
+  // use templatePsbt otherwise for okx
+  return bitcoinJs.Psbt.fromHex(OKX_TEMPLATE_PSBT)
 }
 
 export const getAddress = async () => {

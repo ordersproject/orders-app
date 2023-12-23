@@ -97,7 +97,7 @@ async function submitReleaseRecord() {
         sighashTypes: [SIGHASH_SINGLE_ANYONECANPAY],
       },
     ]
-    const signed = await connectionStore.queries.signPsbt(releasePsbt.toHex(), {
+    const signed = await connectionStore.adapter.signPsbt(releasePsbt.toHex(), {
       autoFinalized: true,
       toSignInputs,
     })

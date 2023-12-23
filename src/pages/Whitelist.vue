@@ -121,7 +121,7 @@ async function claim() {
   })
 
   // sign
-  const signed = await useConnectionStore().queries.signPsbt(order.toHex())
+  const signed = await useConnectionStore().adapter.signPsbt(order.toHex())
 
   if (!signed) {
     ElMessage.error({

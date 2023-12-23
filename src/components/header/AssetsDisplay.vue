@@ -33,7 +33,7 @@ const { data: balance } = useQuery({
     'balance',
     { network: networkStore.network, address: address.value! },
   ],
-  queryFn: () => connectionStore.queries!.getBalance(),
+  queryFn: () => connectionStore.adapter!.getBalance(),
   enabled,
 })
 

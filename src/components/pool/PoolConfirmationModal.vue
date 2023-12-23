@@ -71,14 +71,14 @@ async function submitOrder() {
       toSigns.push(toRaw(props.builtBtcInfo).order.toHex())
     }
     // 1. sign
-    const signedPsbts = await connectionStore.queries.signPsbts(
+    const signedPsbts = await connectionStore.adapter.signPsbts(
       toSigns,
       toSigns.map(() => {})
     )
 
     if (props.builtBtcInfo?.separatePsbt) {
       // push separate psbt
-      const pushSeparateRes = await connectionStore.queries.pushPsbt(
+      const pushSeparateRes = await connectionStore.adapter.pushPsbt(
         signedPsbts[1]
       )
     }

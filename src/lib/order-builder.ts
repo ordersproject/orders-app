@@ -100,7 +100,7 @@ export async function buildAskLimit({
   const ordinalValue = ordinalDetail.value
 
   // build psbt
-  const ask = initPsbt()
+  const ask = useConnectionStore().adapter.initPsbt()
 
   for (const output in ordinalPreTx.outs) {
     try {

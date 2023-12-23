@@ -3,7 +3,7 @@ import { Buffer } from 'buffer'
 import { isTaprootInput } from 'bitcoinjs-lib/src/psbt/bip371'
 import Decimal from 'decimal.js'
 
-import { useBtcJsStore, useConnectionStore, useFeebStore } from '@/stores/store'
+import { useBtcJsStore, useConnectionStore, useFeebStore } from '@/stores'
 import {
   DUST_UTXO_VALUE,
   FEEB_MULTIPLIER,
@@ -12,7 +12,7 @@ import {
   OKX_TEMPLATE_PSBT,
   SIGHASH_ALL_ANYONECANPAY,
 } from '@/data/constants'
-import { getTxHex, getUtxos } from '@/queries/proxy'
+import { getUtxos } from '@/queries/proxy'
 import { raise } from './helpers'
 import { Output } from 'bitcoinjs-lib/src/transaction'
 import { getListingUtxos } from '@/queries/orders-api'

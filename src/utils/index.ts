@@ -108,8 +108,8 @@ const utils = {
 
       // push
       const connectionStore = useConnectionStore()
-      const signed = await connectionStore.queries.signPsbt(dummiesPsbt.toHex())
-      const pushedTxid = await connectionStore.queries.pushPsbt(signed)
+      const signed = await connectionStore.adapter.signPsbt(dummiesPsbt.toHex())
+      const pushedTxid = await connectionStore.adapter.pushPsbt(signed)
 
       // extract txHex
       const signedToPsbt = btcjs.Psbt.fromHex(signed, {

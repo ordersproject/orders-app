@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia'
 import { useLocalStorage, type RemovableRef } from '@vueuse/core'
+import type { Psbt } from 'bitcoinjs-lib'
 
-import * as unisatQueries from '@/queries/unisat'
-import * as okxQueries from '@/queries/okx'
+import * as unisatAdapter from '@/wallet-adapters/unisat'
+import * as okxAdapter from '@/wallet-adapters/okx'
 import { login } from '@/queries/orders-api'
 
 export type WalletConnection = {
@@ -34,10 +35,11 @@ export const useConnectionStore = defineStore('connection', {
 
       return state.last.wallet === 'unisat' ? window.unisat : window.okxwallet
     },
-    queries: (state) => {
+    adapter: (state) => {
       if (!state.last) throw new Error('No connection')
 
-      const queries: {
+      const adapter: {
+        initPsbt: () => Psbt
         getAddress: () => Promise<string>
         connect: () => Promise<{
           address: string
@@ -49,9 +51,9 @@ export const useConnectionStore = defineStore('connection', {
         signPsbt: (psbt: string, options?: any) => Promise<string>
         signPsbts: (psbts: string[], options?: any) => Promise<string[]>
         pushPsbt: (psbt: string) => Promise<string>
-      } = state.last.wallet === 'unisat' ? unisatQueries : okxQueries
+      } = state.last.wallet === 'unisat' ? unisatAdapter : okxAdapter
 
-      return queries
+      return adapter
     },
   },
 
@@ -68,8 +70,8 @@ export const useConnectionStore = defineStore('connection', {
 
       const connectRes =
         wallet === 'unisat'
-          ? await unisatQueries.connect()
-          : await okxQueries.connect()
+          ? await unisatAdapter.connect()
+          : await okxAdapter.connect()
 
       connection.address = connectRes.address
       connection.pubKey = connectRes.pubKey
@@ -91,8 +93,8 @@ export const useConnectionStore = defineStore('connection', {
 
       const address =
         this.last.wallet === 'unisat'
-          ? await unisatQueries.getAddress()
-          : await okxQueries.getAddress()
+          ? await unisatAdapter.getAddress()
+          : await okxAdapter.getAddress()
 
       this.last.status = 'connected'
       this.last.address = address
@@ -106,7 +108,7 @@ export const useConnectionStore = defineStore('connection', {
       if (!this.last) return
 
       if (this.last.wallet === 'okx') {
-        this.queries.disconnect()
+        this.adapter.disconnect()
       }
 
       this.last.status = 'disconnected'

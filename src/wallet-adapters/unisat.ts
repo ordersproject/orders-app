@@ -1,3 +1,4 @@
+import { useBtcJsStore } from '@/stores'
 import { ElMessage } from 'element-plus'
 
 function checkUnisat() {
@@ -5,6 +6,12 @@ function checkUnisat() {
     ElMessage.warning('Please install the Unisat wallet extension first.')
     throw new Error('Please install the Unisat wallet extension first.')
   }
+}
+
+export function initPsbt() {
+  const bitcoinJs = useBtcJsStore().get!
+
+  return new bitcoinJs.Psbt()
 }
 
 export const getAddress = async () => {

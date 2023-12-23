@@ -112,7 +112,7 @@ async function onClaimReward() {
 
     if (!res) return
 
-    const signed = await connectionStore.queries.signPsbt(res.order.toHex())
+    const signed = await connectionStore.adapter.signPsbt(res.order.toHex())
     // derive txid from signed psbt
     const bitcoinjs = useBtcJsStore().get!
     const signedPsbt = bitcoinjs.Psbt.fromHex(signed)
