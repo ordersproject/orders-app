@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
 
-import { useConnectionStore } from '@/store'
+import { useConnectionStore } from '@/stores'
 
 import PairSelect from './PairSelect.vue'
 
@@ -37,3 +37,4 @@ const connectionStore = useConnectionStore()
     </div>
   </div>
 </template>
+@/stores/store

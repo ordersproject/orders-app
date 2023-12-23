@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/vue-query'
 import * as secp256k1 from 'tiny-secp256k1'
 
 import { DEBUG } from '@/data/constants'
-import { useBtcJsStore, useGeoStore } from '@/store'
+import { useBtcJsStore, useGeoStore } from '@/stores'
 
 import Toaster from '@/components/ui/toast/Toaster.vue'
 import TheHeader from '@/components/header/TheHeader.vue'
@@ -50,3 +50,4 @@ queryClient.setDefaultOptions({
 </template>
 
 <style scoped></style>
+@/stores/store

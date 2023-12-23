@@ -4,7 +4,7 @@ import { computed, inject, ref } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useRoute } from 'vue-router'
 
-import { useConnectionStore } from '@/store'
+import { useConnectionStore } from '@/stores'
 import { getMyRewardsEssential } from '@/queries/pool'
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 
@@ -144,3 +144,4 @@ const hasReleasable = computed(() => {
   outline: none;
 }
 </style>
+@/stores/store

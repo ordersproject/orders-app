@@ -17,7 +17,7 @@ import Decimal from 'decimal.js'
 import { useStorage } from '@vueuse/core'
 
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
-import { useConnectionStore, useNetworkStore } from '@/store'
+import { useConnectionStore, useNetworkStore } from '@/stores'
 import {
   Brc20Transferable,
   getMarketPrice,
@@ -504,3 +504,4 @@ async function onConfirm() {
     />
   </div>
 </template>
+@/stores/store

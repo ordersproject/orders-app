@@ -7,7 +7,7 @@ import {
   useNetworkStore,
   useFeebStore,
   useConnectionStore,
-} from '@/store'
+} from '@/stores/store'
 import { getUtxos, getTxHex } from '@/queries/proxy'
 import { calculatePsbtFee } from '@/lib/build-helpers'
 import { DUMMY_UTXO_VALUE } from '@/data/constants'

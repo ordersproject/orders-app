@@ -1,7 +1,8 @@
 import { ElMessage } from 'element-plus'
 import { fetchBalance } from './proxy'
-import { useBtcJsStore, useConnectionStore } from '@/store'
+import { useBtcJsStore, useConnectionStore } from '@/stores'
 import { generateRandomString } from '@/lib/helpers'
+import { OKX_TEMPLATE_PSBT } from '@/data/constants'
 
 function checkOkx() {
   if (!window.okxwallet) {
@@ -97,15 +98,33 @@ export const inscribe = async (tick: string) => {
   })
 }
 
-export const signPsbt = async (psbt: string) => {
+export const signPsbt = async (psbt: string, options?: any) => {
   checkOkx()
 
   const address = useConnectionStore().getAddress
-  console.log('🚀 ~ file: okx.ts:95 ~ signPsbt ~ address:', address)
+
+  // if (options && options.type === 'list') {
+  //   // modify psbt to comply with okxwallet
+  //   const bitcoinjs = useBtcJsStore().get!
+  //   const templatePsbt = bitcoinjs.Psbt.fromHex(OKX_TEMPLATE_PSBT)
+  //   const toSign = bitcoinjs.Psbt.fromHex(psbt)
+  //   const toSignPsbtInputs = toSign.data.inputs
+  //   const toSignPsbtOutputs = toSign.data.outputs
+  //   templatePsbt.addInputs(toSignPsbtInputs as any)
+  //   templatePsbt.addOutputs(toSignPsbtOutputs as any)
+  //   // for (const input of templatePsbt.txInputs) {
+  //   //   psbt = psbt.replace(input.hash, input.hash.reverse().toString('hex'))
+  //   // }
+
+  //   console.log({ templatePsbt })
+  // }
+  const psbtObj = useBtcJsStore().get!.Psbt.fromHex(psbt)
+  const goodStr =
+    '70736274ff0100e8020000000300000000000000000000000000000000000000000000000000000000000000000000000000ffffffff00000000000000000000000000000000000000000000000000000000000000000100000000ffffffff349c4f6bc87d9c142451754fd5a08ba65fdb1459cdf34cbb3bafcc537a75ffec0000000000ffffffff0300000000000000001976a914000000000000000000000000000000000000000088ac00000000000000001976a914000000000000000000000000000000000000000088aca086010000000000160014e0acb86393de998d6837c7f77725a285dbf60fb4000000000001011f0000000000000000160014ae47938f7acd1623e6e10e1ebcc33c2a7cb6e30d0001011f0000000000000000160014ae47938f7acd1623e6e10e1ebcc33c2a7cb6e30d0001011f2202000000000000160014e0acb86393de998d6837c7f77725a285dbf60fb40103048300000000000000'
+  const good = useBtcJsStore().get!.Psbt.fromHex(goodStr)
 
   const signed = await window.okxwallet.bitcoin.signPsbt(psbt, {
     from: address,
-    type: 'list',
   })
 
   console.log({ equal: psbt === signed })

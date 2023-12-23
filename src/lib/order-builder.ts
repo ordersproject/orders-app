@@ -3,30 +3,20 @@ import {
   useConnectionStore,
   useDummiesStore,
   useNetworkStore,
-} from '@/store'
-import { exclusiveChange, safeOutputValue } from './build-helpers'
+} from '@/stores'
+import { exclusiveChange, initPsbt, safeOutputValue } from './build-helpers'
 import {
-  DEBUG,
   DUMMY_UTXO_VALUE,
-  DUST_UTXO_VALUE,
   EXTRA_INPUT_MIN_VALUE,
   ONE_SERVICE_FEE,
-  SELL_SERVICE_FEE,
   SERVICE_LIVENET_ADDRESS,
   SERVICE_LIVENET_RDEX_ADDRESS,
   SERVICE_TESTNET_ADDRESS,
-  SIGHASH_ALL,
-  SIGHASH_ALL_ANYONECANPAY,
-  SIGHASH_ANYONECANPAY,
-  SIGHASH_DEFAULT,
-  SIGHASH_NONE,
-  SIGHASH_SINGLE,
   SIGHASH_SINGLE_ANYONECANPAY,
   USE_UTXO_COUNT_LIMIT,
 } from '@/data/constants'
 import {
   constructBidPsbt,
-  getListingUtxos,
   getOneBrc20,
   getOneOrder,
   getSellFees,
@@ -36,7 +26,6 @@ import { type TradingPair } from '@/data/trading-pairs'
 import { SIGHASH_NONE_ANYONECANPAY } from '../data/constants'
 import { toXOnly } from '@/lib/btc-helpers'
 import { Buffer } from 'buffer'
-import { Psbt } from 'bitcoinjs-lib'
 
 export async function buildAskLimit({
   total,
@@ -111,9 +100,7 @@ export async function buildAskLimit({
   const ordinalValue = ordinalDetail.value
 
   // build psbt
-  const ask = new btcjs.Psbt({
-    network: btcjs.networks[networkStore.btcNetwork],
-  })
+  const ask = initPsbt()
 
   for (const output in ordinalPreTx.outs) {
     try {
@@ -121,23 +108,19 @@ export async function buildAskLimit({
     } catch (e: any) {}
   }
 
-  const okxPsbtRaw =
-    '70736274ff0100fa020000000300000000000000000000000000000000000000000000000000000000000000000000000000ffffffff00000000000000000000000000000000000000000000000000000000000000000100000000ffffffffd6cfd51d70dfcca69ed69dbd84e0184aebeeae8ff3c1f4f751d7ac6d664cfe290000000000ffffffff030000000000000000225120c1254dad40aaea121e53e0cec09986362f6cd4222796d1948c94791b35281cb50000000000000000225120c1254dad40aaea121e53e0cec09986362f6cd4222796d1948c94791b35281cb5404b4c0000000000160014c085f913ee9a7baf1b4d0910f2a9d2abd00d7dca000000000001012b0000000000000000225120c1254dad40aaea121e53e0cec09986362f6cd4222796d1948c94791b35281cb5011720616e27323840ee0c2ae434d998267f81170988ba9477f78dcd00fc247a27db400001012b0000000000000000225120c1254dad40aaea121e53e0cec09986362f6cd4222796d1948c94791b35281cb5011720616e27323840ee0c2ae434d998267f81170988ba9477f78dcd00fc247a27db400001011f2202000000000000160014c085f913ee9a7baf1b4d0910f2a9d2abd00d7dca0103048300000000000000'
-  const okxPsbt = Psbt.fromHex(okxPsbtRaw)
-  console.log({ okxPsbt })
-
   ask.addInput({
     hash: ordinalUtxo.txId,
     index: ordinalUtxo.outputIndex,
     witnessUtxo: ordinalPreTx.outs[ordinalUtxo.outputIndex],
     sighashType: SIGHASH_SINGLE_ANYONECANPAY,
-    tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey, 'hex')),
+    // tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey, 'hex')),
   })
 
   // Step 2: Build output as what the seller want (BTC)
   ask.addOutput({
     address,
     value: safeOutputValue(total),
+    // tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey, 'hex')),
   })
 
   return {

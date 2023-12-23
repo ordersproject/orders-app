@@ -4,7 +4,7 @@ import { XCircleIcon, BadgeCheckIcon } from 'lucide-vue-next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { ElMessage } from 'element-plus'
 
-import { useConnectionStore } from '@/store'
+import { useConnectionStore } from '@/stores'
 import { cancelOrder, type Order, getFiatRate } from '@/queries/orders-api'
 import { prettyBalance } from '@/lib/formatters'
 import { calcFiatPrice, showFiat, useBtcUnit } from '@/lib/helpers'
@@ -128,3 +128,4 @@ const { data: fiatRate } = useQuery({
   @apply py-1 text-right font-normal;
 }
 </style>
+@/stores/store

@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { computed, inject } from 'vue'
 
 import { getFiatRate, getMarketPrice, type Order } from '@/queries/orders-api'
-import { useNetworkStore } from '@/store'
+import { useNetworkStore } from '@/stores'
 import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
 
 import OrderItem from './Item.vue'
@@ -194,3 +194,4 @@ const { data: fiatRate } = useQuery({
   @apply pb-2 pt-0 text-right text-sm font-normal text-zinc-500;
 }
 </style>
+@/stores/store

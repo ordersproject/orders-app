@@ -6,7 +6,7 @@ import { ElMessage } from 'element-plus'
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
 
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
-import { useBtcJsStore, useConnectionStore } from '@/store'
+import { useBtcJsStore, useConnectionStore } from '@/stores'
 import {
   claimStandbyReward,
   getMyStandbyRewardsEssential,
@@ -331,3 +331,4 @@ const isModelOpen = ref(false)
     </TabPanels>
   </TabGroup>
 </template>
+@/stores/store

@@ -16,7 +16,7 @@ import {
   pushBuyTake,
   pushSellTake,
 } from '@/queries/orders-api'
-import { useBtcJsStore, useConnectionStore, useNetworkStore } from '@/store'
+import { useBtcJsStore, useConnectionStore, useNetworkStore } from '@/stores'
 import { DEBUG, SIGHASH_ALL_ANYONECANPAY } from '@/data/constants'
 import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
 import assets from '@/data/assets'
@@ -168,7 +168,9 @@ async function submitOrder() {
   try {
     // 1. sign
     console.log('before', builtInfo.order.toHex())
-    const signed = await queries.signPsbt(builtInfo.order.toHex())
+    const signed = await queries.signPsbt(builtInfo.order.toHex(), {
+      type: 'list',
+    })
     console.log('after', signed)
     return
 
@@ -422,3 +424,4 @@ async function submitOrder() {
     </div>
   </Dialog>
 </template>
+@/stores/store

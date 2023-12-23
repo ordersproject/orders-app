@@ -7,7 +7,7 @@ import { LoaderIcon } from 'lucide-vue-next'
 import { sleep } from '@/lib/helpers'
 import { buildClaimTake } from '@/lib/order-builder'
 import { getOneClaim, updateClaim } from '@/queries/orders-api'
-import { useConnectionStore } from '@/store'
+import { useConnectionStore } from '@/stores'
 
 import ClaimingOverlay from '@/components/overlays/Loading.vue'
 
@@ -201,3 +201,4 @@ async function claim() {
     </div>
   </div>
 </template>
+@/stores/store

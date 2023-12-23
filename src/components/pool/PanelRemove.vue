@@ -18,7 +18,7 @@ import {
   removeLiquidity,
   type PoolRecord,
 } from '@/queries/pool'
-import { useConnectionStore } from '@/store'
+import { useConnectionStore } from '@/stores'
 import { prettyBalance, prettyTimestamp } from '@/lib/formatters'
 import { unit, useBtcUnit } from '@/lib/helpers'
 
@@ -216,3 +216,4 @@ async function submitRemove() {
     </form>
   </div>
 </template>
+@/stores/store

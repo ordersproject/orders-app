@@ -8,7 +8,7 @@ import {
   selectedPoolPairKey,
 } from '@/data/trading-pairs'
 import { getOnePoolPair } from '@/queries/pool'
-import { useConnectionStore } from '@/store'
+import { useConnectionStore } from '@/stores'
 import { prettyCoinDisplay } from '@/lib/formatters'
 
 import PoolPairSelect from '@/components/pool/PoolPairSelect.vue'
@@ -131,3 +131,4 @@ const infoMap = computed(() => {
     </div>
   </div>
 </template>
+@/stores/store

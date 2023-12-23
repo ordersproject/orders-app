@@ -6,7 +6,7 @@ import {
   useConnectionStore,
   useCredentialsStore,
   useNetworkStore,
-} from '@/store'
+} from '@/stores/store'
 import { getOneBrc20 } from '@/queries/orders-api'
 import { type SimpleUtxoFromMempool, getTxHex, getUtxos } from '@/queries/proxy'
 import { getEventClaimFees, getPoolCredential } from '@/queries/pool'

@@ -15,7 +15,7 @@ import {
   getReleaseEssential,
   submitRelease,
 } from '@/queries/pool'
-import { useConnectionStore } from '@/store'
+import { useConnectionStore } from '@/stores'
 import {
   DEBUG,
   POOL_REWARDS_TICK,
@@ -303,3 +303,4 @@ async function submitReleaseRecord() {
     </div>
   </div>
 </template>
+@/stores/store

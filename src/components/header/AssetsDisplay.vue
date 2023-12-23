@@ -18,7 +18,7 @@ import {
 } from '@headlessui/vue'
 
 import { prettyBalance, prettyCoinDisplay } from '@/lib/formatters'
-import { useConnectionStore, useNetworkStore } from '@/store'
+import { useConnectionStore, useNetworkStore } from '@/stores'
 import { getBrc20s } from '@/queries/orders-api'
 import { useExcludedBalanceQuery } from '@/queries/excluded-balance'
 import { unit, useBtcUnit } from '@/lib/helpers'
@@ -256,3 +256,4 @@ const { data: myBrc20s } = useQuery({
     </span>
   </div>
 </template>
+@/stores/store

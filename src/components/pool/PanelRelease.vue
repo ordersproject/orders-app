@@ -5,7 +5,7 @@ import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
 
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import { getMyReleasedRecords, getMyUsedPoolRecords } from '@/queries/pool'
-import { useConnectionStore } from '@/store'
+import { useConnectionStore } from '@/stores'
 
 import PanelReleaseRecordItem from './PanelReleaseRecordItem.vue'
 import PanelReleaseHistoryItem from './PanelReleaseHistoryItem.vue'
@@ -122,3 +122,4 @@ const { data: releaseHistory, isLoading: isLoadingReleaseHistory } = useQuery({
     </TabGroup>
   </div>
 </template>
+@/stores/store

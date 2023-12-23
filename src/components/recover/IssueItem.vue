@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { ElMessage } from 'element-plus'
 
-import { useConnectionStore, useNetworkStore } from '@/store'
+import { useConnectionStore, useNetworkStore } from '@/stores'
 import {
   getIssueDetail,
   submitRecover,
@@ -143,3 +143,4 @@ async function onRecover() {
     </div>
   </div>
 </template>
+@/stores/store

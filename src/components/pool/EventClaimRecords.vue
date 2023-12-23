@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { computed } from 'vue'
 
 import { getMyEventRewardsClaimRecords } from '@/queries/pool'
-import { useConnectionStore } from '@/store'
+import { useConnectionStore } from '@/stores'
 import { EVENT_REWARDS_TICK } from '@/data/constants'
 
 import PanelClaimRecordItem from '@/components/pool/PanelClaimRecordItem.vue'
@@ -50,3 +50,4 @@ const { data: records, isLoading: isLoadingRecords } = useQuery({
     </div>
   </div>
 </template>
+@/stores/store

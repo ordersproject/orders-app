@@ -45,7 +45,7 @@ import {
   type Brc20Transferable,
   type BidCandidate,
 } from '@/queries/orders-api'
-import { useConnectionStore, useFeebStore, useNetworkStore } from '@/store'
+import { useConnectionStore, useFeebStore, useNetworkStore } from '@/stores'
 import { selectPair, selectedPairKey } from '@/data/trading-pairs'
 import { DEBUG, SELL_TX_SIZE } from '@/data/constants'
 
@@ -1347,3 +1347,4 @@ watch(bidExchangePrice, (price) => {
     />
   </div>
 </template>
+@/stores/store

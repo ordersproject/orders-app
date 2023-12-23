@@ -10,7 +10,7 @@ import {
   getMyEventRecords,
   getMyEventRewardsEssential,
 } from '@/queries/pool'
-import { useBtcJsStore, useConnectionStore } from '@/store'
+import { useBtcJsStore, useConnectionStore } from '@/stores'
 import { buildEventClaim } from '@/lib/order-pool-builder'
 import { DEBUG, EVENT_REWARDS_TICK } from '@/data/constants'
 
@@ -247,3 +247,4 @@ async function onConfirm() {}
     /> -->
   </div>
 </template>
+@/stores/store

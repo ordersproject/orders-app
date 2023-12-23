@@ -5,7 +5,7 @@ import { ElMessage } from 'element-plus'
 import { computed, inject } from 'vue'
 
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
-import { useConnectionStore } from '@/store'
+import { useConnectionStore } from '@/stores'
 import { getMyRewardsEssential, claimReward } from '@/queries/pool'
 import { DEBUG, POOL_REWARDS_TICK } from '@/data/constants'
 
@@ -155,3 +155,4 @@ async function onClaimReward() {
     <ClaimRecords class="mt-8 overflow-y-scroll nicer-scrollbar" />
   </div>
 </template>
+@/stores/store

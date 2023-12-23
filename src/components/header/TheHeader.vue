@@ -10,7 +10,7 @@ import {
   useNetworkStore,
   type Network,
   useConnectionStore,
-} from '@/store'
+} from '@/stores'
 import utils from '@/utils'
 import whitelist from '@/lib/whitelist'
 
@@ -249,3 +249,4 @@ function onWalletMissing(wallet: 'unisat' | 'okx') {
     </div>
   </header>
 </template>
+@/stores/store

@@ -11,7 +11,7 @@ import { ElMessage } from 'element-plus'
 
 import { prettyAddress, prettyCoinDisplay } from '@/lib/formatters'
 import { pushAddLiquidity } from '@/queries/pool'
-import { useBtcJsStore, useConnectionStore, useNetworkStore } from '@/store'
+import { useBtcJsStore, useConnectionStore, useNetworkStore } from '@/stores'
 import { BTC_POOL_MODE, DEBUG } from '@/data/constants'
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import assets from '@/data/assets'
@@ -349,3 +349,4 @@ async function submitOrder() {
     </div>
   </Dialog>
 </template>
+@/stores/store

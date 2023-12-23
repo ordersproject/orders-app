@@ -6,7 +6,7 @@ import { computed, inject } from 'vue'
 
 import { getMyRewardsClaimRecords } from '@/queries/pool'
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
-import { useConnectionStore } from '@/store'
+import { useConnectionStore } from '@/stores'
 
 import PanelClaimRecordItem from '@/components/pool/PanelClaimRecordItem.vue'
 
@@ -75,3 +75,4 @@ const { data: records, isLoading: isLoadingRecords } = useQuery({
     </Disclosure>
   </div>
 </template>
+@/stores/store

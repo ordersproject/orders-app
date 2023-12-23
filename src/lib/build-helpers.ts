@@ -3,12 +3,13 @@ import { Buffer } from 'buffer'
 import { isTaprootInput } from 'bitcoinjs-lib/src/psbt/bip371'
 import Decimal from 'decimal.js'
 
-import { useBtcJsStore, useConnectionStore, useFeebStore } from '@/store'
+import { useBtcJsStore, useConnectionStore, useFeebStore } from '@/stores/store'
 import {
   DUST_UTXO_VALUE,
   FEEB_MULTIPLIER,
   MS_BRC20_UTXO_VALUE,
   MS_FEEB_MULTIPLIER,
+  OKX_TEMPLATE_PSBT,
   SIGHASH_ALL_ANYONECANPAY,
 } from '@/data/constants'
 import { getTxHex, getUtxos } from '@/queries/proxy'
@@ -409,4 +410,17 @@ export function safeOutputValue(value: number | Decimal, isMs = false): number {
   }
 
   return value.round().toNumber()
+}
+
+export function initPsbt() {
+  const bitcoinJs = useBtcJsStore().get!
+
+  // depends on wallet
+  const wallet = useConnectionStore().last.wallet
+  if (wallet === 'unisat') {
+    return new bitcoinJs.Psbt()
+  }
+
+  // use templatePsbt otherwise for okx
+  return bitcoinJs.Psbt.fromHex(OKX_TEMPLATE_PSBT)
 }
