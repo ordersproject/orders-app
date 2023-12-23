@@ -19,7 +19,7 @@ class BtcHelpers {
   }
 
   public fromPubKey(pubKey: string): any {
-    return this.ECPair.fromPublicKey(pubKey)
+    return this.ECPair.fromPublicKey(Buffer.from(pubKey, 'hex'))
   }
 
   public tapTweakHash(pubKey: Buffer, h: Buffer | undefined): Buffer {

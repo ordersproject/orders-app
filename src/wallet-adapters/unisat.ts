@@ -1,4 +1,4 @@
-import { useBtcJsStore } from '@/stores'
+import { useBtcJsStore } from '@/stores/btcjs'
 import { ElMessage } from 'element-plus'
 
 function checkUnisat() {

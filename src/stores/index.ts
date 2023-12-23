@@ -1,5 +1,4 @@
 import { useBtcJsStore } from './btcjs'
-import { useConnectionStore } from './connection'
 import { useNetworkStore, type Network } from './network'
 import { useCooldownerStore } from './cooldowner'
 import { useFeebStore } from './feeb'
@@ -9,7 +8,6 @@ import { useGeoStore } from './geo'
 
 export {
   useBtcJsStore,
-  useConnectionStore,
   useNetworkStore,
   useCooldownerStore,
   useFeebStore,
@@ -17,5 +15,7 @@ export {
   useDummiesStore,
   useGeoStore,
 }
+
+export { useConnectionStore } from './connection'
 
 export type { Network, DummyUtxo }

@@ -75,7 +75,6 @@ export const useConnectionStore = defineStore('connection', {
 
       connection.address = connectRes.address
       connection.pubKey = connectRes.pubKey
-      console.log('pubkey length', connectRes.pubKey.length)
 
       connection.status = 'connected'
       connection.wallet = wallet

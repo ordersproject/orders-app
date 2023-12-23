@@ -1,7 +1,8 @@
 import { ElMessage } from 'element-plus'
 
 import { fetchBalance } from '../queries/proxy'
-import { useBtcJsStore, useConnectionStore } from '@/stores'
+import { useBtcJsStore } from '@/stores/btcjs'
+import { useConnectionStore } from '@/stores/connection'
 import { generateRandomString } from '@/lib/helpers'
 import { OKX_TEMPLATE_PSBT } from '@/data/constants'
 

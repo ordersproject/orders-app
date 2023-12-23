@@ -1,6 +1,7 @@
 import Decimal from 'decimal.js'
 
-import { useConnectionStore, useFeebStore, useNetworkStore } from '@/stores'
+import { useFeebStore, useNetworkStore } from '@/stores'
+import { useConnectionStore } from '@/stores/connection'
 import sign from '@/lib/sign'
 import { ordersApiFetch } from '@/lib/fetch'
 import { raise } from '@/lib/helpers'

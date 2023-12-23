@@ -263,7 +263,7 @@ export async function exclusiveChange({
           raise(
             'Input invalid. Please try again or contact customer service for assistance.'
           )
-      )
+      ) as any
     )
     const changeValue = totalInput - totalOutput - fee + (extraInputValue || 0)
     console.log({
@@ -331,7 +331,7 @@ export async function exclusiveChange({
               raise(
                 'Input invalid. Please try again or contact customer service for assistance.'
               )
-          )
+          ) as any
       )
     } else {
       // we pay for the whole transaction
@@ -344,7 +344,7 @@ export async function exclusiveChange({
             raise(
               'Input invalid. Please try again or contact customer service for assistance.'
             )
-        )
+        ) as any
       )
     }
 
