@@ -12,7 +12,8 @@ import {
 import logo from '@/assets/logo-new.png?url'
 import { VERSION } from '@/data/constants'
 import { useStorage } from '@vueuse/core'
-import { useConnectionStore, useCredentialsStore } from '@/stores'
+import { useConnectionStore } from '@/stores/connection'
+import { useCredentialsStore } from '@/stores/credentials'
 import { ElMessage } from 'element-plus'
 
 const useBtcUnit = useStorage('use-btc-unit', true)

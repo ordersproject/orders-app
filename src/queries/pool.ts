@@ -1,11 +1,9 @@
 import { ordersApiFetch } from '@/lib/fetch'
 import { raise } from '@/lib/helpers'
 import sign from '@/lib/sign'
-import {
-  useConnectionStore,
-  useFeebStore,
-  useNetworkStore,
-} from '@/stores'
+import { useConnectionStore } from '@/stores/connection'
+import { useFeebStore } from '@/stores/feeb'
+import { useNetworkStore } from '@/stores/network'
 
 type PoolPair = {
   fromPoolSize: string

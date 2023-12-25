@@ -10,7 +10,8 @@ import {
   getMyEventRecords,
   getMyEventRewardsEssential,
 } from '@/queries/pool'
-import { useBtcJsStore, useConnectionStore } from '@/stores'
+import { useBtcJsStore } from '@/stores/btcjs'
+import { useConnectionStore } from '@/stores/connection'
 import { buildEventClaim } from '@/lib/order-pool-builder'
 import { DEBUG, EVENT_REWARDS_TICK } from '@/data/constants'
 

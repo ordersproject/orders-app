@@ -8,7 +8,7 @@ import {
   selectedPoolPairKey,
 } from '@/data/trading-pairs'
 import { getOnePoolPair } from '@/queries/pool'
-import { useConnectionStore } from '@/stores'
+import { useConnectionStore } from '@/stores/connection'
 import { prettyCoinDisplay } from '@/lib/formatters'
 
 import PoolPairSelect from '@/components/pool/PoolPairSelect.vue'

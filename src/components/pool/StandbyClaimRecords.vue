@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { computed } from 'vue'
 
 import { getMyStandbyRewardsClaimRecords } from '@/queries/pool'
-import { useConnectionStore } from '@/stores'
+import { useConnectionStore } from '@/stores/connection'
 import { EVENT_REWARDS_TICK } from '@/data/constants'
 
 import PanelClaimRecordItem from '@/components/pool/PanelClaimRecordItem.vue'

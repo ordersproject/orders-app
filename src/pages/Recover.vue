@@ -3,7 +3,8 @@ import { computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 
 import { getIssues } from '@/queries/orders/issues'
-import { useConnectionStore, useNetworkStore } from '@/stores'
+import { useConnectionStore } from '@/stores/connection'
+import { useNetworkStore } from '@/stores/network'
 
 const connectionStore = useConnectionStore()
 const networkStore = useNetworkStore()

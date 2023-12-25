@@ -5,7 +5,7 @@ import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
 
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import { getMyReleasedRecords, getMyUsedPoolRecords } from '@/queries/pool'
-import { useConnectionStore } from '@/stores'
+import { useConnectionStore } from '@/stores/connection'
 
 import PanelReleaseRecordItem from './PanelReleaseRecordItem.vue'
 import PanelReleaseHistoryItem from './PanelReleaseHistoryItem.vue'

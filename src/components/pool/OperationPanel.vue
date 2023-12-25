@@ -4,7 +4,7 @@ import { computed, inject, ref } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useRoute } from 'vue-router'
 
-import { useConnectionStore } from '@/stores'
+import { useConnectionStore } from '@/stores/connection'
 import { getMyRewardsEssential } from '@/queries/pool'
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 

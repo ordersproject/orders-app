@@ -1,12 +1,10 @@
 import { Buffer } from 'buffer'
 import Decimal from 'decimal.js'
 
-import {
-  useBtcJsStore,
-  useConnectionStore,
-  useCredentialsStore,
-  useNetworkStore,
-} from '@/stores'
+import { useBtcJsStore } from '@/stores/btcjs'
+import { useConnectionStore } from '@/stores/connection'
+import { useCredentialsStore } from '@/stores/credentials'
+import { useNetworkStore } from '@/stores/network'
 import { getOneBrc20 } from '@/queries/orders-api'
 import { type SimpleUtxoFromMempool, getTxHex, getUtxos } from '@/queries/proxy'
 import { getEventClaimFees, getPoolCredential } from '@/queries/pool'

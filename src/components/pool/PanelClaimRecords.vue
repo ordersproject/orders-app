@@ -6,7 +6,7 @@ import { computed, inject } from 'vue'
 
 import { getMyRewardsClaimRecords } from '@/queries/pool'
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
-import { useConnectionStore } from '@/stores'
+import { useConnectionStore } from '@/stores/connection'
 
 import PanelClaimRecordItem from '@/components/pool/PanelClaimRecordItem.vue'
 

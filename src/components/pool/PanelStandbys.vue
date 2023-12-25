@@ -6,7 +6,8 @@ import { ElMessage } from 'element-plus'
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
 
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
-import { useBtcJsStore, useConnectionStore } from '@/stores'
+import { useBtcJsStore } from '@/stores/btcjs'
+import { useConnectionStore } from '@/stores/connection'
 import {
   claimStandbyReward,
   getMyStandbyRewardsEssential,

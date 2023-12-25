@@ -3,7 +3,8 @@ import { ref } from 'vue'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { ElMessage } from 'element-plus'
 
-import { useConnectionStore, useNetworkStore } from '@/stores'
+import { useConnectionStore } from '@/stores/connection'
+import { useNetworkStore } from '@/stores/network'
 import {
   getIssueDetail,
   submitRecover,

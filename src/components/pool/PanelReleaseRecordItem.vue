@@ -15,7 +15,7 @@ import {
   getReleaseEssential,
   submitRelease,
 } from '@/queries/pool'
-import { useConnectionStore } from '@/stores'
+import { useConnectionStore } from '@/stores/connection'
 import {
   DEBUG,
   POOL_REWARDS_TICK,

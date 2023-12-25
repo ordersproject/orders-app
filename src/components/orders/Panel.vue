@@ -45,7 +45,9 @@ import {
   type Brc20Transferable,
   type BidCandidate,
 } from '@/queries/orders-api'
-import { useConnectionStore, useFeebStore, useNetworkStore } from '@/stores'
+import { useConnectionStore } from '@/stores/connection'
+import { useFeebStore } from '@/stores/feeb'
+import { useNetworkStore } from '@/stores/network'
 import { selectPair, selectedPairKey } from '@/data/trading-pairs'
 import { DEBUG, SELL_TX_SIZE } from '@/data/constants'
 

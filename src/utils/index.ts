@@ -1,18 +1,15 @@
 import { ElMessage } from 'element-plus'
+import { Buffer } from 'buffer'
 
-import {
-  useDummiesStore,
-  useBtcJsStore,
-  DummyUtxo,
-  useNetworkStore,
-  useFeebStore,
-  useConnectionStore,
-} from '@/stores'
+import { useDummiesStore, type DummyUtxo } from '@/stores/dummies'
+import { useBtcJsStore } from '@/stores/btcjs'
+import { useNetworkStore } from '@/stores/network'
+import { useFeebStore } from '@/stores/feeb'
+import { useConnectionStore } from '@/stores/connection'
 import { getUtxos, getTxHex } from '@/queries/proxy'
 import { calculatePsbtFee } from '@/lib/build-helpers'
 import { DUMMY_UTXO_VALUE } from '@/data/constants'
 import { raise } from '@/lib/helpers'
-import { Buffer } from 'buffer'
 import { toXOnly } from '@/lib/btc-helpers'
 
 const utils = {

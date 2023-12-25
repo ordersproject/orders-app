@@ -1,6 +1,6 @@
 import { ElMessage } from 'element-plus'
 
-import { fetchBalance } from '../queries/proxy'
+import { fetchBalance } from '@/queries/proxy'
 import { useBtcJsStore } from '@/stores/btcjs'
 import { useConnectionStore } from '@/stores/connection'
 import { generateRandomString } from '@/lib/helpers'

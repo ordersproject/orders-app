@@ -11,7 +11,7 @@ import { ref } from 'vue'
 import UnisatIcon from '@/assets/unisat-icon.png?url'
 import OkxIcon from '@/assets/okx-icon.png?url'
 import MetaletIcon from '@/assets/metalet-icon.png?url'
-import { useConnectionStore } from '@/stores'
+import { useConnectionStore } from '@/stores/connection'
 
 defineProps<{
   open?: boolean

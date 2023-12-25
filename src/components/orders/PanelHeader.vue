@@ -1,7 +1,5 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
-
-import { useConnectionStore } from '@/stores'
+import { useConnectionStore } from '@/stores/connection'
 
 import PairSelect from './PairSelect.vue'
 

@@ -4,7 +4,7 @@ import { XCircleIcon, BadgeCheckIcon } from 'lucide-vue-next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { ElMessage } from 'element-plus'
 
-import { useConnectionStore } from '@/stores'
+import { useConnectionStore } from '@/stores/connection'
 import { cancelOrder, type Order, getFiatRate } from '@/queries/orders-api'
 import { prettyBalance } from '@/lib/formatters'
 import { calcFiatPrice, showFiat, useBtcUnit } from '@/lib/helpers'

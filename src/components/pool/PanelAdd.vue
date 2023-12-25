@@ -17,7 +17,8 @@ import Decimal from 'decimal.js'
 import { useStorage } from '@vueuse/core'
 
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
-import { useConnectionStore, useNetworkStore } from '@/stores'
+import { useConnectionStore } from '@/stores/connection'
+import { useNetworkStore } from '@/stores/network'
 import {
   Brc20Transferable,
   getMarketPrice,

@@ -1,9 +1,7 @@
-import {
-  useBtcJsStore,
-  useConnectionStore,
-  useDummiesStore,
-  useNetworkStore,
-} from '@/stores'
+import { useBtcJsStore } from '@/stores/btcjs'
+import { useConnectionStore } from '@/stores/connection'
+import { useDummiesStore } from '@/stores/dummies'
+import { useNetworkStore } from '@/stores/network'
 import { exclusiveChange, initPsbt, safeOutputValue } from './build-helpers'
 import {
   DUMMY_UTXO_VALUE,

@@ -3,7 +3,9 @@ import { Buffer } from 'buffer'
 import { isTaprootInput } from 'bitcoinjs-lib/src/psbt/bip371'
 import Decimal from 'decimal.js'
 
-import { useBtcJsStore, useConnectionStore, useFeebStore } from '@/stores'
+import { useBtcJsStore } from '@/stores/btcjs'
+import { useConnectionStore } from '@/stores/connection'
+import { useFeebStore } from '@/stores/feeb'
 import {
   DUST_UTXO_VALUE,
   FEEB_MULTIPLIER,

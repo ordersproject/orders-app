@@ -16,7 +16,9 @@ import {
   pushBuyTake,
   pushSellTake,
 } from '@/queries/orders-api'
-import { useBtcJsStore, useConnectionStore, useNetworkStore } from '@/stores'
+import { useBtcJsStore } from '@/stores/btcjs'
+import { useConnectionStore } from '@/stores/connection'
+import { useNetworkStore } from '@/stores/network'
 import { DEBUG, SIGHASH_ALL_ANYONECANPAY } from '@/data/constants'
 import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
 import assets from '@/data/assets'

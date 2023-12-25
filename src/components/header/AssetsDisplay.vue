@@ -18,7 +18,8 @@ import {
 } from '@headlessui/vue'
 
 import { prettyBalance, prettyCoinDisplay } from '@/lib/formatters'
-import { useConnectionStore, useNetworkStore } from '@/stores'
+import { useConnectionStore } from '@/stores/connection'
+import { useNetworkStore } from '@/stores/network'
 import { getBrc20s } from '@/queries/orders-api'
 import { useExcludedBalanceQuery } from '@/queries/excluded-balance'
 import { unit, useBtcUnit } from '@/lib/helpers'

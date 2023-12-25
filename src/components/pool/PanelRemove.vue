@@ -18,7 +18,7 @@ import {
   removeLiquidity,
   type PoolRecord,
 } from '@/queries/pool'
-import { useConnectionStore } from '@/stores'
+import { useConnectionStore } from '@/stores/connection'
 import { prettyBalance, prettyTimestamp } from '@/lib/formatters'
 import { unit, useBtcUnit } from '@/lib/helpers'
 

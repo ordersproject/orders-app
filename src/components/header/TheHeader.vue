@@ -5,12 +5,9 @@ import { useQuery } from '@tanstack/vue-query'
 import { ShieldAlertIcon, CheckCircle2 } from 'lucide-vue-next'
 
 import { prettyAddress } from '@/lib/formatters'
-import {
-  useDummiesStore,
-  useNetworkStore,
-  type Network,
-  useConnectionStore,
-} from '@/stores'
+import { useDummiesStore } from '@/stores/dummies'
+import { useNetworkStore, type Network } from '@/stores/network'
+import { useConnectionStore } from '@/stores/connection'
 import utils from '@/utils'
 import whitelist from '@/lib/whitelist'
 

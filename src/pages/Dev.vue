@@ -2,7 +2,7 @@
 import { onMounted } from 'vue'
 
 // import { getUtxos, getTxHex } from '@/queries/proxy'
-import { useBtcJsStore } from '@/stores'
+import { useBtcJsStore } from '@/stores/btcjs'
 // import * as bip39 from 'bip39'
 import BIP32Factory from 'bip32'
 
