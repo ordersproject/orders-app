@@ -1,4 +1,5 @@
 import { ElMessage } from 'element-plus'
+import { type Psbt } from 'bitcoinjs-lib'
 
 import { fetchBalance } from '@/queries/proxy'
 import { useBtcJsStore } from '@/stores/btcjs'
@@ -18,6 +19,30 @@ export function initPsbt() {
 
   // use templatePsbt otherwise for okx
   return bitcoinJs.Psbt.fromHex(OKX_TEMPLATE_PSBT)
+}
+
+export function finishPsbt(psbt: string): string {
+  const btcjs = useBtcJsStore().get!
+  const rebuild = (original: Psbt) => {
+    const rebuilt = new btcjs.Psbt()
+    rebuilt.setVersion(original.version)
+    rebuilt.setLocktime(original.locktime)
+
+    const useIndex = 2
+    rebuilt.addInput({
+      hash: original.txInputs[useIndex].hash,
+      index: original.txInputs[useIndex].index,
+      witnessUtxo: original.data.inputs[useIndex].witnessUtxo,
+      finalScriptWitness: original.data.inputs[useIndex].finalScriptWitness,
+    })
+    rebuilt.addOutput(original.txOutputs[useIndex])
+
+    return rebuilt
+  }
+
+  const psbtObj = btcjs.Psbt.fromHex(psbt)
+
+  return rebuild(psbtObj).toHex()
 }
 
 export const getAddress = async () => {

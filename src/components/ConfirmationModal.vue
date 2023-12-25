@@ -174,7 +174,6 @@ async function submitOrder() {
       type: 'list',
     })
     console.log('after', signed)
-    return
 
     let pushRes: any
     // 2. push
@@ -213,8 +212,10 @@ async function submitOrder() {
         })
         break
       case 'ask':
+        const finished = adapter.finishPsbt(signed)
+
         pushRes = await pushAskOrder({
-          psbtRaw: signed,
+          psbtRaw: finished,
           network: networkStore.ordersNetwork,
           address: connectionStore.getAddress,
           tick: selectedPair.fromSymbol,

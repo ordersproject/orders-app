@@ -40,6 +40,7 @@ export const useConnectionStore = defineStore('connection', {
 
       const adapter: {
         initPsbt: () => Psbt
+        finishPsbt: <T>(psbt: T) => T
         getAddress: () => Promise<string>
         connect: () => Promise<{
           address: string

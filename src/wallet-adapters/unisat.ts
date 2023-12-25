@@ -1,5 +1,7 @@
-import { useBtcJsStore } from '@/stores/btcjs'
+import { type Psbt } from 'bitcoinjs-lib'
 import { ElMessage } from 'element-plus'
+
+import { useBtcJsStore } from '@/stores/btcjs'
 
 function checkUnisat() {
   if (!window.unisat) {
@@ -12,6 +14,10 @@ export function initPsbt() {
   const bitcoinJs = useBtcJsStore().get!
 
   return new bitcoinJs.Psbt()
+}
+
+export function finishPsbt<T>(psbt: T): T {
+  return psbt
 }
 
 export const getAddress = async () => {
