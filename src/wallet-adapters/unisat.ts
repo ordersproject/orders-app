@@ -1,4 +1,3 @@
-import { type Psbt } from 'bitcoinjs-lib'
 import { ElMessage } from 'element-plus'
 
 import { useBtcJsStore } from '@/stores/btcjs'

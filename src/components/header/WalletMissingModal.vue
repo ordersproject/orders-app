@@ -10,9 +10,11 @@ import {
 import { FrownIcon } from 'lucide-vue-next'
 import { ref } from 'vue'
 
+import type { Wallet } from '@/stores/connection'
+
 const props = defineProps<{
   open: boolean
-  missingWallet: 'unisat' | 'okx'
+  missingWallet: Wallet
 }>()
 const emit = defineEmits(['update:open'])
 

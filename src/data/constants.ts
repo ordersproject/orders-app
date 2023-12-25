@@ -3,6 +3,7 @@ import changelog from './changelog'
 export const VERSION = changelog[0].version
 export const CHARGE_SERVICE_FEES = false
 export const DEBUG = true
+export const IS_DEV = import.meta.env.VITE_ENVIRONMENT === 'development'
 
 // all kinds of satoshis value
 export const DUMMY_UTXO_VALUE = 600

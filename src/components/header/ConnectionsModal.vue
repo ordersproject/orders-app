@@ -12,6 +12,7 @@ import UnisatIcon from '@/assets/unisat-icon.png?url'
 import OkxIcon from '@/assets/okx-icon.png?url'
 import MetaletIcon from '@/assets/metalet-icon.png?url'
 import { useConnectionStore } from '@/stores/connection'
+import { IS_DEV } from '@/data/constants'
 
 defineProps<{
   open?: boolean
@@ -117,23 +118,10 @@ async function connectToOkx() {
                     <span class="">Unisat</span>
                   </button>
 
-                  <!-- <button
-                    class="flex flex-col gap-2 items-center justify-center rounded-lg bg-zinc-800 text-zinc-100  font-medium transition w-36 py-4 border border-zinc-500/50 hover:shadow-md hover:shadow-orange-300/30 hover:border-orange-300/30 hover:bg-orange-300 hover:text-orange-950 opacity-50"
-                    @click="close"
-                    :disabled="true"
-                  >
-                    <img
-                      class="h-12 rounded"
-                      :src="MetaletIcon"
-                      alt="Metamask"
-                    />
-                    <span class="">Metalet</span>
-                  </button> -->
-
                   <button
-                    class="flex flex-col gap-2 items-center justify-center rounded-lg bg-zinc-800 text-zinc-100 font-medium transition w-36 py-4 border border-zinc-500/50 opacity-30"
+                    class="flex flex-col gap-2 items-center justify-center rounded-lg bg-zinc-800 text-zinc-100 font-medium transition w-36 py-4 border border-zinc-500/50 hover:shadow-md hover:shadow-orange-300/30 hover:border-orange-300/30 hover:bg-orange-300 hover:text-orange-950 disabled:opacity-30"
                     @click="close"
-                    :disabled="true"
+                    :disabled="!IS_DEV"
                   >
                     <img
                       class="h-12 rounded"

@@ -7,7 +7,7 @@ import { ShieldAlertIcon, CheckCircle2 } from 'lucide-vue-next'
 import { prettyAddress } from '@/lib/formatters'
 import { useDummiesStore } from '@/stores/dummies'
 import { useNetworkStore, type Network } from '@/stores/network'
-import { useConnectionStore } from '@/stores/connection'
+import { Wallet, useConnectionStore } from '@/stores/connection'
 import utils from '@/utils'
 import whitelist from '@/lib/whitelist'
 
@@ -147,8 +147,8 @@ function copyAddress() {
 }
 
 const walletMissingModalOpen = ref(false)
-const missingWallet: Ref<'unisat' | 'okx'> = ref('unisat')
-function onWalletMissing(wallet: 'unisat' | 'okx') {
+const missingWallet: Ref<Wallet> = ref('unisat')
+function onWalletMissing(wallet: Wallet) {
   missingWallet.value = wallet
   walletMissingModalOpen.value = true
 }

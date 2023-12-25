@@ -4,10 +4,12 @@ import type { Psbt } from 'bitcoinjs-lib'
 
 import * as unisatAdapter from '@/wallet-adapters/unisat'
 import * as okxAdapter from '@/wallet-adapters/okx'
+import * as metaletAdapter from '@/wallet-adapters/metalet'
 import { login } from '@/queries/orders-api'
 
+export type Wallet = 'unisat' | 'okx' | 'metalet'
 export type WalletConnection = {
-  wallet: 'unisat' | 'okx'
+  wallet: Wallet
   status: 'connected' | 'disconnected'
   address: string
   pubKey: string
@@ -40,7 +42,7 @@ export const useConnectionStore = defineStore('connection', {
 
       const adapter: {
         initPsbt: () => Psbt
-        finishPsbt: <T>(psbt: T) => T
+        finishPsbt: (psbt: string) => string
         getAddress: () => Promise<string>
         connect: () => Promise<{
           address: string
@@ -59,7 +61,7 @@ export const useConnectionStore = defineStore('connection', {
   },
 
   actions: {
-    async connect(wallet: 'unisat' | 'okx') {
+    async connect(wallet: Wallet) {
       const connection: WalletConnection = this.last
         ? (JSON.parse(JSON.stringify(this.last)) as WalletConnection)
         : {
