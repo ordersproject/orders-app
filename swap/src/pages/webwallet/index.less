@@ -1,0 +1,97 @@
+.container {
+  width: 960px;
+  margin: 40px auto;
+  font-size: 18px;
+  font-weight: 500;
+
+  .page_title {
+    position: relative;
+  }
+
+  h1 {
+    font-size: 36px;
+    font-weight: 500;
+    text-align: center;
+  }
+
+  .back {
+    position: absolute;
+    left: 0;
+    top: 20px;
+    font-size: 16px;
+    color: #1e2bff;
+    cursor: pointer;
+  }
+
+  .tips {
+    margin-top: 40px;
+    color: #eb5757;
+    font-size: 18px;
+  }
+
+  .content {
+    margin-top: 40px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .deposit,
+  .withdraw {
+    width: 400px;
+    height: 357px;
+    background-color: #fff;
+    border: 1px solid #dde3ea;
+    border-radius: 12px;
+    text-align: center;
+  }
+
+  .deposit {
+    padding-top: 23px;
+
+    .qrcode {
+      margin-top: 40px;
+    }
+  }
+  .address {
+    font-size: 16px;
+    margin-top: 15px;
+    :global(.iconfont) {
+      font-size: 20px;
+      margin-right: 5px;
+    }
+  }
+
+  .blue {
+    color: #1e2bff;
+  }
+
+  .withdraw {
+    padding: 0 40px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+
+    form {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+    }
+
+    .balance {
+      font-size: 16px;
+    }
+
+    :global {
+      .ant-input {
+        //     border: 1px solid #1E2BFF;
+        //     border-radius: 8px;
+        height: 49px;
+        line-height: 49px;
+      }
+    }
+    .btn {
+      line-height: 49px;
+      height: 49px;
+    }
+  }
+}

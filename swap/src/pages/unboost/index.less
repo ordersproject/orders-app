@@ -1,0 +1,235 @@
+@import '../layout.less';
+
+.container {
+  background-color: var(--bg-color);
+  width: 400px;
+  min-height: 500px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  margin-top: 20px;
+}
+
+.head {
+  height: 80px;
+  border-bottom: 1px solid #e8e8e8;
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+  align-items: center;
+}
+
+.menu {
+  float: left;
+  height: 40px;
+  line-height: 40px;
+  display: flex;
+  flex: 1;
+
+  .menu_item {
+    display: inline-block;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 16px;
+    padding: 0 20px;
+    color: #1d1d1d;
+    border-radius: 100px;
+    height: 40px;
+    margin-right: 20px;
+    text-align: center;
+  }
+
+  .menu_item:last-child {
+    margin-right: 0;
+  }
+
+  .menu_item_selected {
+    background-color: #1e2bff;
+    color: #fff;
+    cursor: default;
+  }
+}
+
+.content {
+  padding: 0 20px 20px;
+}
+
+.title {
+  h3 {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 0;
+  }
+}
+
+.price {
+  text-align: right;
+  margin-top: 15px;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.values {
+  display: flex;
+  justify-content: space-between;
+
+  .v_item {
+    font-size: 16px;
+    font-weight: 500;
+    padding-bottom: 10px;
+
+    .label {
+      display: flex;
+      align-items: center;
+      :global(.pair-name) {
+        margin-left: 5px;
+      }
+    }
+  }
+}
+// .btn {
+//   border: none;
+//   height: 60px;
+//   line-height: 52px;
+//   font-weight: 500;
+//   font-size: 18px;
+//   margin-top: 15px;
+//   width: 100%;
+// }
+
+.my_pair_info {
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  margin-top: 30px;
+  padding: 20px 20px 25px;
+}
+
+.info_title_swap {
+  display: flex;
+  justify-content: space-between;
+
+  .info_title {
+    font-size: 16px;
+    font-weight: 500;
+  }
+}
+
+.info_item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-top: 15px;
+
+  .info_label {
+    font-weight: 400;
+  }
+
+  .info_value {
+    font-weight: 500;
+  }
+}
+
+// finish
+.finish_logo {
+  text-align: center;
+  margin-top: 42px;
+}
+
+.finish_title {
+  font-size: 22px;
+  font-weight: 500;
+  margin-top: 22px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.small_title {
+  margin-top: 10px;
+  font-size: 16px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.finish_desc {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 400;
+  margin-top: 20px;
+}
+
+.view_detail {
+  text-align: center;
+  color: #1e2bff;
+  line-height: 50px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
+.done_btn {
+  background-color: #1e2bff;
+  color: #fff;
+
+  height: 60px;
+  line-height: 52px;
+  font-size: 18px;
+  font-weight: 500;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.pair_data {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 500;
+  margin-top: 20px;
+  .pair_left {
+    margin-right: 15px;
+  }
+  .pair_right {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.boost_info {
+  border: 2px solid #4a90e2; /* 蓝色边框 */
+  border-radius: 8px; /* 圆角边框 */
+  padding: 20px; /* 内边距 */
+  background-color: #f7f7f7; /* 背景色 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 阴影效果 */
+  margin: 20px 0; /* 外边距，与其他元素的距离 */
+  //font-family: 'Arial', sans-serif; /* 字体 */
+}
+
+.boost_info h3 {
+  color: #333; /* 标题颜色 */
+  margin-bottom: 10px; /* 标题下边距 */
+}
+
+.boost_info .current, .boost_info .after_boost {
+  margin-bottom: 15px; /* 当前和提升后块的下边距 */
+}
+
+.boost_info .value {
+  font-weight: bold; /* 加粗数值 */
+  color: #4a90e2; /* 数值颜色 */
+}
+
+.boost_info .apr {
+  color: #27ae60; /* APR 数值颜色 */
+  font-size: 1.2em; /* APR 字体大小 */
+}
+
+@media only screen and (max-width: 767.99px) {
+  .content {
+    width: 96%;
+    margin: 0 auto;
+  }
+  .pair_box .pair_right .input {
+    width: 100px;
+  }
+}

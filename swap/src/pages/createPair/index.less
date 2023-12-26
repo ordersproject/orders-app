@@ -1,0 +1,199 @@
+@import '../../common/steps.less';
+@import '../../common/btn.less';
+
+.container {
+  background-color: #fff;
+  width: 400px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  margin-top: 20px;
+}
+
+.create_content {
+  padding: 20px;
+}
+
+// .title {
+//   font-size: 18px;
+//   font-weight: 500;
+// }
+
+// .box {
+//   height: 70px;
+//   background-color: #f6f6f9;
+//   border-radius: 55px 8px 8px 55px;
+//   margin-top: 10px;
+//   display: flex;
+//   align-items: center;
+//   justify-content: space-between;
+//   padding: 0 10px 0 15px;
+// }
+
+.coin {
+  display: flex;
+  align-items: center;
+  margin-right: 20px;
+}
+
+.name {
+  margin-left: 10px;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.switch_icon {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+// .input_wrap {
+//   background-color: #f6f6f9;
+//   border-radius: 8px;
+//   padding: 10px;
+//   margin: 15px 0 20px;
+//   :global(.ant-form-item) {
+//     margin-bottom: 0;
+//   }
+// }
+
+// .input_result {
+//   border-radius: 8px 8px 8px 33px;
+// }
+
+// .input {
+//   height: 60px;
+//   border-color: #e8e8e8;
+//   border-radius: 8px;
+// }
+
+// .token_info {
+//   display: flex;
+//   align-items: center;
+//   margin-top: 15px;
+//   .token_name {
+//     margin-left: 10px;
+//   }
+//   .symbol {
+//     font-size: 18px;
+//     font-weight: 500;
+//   }
+//   .full_name {
+//     font-size: 12px;
+//   }
+// }
+
+// .desc {
+//   font-size: 14px;
+//   text-align: center;
+// }
+
+.info {
+  border: 1px solid #dbdbdb;
+  padding: 20px;
+  margin: 20px auto;
+
+  .sub_title {
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+  }
+
+  .coin {
+    display: flex;
+  }
+
+  .name {
+    font-size: 16px;
+    font-weight: 500;
+    margin-left: 10px;
+  }
+
+  .edit {
+    color: #1e2bff;
+    cursor: pointer;
+  }
+
+  .label {
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .no {
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+.options {
+  /*display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;*/
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.optionButton {
+  background-color: #f0f0f0;
+  border: none;
+  padding: 0.5rem 1rem;
+  margin: 0 0.5rem;
+  cursor: pointer;
+  border-radius: 25px;
+  width: 60px;
+}
+
+.optionButton.selected {
+  background-color: #007bff;
+  color: white;
+}
+
+// finish
+.finish_logo {
+  text-align: center;
+  margin-top: 22px;
+}
+
+.finish_title {
+  font-size: 22px;
+  font-weight: 500;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.finish_desc {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 400;
+  margin-top: 10px;
+}
+
+.done_btn {
+  background-color: #1e2bff;
+  color: #fff;
+  height: 50px;
+  line-height: 42px;
+  font-size: 18px;
+  font-weight: 500;
+  width: 100%;
+}
+
+@media only screen and (max-width: 767.99px) {
+  .container {
+    min-height: calc(~'100% - 50px');
+    width: 100%;
+  }
+
+  .create_content {
+    padding: 0 20px 20px;
+    min-height: calc(~'100vh - 120px');
+  }
+}

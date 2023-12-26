@@ -1,0 +1,101 @@
+@import '../../common/steps.less';
+@import '../../common/btn.less';
+
+.container {
+  padding: 20px;
+}
+
+.back {
+  :global(.anticon) {
+    font-size: 16px;
+    color: #1e2bff;
+    font-weight: 500;
+  }
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.col {
+  width: 48%;
+
+  :global {
+    .ant-input-number {
+      width: 100%;
+      border-radius: 8px;
+      line-height: 40px;
+    }
+
+    .ant-input-number-handler-wrap {
+      border-radius: 0 8px 8px 0;
+    }
+  }
+}
+
+.title {
+  font-weight: 500;
+  font-size: 18px;
+}
+
+.desc {
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.tips {
+  font-size: 14px;
+}
+
+.logo {
+  margin: 30px auto 0;
+  text-align: center;
+}
+.name {
+  font-size: 18px;
+  font-weight: 500;
+  margin-top: 10px;
+}
+
+.content1 {
+  margin-top: 10px;
+
+  .title {
+    text-align: center;
+  }
+
+  .name {
+    font-size: 22px;
+    font-weight: 500;
+    margin-top: 15px;
+    text-align: center;
+  }
+}
+
+.info {
+  margin-top: 30px;
+  margin-bottom: 25px;
+  border-radius: 12px;
+  border: 1px solid #1d1d1d1a;
+
+  .line {
+    border-bottom: 1px solid #1d1d1d1a;
+    line-height: 40px;
+    font-size: 12px;
+    display: flex;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .label {
+    padding-left: 15px;
+    width: 85px;
+    font-weight: 500;
+  }
+  :global(.iconfont) {
+    font-size: 16px;
+  }
+}

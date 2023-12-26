@@ -1,0 +1,55 @@
+.steps {
+  margin-bottom: 30px;
+  margin-top: 30px;
+
+  :global {
+    .ant-steps-item-title {
+      font-size: 12px;
+    }
+
+    .ant-steps-item-icon > .ant-steps-icon {
+      top: -6px;
+    }
+
+    .ant-steps-item-icon {
+      width: 20px;
+      height: 20px;
+      line-height: 20px;
+      margin-left: 42px;
+    }
+
+    .ant-steps-item-process .ant-steps-item-icon {
+      width: 20px;
+      height: 20px;
+      line-height: 20px;
+    }
+
+    .ant-steps-item-content {
+      width: 100px;
+      margin-top: 4px;
+    }
+
+    .ant-steps-item-tail {
+      margin-left: 42px;
+    }
+
+    .ant-steps-item-tail::after {
+      height: 4px;
+      margin-left: 20px;
+    }
+
+    .ant-steps-item-wait
+      .ant-steps-item-icon
+      > .ant-steps-icon
+      .ant-steps-icon-dot {
+      border: 4px solid #dbdbdb;
+      background-color: transparent;
+    }
+    .ant-steps-item-process
+      .ant-steps-item-icon
+      > .ant-steps-icon
+      .ant-steps-icon-dot {
+      background-color: #1e2bff;
+    }
+  }
+}

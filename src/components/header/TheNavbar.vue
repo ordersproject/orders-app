@@ -42,8 +42,8 @@ function isLinkActive(path: string) {
   }
 }
 
-function toMvc20() {
-  window.open('/mvc20/', '_current')
+function toSwap() {
+  window.open('/swap/', '_current')
 }
 </script>
 
@@ -78,10 +78,10 @@ function toMvc20() {
       </component>
 
       <a
-        class="rounded-md px-4 py-2 text-sm font-medium text-zinc-300 cursor-pointer hover:bg-black hover:text-orange-300"
-        @click="toMvc20"
+        class="cursor-pointer rounded-md px-4 py-2 text-sm font-medium text-zinc-300 hover:bg-black hover:text-orange-300"
+        @click="toSwap"
       >
-        MVC20
+        Swap
       </a>
     </nav>
   </div>

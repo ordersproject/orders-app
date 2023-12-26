@@ -1,0 +1,36 @@
+.container {
+  background-color: var(--bg-color);
+  width: 375px;
+  height: 600px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.head {
+  height: 60px;
+  border-bottom: 1px solid var(--border-color-2nd);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.done {
+  cursor: pointer;
+  color: #1e2bff;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+@media only screen and (max-width: 767.99px) {
+  .container {
+    height: 100%;
+    width: 100%;
+    border-radius: 0;
+  }
+}

@@ -1,0 +1,54 @@
+.item {
+  padding: 20px;
+  border: 1px solid var(--border-color-2nd);
+  border-radius: 12px;
+  margin: 20px 0;
+
+  .title {
+    font-size: 16px;
+    font-weight: 500;
+    height: 20px;
+    justify-content: space-between;
+
+    span {
+      font-weight: 400;
+    }
+  }
+
+  .value {
+    font-size: 22px;
+    font-weight: 500;
+    margin-top: 15px;
+    height: 25px;
+  }
+
+  .coin {
+    font-size: 18px;
+    font-weight: 500;
+    display: flex;
+    margin-top: 20px;
+
+    .icon {
+      :global(.iconfont) {
+        font-size: 30px;
+      }
+
+      margin-right: 15px;
+    }
+  }
+
+  .info_item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin-top: 15px;
+
+    .info_label {
+      font-weight: 400;
+    }
+
+    .info_value {
+      font-weight: 500;
+    }
+  }
+}

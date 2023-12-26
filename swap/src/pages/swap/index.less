@@ -1,0 +1,249 @@
+.container {
+  background-color: var(--bg-color);
+  width: 400px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  margin-top:20px
+  // -webkit-box-shadow: 0 10px 25px var(--bg-shadow);
+  // box-shadow: 0 10px 25px var(--bg-shadow);
+}
+
+.head {
+  height: 80px;
+  border-bottom: 1px solid #e8e8e8;
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.menu {
+  float: left;
+  height: 40px;
+  line-height: 40px;
+  display: flex;
+  flex: 1;
+
+  .menu_item {
+    display: inline-block;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 16px;
+    padding: 0 20px;
+    color: #1d1d1d;
+    border-radius: 100px;
+    height: 40px;
+    margin-right: 20px;
+    text-align: center;
+  }
+
+  .menu_item:last-child {
+    margin-right: 0;
+  }
+
+  .menu_item_selected {
+    background-color: #1e2bff;
+    color: #fff;
+  }
+}
+
+.content {
+  padding: 20px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+
+  h3 {
+    font-size: 18px;
+    margin-bottom: 0;
+    line-height: 25px;
+  }
+
+  .balance {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 25px;
+    span {
+      font-weight: 500;
+      color: var(--blue-color);
+    }
+  }
+  .balance.can_click {
+    cursor: pointer;
+    span {
+      color: var(--blue-color);
+      font-weight: 500;
+    }
+  }
+  .normal {
+    font-weight: 400;
+  }
+}
+
+.box {
+  height: 70px;
+  background-color: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px 0 15px;
+  .coin {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    // margin-right: 10px;
+  }
+
+  :global(.pair-name),
+  .name {
+    font-size: 22px;
+    font-weight: 500;
+    width: 70px;
+    // margin-right: 15px;
+    margin-left: 10px;
+  }
+  :global(.ant-form-item) {
+    margin-bottom: 0;
+  }
+  .arrow {
+    padding: 10px 15px 10px 10px;
+    background-color: #f6f6f9ed;
+    box-shadow: 0 0 5px 5px #f6f6f9ed;
+    margin-left: 5px;
+    :global(.iconfont) {
+      font-size: 16px;
+    }
+  }
+}
+
+.my_pair_info {
+  margin-top: 20px;
+}
+
+.key_value {
+  font-size: 14px;
+  font-weight: 400;
+  display: flex;
+  justify-content: space-between;
+  line-height: 26px;
+  align-items: center;
+  :first-child {
+    color: var(--fg-color-light);
+  }
+
+  &:not(:last-of-type) {
+    margin-bottom: 5px;
+  }
+}
+.tol {
+  width: 65px;
+  border-radius: 6px;
+  background-color: var(--bg-color-2nd);
+  // :global(.ant-input) {
+  //   background-color: #f6f6f6;
+  // }
+  border: 0.5px solid var(--border-color);
+  padding: 4px 8px;
+  .ant-input {
+    background-color: var(--bg-color-2nd) !important;
+  }
+}
+
+.btn,
+.btn_warn {
+  border: none;
+  height: 60px;
+  line-height: 52px;
+  font-weight: 500;
+  font-size: 18px;
+  margin: 15px 0 0;
+  width: 100%;
+  border-radius: 8px;
+  color: var(--bg-color);
+  background: var(--button-linear);
+}
+
+.btn_warn,
+.btn_warn:hover,
+.btn_warn:focus,
+.btn_warn:active {
+  background-color: darkred;
+  color: #fff;
+}
+
+.input {
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  height: 50px;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 50px;
+  :global(.ant-input-number-handler-wrap) {
+    border-radius: 0 8px 8px 0;
+  }
+}
+
+.detail_title {
+  height: 50px;
+  line-height: 50px;
+  background-color: #f6f6f6;
+  position: relative;
+  font-size: 16px;
+  font-weight: 500;
+  text-align: center;
+  margin-top: 40px;
+}
+.detail_close {
+  position: absolute;
+  right: 16px;
+  top: 0px;
+  color: #1e2bff;
+}
+.line {
+  display: flex;
+}
+.detail_item {
+  border-bottom: 1px solid var(--border-color-3nd);
+  padding: 15px 0 10px;
+  min-width: 50%;
+}
+.item_label {
+  font-size: 12px;
+  font-weight: 400;
+  color: #686868;
+}
+.item_value {
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 5px;
+  word-wrap: break-word;
+}
+
+.selectToken_wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+}
+
+@media only screen and (max-width: 767.99px) {
+  .container {
+    min-height: calc(~'100vh - 50px');
+    width: 100%;
+    border-radius: 0;
+  }
+  .content {
+    padding: 20px;
+  }
+
+  .selectToken_wrap {
+    width: 100%;
+    height: calc(~'100vh - 50px');
+  }
+}
