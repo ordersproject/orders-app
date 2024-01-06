@@ -1,18 +1,12 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
-
-import { useAddressStore } from '@/store'
+import { useConnectionStore } from '@/stores/connection'
 
 import PairSelect from './PairSelect.vue'
 
 defineProps(['isLimitExchangeMode'])
 defineEmits(['update:isLimitExchangeMode'])
 
-const addressStore = useAddressStore()
-
-const inWhitelist = computed(() => {
-  return addressStore.get
-})
+const connectionStore = useConnectionStore()
 </script>
 
 <template>
@@ -34,7 +28,7 @@ const inWhitelist = computed(() => {
             : 'border-zinc-300 text-zinc-300'
         "
         @click="$emit('update:isLimitExchangeMode', !isLimitExchangeMode)"
-        v-if="inWhitelist"
+        v-if="connectionStore.connected"
       >
         Create Order
       </button>

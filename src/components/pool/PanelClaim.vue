@@ -5,7 +5,7 @@ import { ElMessage } from 'element-plus'
 import { computed, inject, ref } from 'vue'
 
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
-import { useAddressStore, useBtcJsStore } from '@/store'
+import { useConnectionStore } from '@/stores/connection'
 import { getMyRewardsEssential, claimReward } from '@/queries/pool'
 import { DEBUG, IS_DEV, POOL_REWARDS_TICK } from '@/data/constants'
 
@@ -14,17 +14,17 @@ import { sleep } from '@/lib/helpers'
 import { buildRewardClaim } from '@/lib/order-pool-builder'
 
 const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
-const addressStore = useAddressStore()
+const connectionStore = useConnectionStore()
 
 const { data: rewardsEssential, isLoading: isLoadingRewardsEssential } =
   useQuery({
     queryKey: [
       'poolRewardsEssential',
-      { address: addressStore.get as string, tick: selectedPair.fromSymbol },
+      { address: connectionStore.getAddress, tick: selectedPair.fromSymbol },
     ],
     queryFn: () =>
       getMyRewardsEssential({
-        address: addressStore.get as string,
+        address: connectionStore.getAddress,
         tick: selectedPair.fromSymbol,
       }),
     select: (data) => {
@@ -40,7 +40,7 @@ const { data: rewardsEssential, isLoading: isLoadingRewardsEssential } =
         total,
       }
     },
-    enabled: computed(() => !!addressStore.get),
+    enabled: computed(() => connectionStore.connected),
   })
 
 // hasReleasable
@@ -60,7 +60,7 @@ const { mutate: mutateClaimReward } = useMutation({
       queryKey: [
         'poolRewardsEssential',
         {
-          address: addressStore.get as string,
+          address: connectionStore.getAddress,
           tick: selectedPair.fromSymbol,
         },
       ],

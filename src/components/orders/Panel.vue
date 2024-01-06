@@ -19,12 +19,17 @@ import {
   ChevronsUpDownIcon,
   XIcon,
   BookPlusIcon,
+  ChevronRightIcon,
 } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import { useQuery } from '@tanstack/vue-query'
 import Decimal from 'decimal.js'
+import { get } from '@vueuse/core'
 
+<<<<<<< HEAD
 import btcIcon from '@/assets/btc.svg?url'
+=======
+>>>>>>> abc18de2f07f5107c89fc1b9976295cc1140862e
 import { prettyBalance } from '@/lib/formatters'
 import { sleep, unit, useBtcUnit } from '@/lib/helpers'
 import { calculateFee } from '@/lib/build-helpers'
@@ -32,6 +37,7 @@ import {
   buildAskLimit,
   buildBidLimit,
   buildSellTake,
+  buildBuyTake,
 } from '@/lib/order-builder'
 import {
   getOrdiBalance,
@@ -43,18 +49,28 @@ import {
   type Brc20Transferable,
   type BidCandidate,
 } from '@/queries/orders-api'
+<<<<<<< HEAD
 import { useAddressStore, useFeebStore, useNetworkStore } from '@/store'
 import { buildBuyTake } from '@/lib/order-builder'
+=======
+import { useConnectionStore } from '@/stores/connection'
+import { useFeebStore } from '@/stores/feeb'
+import { useNetworkStore } from '@/stores/network'
+>>>>>>> abc18de2f07f5107c89fc1b9976295cc1140862e
 import { selectPair, selectedPairKey } from '@/data/trading-pairs'
 import { DEBUG, SELL_TX_SIZE } from '@/data/constants'
 
+import btcIcon from '@/assets/btc.svg?url'
 import OrderPanelHeader from './PanelHeader.vue'
 import OrderList from './List.vue'
 import OrderConfirmationModal from '../ConfirmationModal.vue'
-import { ChevronRightIcon } from 'lucide-vue-next'
-import { get } from '@vueuse/core'
 
+<<<<<<< HEAD
 const addressStore = useAddressStore()
+=======
+const connectionStore = useConnectionStore()
+const address = connectionStore.getAddress
+>>>>>>> abc18de2f07f5107c89fc1b9976295cc1140862e
 const networkStore = useNetworkStore()
 const feebStore = useFeebStore()
 
@@ -336,7 +352,9 @@ async function buildOrder() {
 }
 
 async function goInscribe() {
-  await window.unisat.inscribeTransfer(selectedPair.fromSymbol)
+  const adapter = connectionStore.adapter
+
+  await adapter?.inscribe(selectedPair.exactName)
 }
 
 // confirm modal
@@ -409,30 +427,28 @@ const { data: ordiBalance } = useQuery({
   queryKey: [
     'ordiBalance',
     {
-      address: addressStore.get,
+      address,
       network: networkStore.network,
     },
   ],
-  queryFn: () => getOrdiBalance(addressStore.get!, networkStore.network),
+  queryFn: () => getOrdiBalance(address, networkStore.network),
 })
 const { data: myBrc20Info } = useQuery({
   queryKey: [
     'myBrc20Info',
     {
-      address: addressStore.get,
+      address,
       network: networkStore.network,
       tick: selectedPair.fromSymbol,
     },
   ],
   queryFn: () =>
     getOneBrc20({
-      address: addressStore.get!,
+      address,
       tick: selectedPair.fromSymbol,
     }),
 
-  enabled: computed(
-    () => networkStore.network !== 'testnet' && !!addressStore.get
-  ),
+  enabled: computed(() => networkStore.network !== 'testnet' && !!address),
 })
 const selectedAskCandidate: Ref<Brc20Transferable | undefined> = ref()
 
@@ -441,7 +457,7 @@ const { data: bidCandidates } = useQuery({
   queryKey: [
     'bidCandidates',
     {
-      address: addressStore.get,
+      address,
       network: networkStore.network,
       symbol: selectedPair.fromSymbol,
     },

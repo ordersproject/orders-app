@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import { computed, inject, provide } from 'vue'
+import { computed, inject } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
-import { useRoute } from 'vue-router'
 
 import {
   defaultPoolPair,
@@ -9,7 +8,7 @@ import {
   selectedPoolPairKey,
 } from '@/data/trading-pairs'
 import { getOnePoolPair } from '@/queries/pool'
-import { useAddressStore } from '@/store'
+import { useConnectionStore } from '@/stores/connection'
 import { prettyCoinDisplay } from '@/lib/formatters'
 
 import PoolPairSelect from '@/components/pool/PoolPairSelect.vue'
@@ -23,14 +22,14 @@ const { data: pairInfo } = useQuery(
     {
       from: selectedPair.fromSymbol,
       to: selectedPair.toSymbol,
-      address: useAddressStore().get!,
+      address: useConnectionStore().getAddress,
     },
   ],
   () =>
     getOnePoolPair({
       from: selectedPair.fromSymbol,
       to: selectedPair.toSymbol,
-      address: useAddressStore().get!,
+      address: useConnectionStore().getAddress,
     }),
   {
     enabled: !!selectedPair.fromSymbol && !!selectedPair.toSymbol,

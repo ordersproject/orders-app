@@ -6,6 +6,7 @@ import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue'
 import {
   HelpCircleIcon,
   ChevronRightIcon,
+  ExternalLinkIcon,
 } from 'lucide-vue-next'
 
 import { prettyBalance, prettyTimestamp, prettyTxid } from '@/lib/formatters'
@@ -14,7 +15,7 @@ import {
   getReleaseEssential,
   submitRelease,
 } from '@/queries/pool'
-import { useAddressStore } from '@/store'
+import { useConnectionStore } from '@/stores/connection'
 import {
   DEBUG,
   POOL_REWARDS_TICK,
@@ -22,17 +23,16 @@ import {
 } from '@/data/constants'
 import { buildReleasePsbt } from '@/lib/order-pool-builder'
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
+import { toTx, unit, useBtcUnit } from '@/lib/helpers'
 
 import ReleasingOverlay from '@/components/overlays/Loading.vue'
-import { ExternalLinkIcon } from 'lucide-vue-next'
-import { toTx, unit, useBtcUnit } from '@/lib/helpers'
 
 const props = defineProps<{
   record: PoolRecord
 }>()
 
 const queryClient = useQueryClient()
-const addressStore = useAddressStore()
+const connectionStore = useConnectionStore()
 
 const releasing = ref(false)
 
@@ -45,7 +45,7 @@ const { mutate: mutateFinishRecord } = useMutation({
       queryKey: [
         'poolReleasableRecords',
         {
-          address: addressStore.get as string,
+          address: connectionStore.getAddress,
           tick: selectedPair.fromSymbol,
         },
       ],
@@ -78,26 +78,26 @@ async function submitReleaseRecord() {
     const toSignInputs: ToSignInput[] = [
       {
         index: 0,
-        address: addressStore.get!,
+        address: connectionStore.getAddress,
         sighashTypes: [SIGHASH_SINGLE_ANYONECANPAY],
       },
       {
         index: 1,
-        address: addressStore.get!,
+        address: connectionStore.getAddress,
         sighashTypes: [SIGHASH_SINGLE_ANYONECANPAY],
       },
       {
         index: 2,
-        address: addressStore.get!,
+        address: connectionStore.getAddress,
         sighashTypes: [SIGHASH_SINGLE_ANYONECANPAY],
       },
       {
         index: 3,
-        address: addressStore.get!,
+        address: connectionStore.getAddress,
         sighashTypes: [SIGHASH_SINGLE_ANYONECANPAY],
       },
     ]
-    const signed = await window.unisat.signPsbt(releasePsbt.toHex(), {
+    const signed = await connectionStore.adapter.signPsbt(releasePsbt.toHex(), {
       autoFinalized: true,
       toSignInputs,
     })

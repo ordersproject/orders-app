@@ -12,17 +12,18 @@ import {
 import logo from '@/assets/logo-new.png?url'
 import { VERSION } from '@/data/constants'
 import { useStorage } from '@vueuse/core'
-import { useAddressStore, useCredentialsStore } from '@/store'
+import { useConnectionStore } from '@/stores/connection'
+import { useCredentialsStore } from '@/stores/credentials'
 import { ElMessage } from 'element-plus'
 
 const useBtcUnit = useStorage('use-btc-unit', true)
-const addressStore = useAddressStore()
+const connectionStore = useConnectionStore()
 const showFiatPrice = useStorage('show-fiat-price', true)
 const credentialStore = useCredentialsStore()
 
 function clearCache() {
   // clear the credential cache of this wallet address
-  const address = useAddressStore().get
+  const address = useConnectionStore().getAddress
   if (!address) return
 
   credentialStore.remove(address)
@@ -36,7 +37,7 @@ function clearCache() {
 
 function onDisconnect() {
   // remove from address store
-  addressStore.disconnect()
+  connectionStore.disconnect()
 
   // reload
   window.location.reload()
@@ -66,7 +67,7 @@ function onDisconnect() {
     >
       <MenuItems class="absolute left-0 z-10 mt-1 flex w-screen max-w-min">
         <div
-          class="w-56 shrink rounded-xl bg-zinc-800 text-sm font-semibold leading-6 text-zinc-300 shadow-lg ring-1 ring-zinc-900/5 overflow-hidden divide-y divide-zinc-700"
+          class="w-56 shrink rounded-xl bg-zinc-800 text-sm font-semibold leading-6 text-zinc-300 shadow-lg ring-1 ring-zinc-900/5 overflow-hidden divide-y divide-zinc-700 shadow-orange-300/20"
         >
           <MenuItem>
             <router-link
@@ -74,15 +75,6 @@ function onDisconnect() {
               class="p-4 block hover:text-orange-300 transition"
             >
               Home
-            </router-link>
-          </MenuItem>
-
-          <MenuItem>
-            <router-link
-              to="/recover"
-              class="p-4 block hover:text-orange-300 transition"
-            >
-              Recover
             </router-link>
           </MenuItem>
 
@@ -136,6 +128,15 @@ function onDisconnect() {
           </MenuItem>
 
           <MenuItem>
+            <router-link
+              to="/recover"
+              class="p-4 block hover:text-orange-300 transition"
+            >
+              Recover
+            </router-link>
+          </MenuItem>
+
+          <MenuItem>
             <button
               class="p-4 block hover:text-orange-300 transition w-full text-left"
               @click="clearCache"
@@ -144,7 +145,7 @@ function onDisconnect() {
             </button>
           </MenuItem>
 
-          <MenuItem>
+          <MenuItem v-if="connectionStore.has">
             <button
               class="p-4 block hover:text-orange-300 transition w-full text-left"
               @click="onDisconnect"

@@ -1,12 +1,16 @@
 import Decimal from 'decimal.js'
-import sign from '../lib/sign'
-import { useAddressStore, useFeebStore, useNetworkStore } from '../store'
+
+import { useConnectionStore } from '@/stores/connection'
+import { useFeebStore } from '@/stores/feeb'
+import { useNetworkStore } from '@/stores/network'
+
+import sign from '@/lib/sign'
 import { ordersApiFetch } from '@/lib/fetch'
-import { raise, showFiat } from '@/lib/helpers'
+import { raise } from '@/lib/helpers'
 
 export const login = async () => {
   const { publicKey, signature } = await sign()
-  const address = useAddressStore().get as string
+  const address = useConnectionStore().getAddress
   const loginRes = await ordersApiFetch(`login/in`, {
     method: 'POST',
     headers: {
@@ -92,7 +96,7 @@ export const getBidCandidates = async (
   tick: string,
   isPool: boolean = true
 ): Promise<BidCandidate[]> => {
-  const address = useAddressStore().get as string
+  const address = useConnectionStore().getAddress
   const params = new URLSearchParams({
     net: network,
     address,
@@ -153,7 +157,7 @@ export const getBidCandidateInfo = async ({
   psbtRaw: string
   orderId: string
 }> => {
-  const address = useAddressStore().get as string
+  const address = useConnectionStore().getAddress
   const params = new URLSearchParams({
     net: network,
     tick,
@@ -222,7 +226,7 @@ export const constructBidPsbt = async ({
 }> => {
   const { publicKey, signature } = await sign()
 
-  const address = useAddressStore().get as string
+  const address = useConnectionStore().getAddress
   const body = {
     net: network,
     tick,
@@ -310,7 +314,7 @@ export const getOrders = async ({
 }) => {
   const orderType = type === 'ask' ? 1 : 2
   const sortType = sort === 'asc' ? 1 : -1
-  const address = useAddressStore().get as string
+  const address = useConnectionStore().getAddress
 
   const params = new URLSearchParams({
     net: network,
@@ -347,7 +351,7 @@ export const getOneOrder = async ({
   orderId: string
 }): Promise<DetailedOrder> => {
   const { publicKey, signature } = await sign()
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
 
   const order: DetailedOrder = await ordersApiFetch(
     `order/${orderId}?buyerAddress=${address}`,
@@ -549,8 +553,7 @@ export const pushBuyTake = async ({
   psbtRaw: string
   orderId: string
 }) => {
-  // const pushTxId = await window.unisat.pushPsbt(psbtRaw)
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
 
   const { publicKey, signature } = await sign()
 
@@ -576,7 +579,7 @@ export const pushBuyTake = async ({
 }
 
 export const cancelOrder = async ({ orderId }: { orderId: string }) => {
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
   const network = useNetworkStore().network
   const { publicKey, signature } = await sign()
 
@@ -703,7 +706,7 @@ export const getListingUtxos: () => Promise<
   }[]
 > = async () => {
   const network = 'livenet'
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
 
   const utxos = await ordersApiFetch(
     `order/bid/dummy/${address}?net=${network}`

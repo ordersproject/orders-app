@@ -1,27 +1,20 @@
-import {
-  useAddressStore,
-  useBtcJsStore,
-  useDummiesStore,
-  useNetworkStore,
-} from '@/store'
+import { useBtcJsStore } from '@/stores/btcjs'
+import { useConnectionStore } from '@/stores/connection'
+import { useDummiesStore } from '@/stores/dummies'
+import { useNetworkStore } from '@/stores/network'
 import { exclusiveChange, safeOutputValue } from './build-helpers'
 import {
-  DEBUG,
   DUMMY_UTXO_VALUE,
-  DUST_UTXO_VALUE,
   EXTRA_INPUT_MIN_VALUE,
   ONE_SERVICE_FEE,
-  SELL_SERVICE_FEE,
   SERVICE_LIVENET_ADDRESS,
   SERVICE_LIVENET_RDEX_ADDRESS,
   SERVICE_TESTNET_ADDRESS,
-  SIGHASH_ALL_ANYONECANPAY,
   SIGHASH_SINGLE_ANYONECANPAY,
   USE_UTXO_COUNT_LIMIT,
 } from '@/data/constants'
 import {
   constructBidPsbt,
-  getListingUtxos,
   getOneBrc20,
   getOneOrder,
   getSellFees,
@@ -29,6 +22,8 @@ import {
 import { getUtxos, type SimpleUtxoFromMempool, getTxHex } from '@/queries/proxy'
 import { type TradingPair } from '@/data/trading-pairs'
 import { SIGHASH_NONE_ANYONECANPAY } from '../data/constants'
+import { toXOnly } from '@/lib/btc-helpers'
+import { Buffer } from 'buffer'
 
 export async function buildAskLimit({
   total,
@@ -41,7 +36,7 @@ export async function buildAskLimit({
 }) {
   const networkStore = useNetworkStore()
   const btcjs = useBtcJsStore().get!
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
 
   // Get address
   // Step 1: Get the ordinal utxo as input
@@ -103,9 +98,7 @@ export async function buildAskLimit({
   const ordinalValue = ordinalDetail.value
 
   // build psbt
-  const ask = new btcjs.Psbt({
-    network: btcjs.networks[networkStore.btcNetwork],
-  })
+  const ask = useConnectionStore().adapter.initPsbt()
 
   for (const output in ordinalPreTx.outs) {
     try {
@@ -117,14 +110,15 @@ export async function buildAskLimit({
     hash: ordinalUtxo.txId,
     index: ordinalUtxo.outputIndex,
     witnessUtxo: ordinalPreTx.outs[ordinalUtxo.outputIndex],
-    sighashType:
-      btcjs.Transaction.SIGHASH_SINGLE | btcjs.Transaction.SIGHASH_ANYONECANPAY,
+    sighashType: SIGHASH_SINGLE_ANYONECANPAY,
+    // tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey, 'hex')),
   })
 
   // Step 2: Build output as what the seller want (BTC)
   ask.addOutput({
     address,
     value: safeOutputValue(total),
+    // tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey, 'hex')),
   })
 
   return {
@@ -166,7 +160,7 @@ export async function buildBidLimit({
   const orderNetwork = networkStore.network
   const btcNetwork = networkStore.btcNetwork
   const btcjs = window.bitcoin
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
   const isPool = !!selectedPair.hasPool
 
   // new version of building bid
@@ -276,7 +270,7 @@ export async function buildBuyTake({
   }
   selectedPair: TradingPair
 }) {
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
   const btcjs = useBtcJsStore().get!
   const btcNetwork = useNetworkStore().btcNetwork
   const dummiesStore = useDummiesStore()
@@ -311,6 +305,7 @@ export async function buildBuyTake({
       index: dummyUtxo.outputIndex,
       witnessUtxo: dummyTx.outs[dummyUtxo.outputIndex],
       sighashType: btcjs.Transaction.SIGHASH_ALL,
+      tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
     }
     buyPsbt.addInput(dummyInput)
     totalInput += dummyUtxo.satoshis
@@ -336,6 +331,7 @@ export async function buildBuyTake({
     index: askPsbt.txInputs[0].index,
     witnessUtxo: askPsbt.data.inputs[0].witnessUtxo,
     finalScriptWitness: askPsbt.data.inputs[0].finalScriptWitness,
+    tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
   }
 
   buyPsbt.addInput(sellerInput)
@@ -416,7 +412,7 @@ export async function buildSellTake({
   selectedPair: TradingPair
 }) {
   const networkStore = useNetworkStore()
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
   const btcjs = useBtcJsStore().get!
 
   // Step 1: Get the ordinal utxo as input
@@ -473,6 +469,7 @@ export async function buildSellTake({
     index: ordinalUtxo.outputIndex,
     witnessUtxo: ordinalPreTx.outs[ordinalUtxo.outputIndex],
     sighashType: SIGHASH_SINGLE_ANYONECANPAY,
+    tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
   })
 
   // Step 2: Build output as what the seller want (BTC)
@@ -522,7 +519,7 @@ export async function buildClaimTake({
 }: {
   claimPsbtRaw: string
 }) {
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
   const btcjs = useBtcJsStore().get!
   const btcNetwork = useNetworkStore().btcNetwork
   const dummiesStore = useDummiesStore()
@@ -552,6 +549,7 @@ export async function buildClaimTake({
       index: dummyUtxo.outputIndex,
       witnessUtxo: dummyTx.outs[dummyUtxo.outputIndex],
       sighashType: btcjs.Transaction.SIGHASH_ALL,
+      tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
     }
     takePsbt.addInput(dummyInput)
     totalInput += dummyUtxo.satoshis
@@ -577,6 +575,7 @@ export async function buildClaimTake({
     index: claimPsbt.txInputs[0].index,
     witnessUtxo: claimPsbt.data.inputs[0].witnessUtxo,
     finalScriptWitness: claimPsbt.data.inputs[0].finalScriptWitness,
+    tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
   }
 
   takePsbt.addInput(sellerInput)

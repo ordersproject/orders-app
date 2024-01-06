@@ -1,4 +1,4 @@
-import { useNetworkStore } from '../store'
+import { useNetworkStore } from '@/stores/network'
 import fetch, { originalFetch } from '@/lib/fetch'
 
 export type SimpleUtxoFromMempool = {
@@ -30,6 +30,22 @@ export const getUtxos = async (address: string) => {
   })
 
   return paymentUtxos
+}
+
+type Balance = {
+  confirmed: number
+  unconfirmed: number
+  address: string
+}
+export const fetchBalance = async (address: string) => {
+  const url = `https://api2.orders.exchange/api/balance?address=${address}`
+  const balance: Balance = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+
+  return balance
 }
 
 export const getUtxosFromYouKnowWhere = async (address: string) => {

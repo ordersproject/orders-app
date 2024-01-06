@@ -18,26 +18,26 @@ import {
   removeLiquidity,
   type PoolRecord,
 } from '@/queries/pool'
-import { useAddressStore } from '@/store'
+import { useConnectionStore } from '@/stores/connection'
 import { prettyBalance, prettyTimestamp } from '@/lib/formatters'
 import { unit, useBtcUnit } from '@/lib/helpers'
 
 const queryClient = useQueryClient()
 const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
-const addressStore = useAddressStore()
-const enabled = computed(() => !!addressStore.get)
+const connectionStore = useConnectionStore()
+const enabled = computed(() => !!connectionStore.connected)
 
 const { isLoading: isLoadingRecords, data: poolRecords } = useQuery({
   queryKey: [
     'poolRecords',
     {
-      address: addressStore.get as string,
+      address: connectionStore.getAddress,
       tick: selectedPair.fromSymbol,
     },
   ],
   queryFn: () =>
     getMyPoolRecords({
-      address: addressStore.get as string,
+      address: connectionStore.getAddress,
       tick: selectedPair.fromSymbol,
     }),
   enabled,
@@ -53,7 +53,7 @@ const { mutate: mutateRemoveLiquidity } = useMutation({
       queryKey: [
         'poolRecords',
         {
-          address: addressStore.get as string,
+          address: connectionStore.getAddress,
           tick: selectedPair.fromSymbol,
         },
       ],

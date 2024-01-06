@@ -6,7 +6,8 @@ import { ElMessage } from 'element-plus'
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
 
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
-import { useAddressStore, useBtcJsStore } from '@/store'
+import { useBtcJsStore } from '@/stores/btcjs'
+import { useConnectionStore } from '@/stores/connection'
 import {
   claimStandbyReward,
   getMyStandbyRewardsEssential,
@@ -21,7 +22,7 @@ import StandbyExplainModal from './StandbyExplainModal.vue'
 import StandbyClaimRecords from './StandbyClaimRecords.vue'
 
 const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
-const addressStore = useAddressStore()
+const connectionStore = useConnectionStore()
 
 const { data: standbys } = useQuery({
   queryKey: ['poolStandbys', { tick: selectedPair.fromSymbol }],
@@ -29,18 +30,18 @@ const { data: standbys } = useQuery({
   select: (data) => {
     return data
   },
-  enabled: computed(() => !!addressStore.get),
+  enabled: computed(() => connectionStore.connected),
 })
 
 const { data: standbyRewardsEssential, isLoading: isLoadingRewardsEssential } =
   useQuery({
     queryKey: [
       'standbyRewardsEssential',
-      { address: addressStore.get as string, tick: selectedPair.fromSymbol },
+      { address: connectionStore.getAddress, tick: selectedPair.fromSymbol },
     ],
     queryFn: () =>
       getMyStandbyRewardsEssential({
-        address: addressStore.get as string,
+        address: connectionStore.getAddress,
         tick: selectedPair.fromSymbol,
       }),
     select: (data) => {
@@ -52,7 +53,7 @@ const { data: standbyRewardsEssential, isLoading: isLoadingRewardsEssential } =
           data.hadClaimRewardAmount,
       }
     },
-    enabled: computed(() => !!addressStore.get),
+    enabled: computed(() => connectionStore.connected),
   })
 
 const queryClient = useQueryClient()
@@ -64,7 +65,7 @@ const { mutate: mutateClaimStandbyReward } = useMutation({
       queryKey: [
         'standbyRewardsEssential',
         {
-          address: addressStore.get as string,
+          address: connectionStore.getAddress,
           tick: selectedPair.fromSymbol,
         },
       ],
@@ -72,7 +73,7 @@ const { mutate: mutateClaimStandbyReward } = useMutation({
     queryClient.invalidateQueries({
       queryKey: [
         'standbyRewardsClaimRecords',
-        { address: addressStore.get as string, tick: EVENT_REWARDS_TICK },
+        { address: connectionStore.getAddress, tick: EVENT_REWARDS_TICK },
       ],
     })
   },
@@ -106,8 +107,8 @@ async function onClaimReward() {
     if (!res) return
 
     // ask unisat to sign
-    const signed = await window.unisat.signPsbt(res.order.toHex())
-    console.log({ signed })
+    const connectionsStore = useConnectionStore()
+    const signed = await connectionsStore.adapter.signPsbt(res.order.toHex())
     // derive txid from signed psbt
     const bitcoinjs = useBtcJsStore().get!
     const signedPsbt = bitcoinjs.Psbt.fromHex(signed)

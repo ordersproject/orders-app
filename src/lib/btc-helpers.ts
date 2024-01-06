@@ -2,7 +2,7 @@ import { Buffer } from 'buffer'
 import * as ecc from 'tiny-secp256k1'
 import { type Psbt } from 'bitcoinjs-lib'
 
-import { useBtcJsStore } from '@/store'
+import { useBtcJsStore } from '@/stores/btcjs'
 
 export function toXOnly(pubKey: Buffer) {
   return pubKey.length === 32 ? pubKey : pubKey.slice(1, 33)
@@ -19,7 +19,7 @@ class BtcHelpers {
   }
 
   public fromPubKey(pubKey: string): any {
-    return this.ECPair.fromPublicKey(pubKey)
+    return this.ECPair.fromPublicKey(Buffer.from(pubKey, 'hex'))
   }
 
   public tapTweakHash(pubKey: Buffer, h: Buffer | undefined): Buffer {

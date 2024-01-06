@@ -1,12 +1,10 @@
 import { Buffer } from 'buffer'
 import Decimal from 'decimal.js'
 
-import {
-  useAddressStore,
-  useBtcJsStore,
-  useCredentialsStore,
-  useNetworkStore,
-} from '@/store'
+import { useBtcJsStore } from '@/stores/btcjs'
+import { useConnectionStore } from '@/stores/connection'
+import { useCredentialsStore } from '@/stores/credentials'
+import { useNetworkStore } from '@/stores/network'
 import { getOneBrc20 } from '@/queries/orders-api'
 import { type SimpleUtxoFromMempool, getTxHex, getUtxos } from '@/queries/proxy'
 import {
@@ -21,14 +19,13 @@ import {
   BTC_POOL_MODE,
   MS_BRC20_UTXO_VALUE,
   RELEASE_TX_SIZE,
-  SIGHASH_ALL,
-  SIGHASH_ALL_ANYONECANPAY,
   SIGHASH_SINGLE_ANYONECANPAY,
   USE_UTXO_COUNT_LIMIT,
 } from '@/data/constants'
+import { toXOnly } from '@/lib/btc-helpers'
 
 async function getBothPubKeys(type: 'btc' | 'brc20' = 'brc20') {
-  const selfAddress = useAddressStore().get!
+  const selfAddress = useConnectionStore().getAddress
   const credential = useCredentialsStore().getByAddress(selfAddress)
   const selfPubKey =
     credential?.publicKey ??
@@ -69,7 +66,7 @@ export async function buildAddBrcLiquidity({
 }) {
   const networkStore = useNetworkStore()
   const btcjs = useBtcJsStore().get!
-  const address = useAddressStore().get!
+  const address = useConnectionStore().getAddress
 
   // Step 1: Get the ordinal utxo as input
   // if testnet, we use a cardinal utxo as a fake one
@@ -123,6 +120,7 @@ export async function buildAddBrcLiquidity({
     witnessUtxo: ordinalPreTx.outs[ordinalUtxo.outputIndex],
     sighashType:
       btcjs.Transaction.SIGHASH_SINGLE | btcjs.Transaction.SIGHASH_ANYONECANPAY,
+    tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
   })
 
   // Step 2: Build BTC output for the pool
@@ -172,10 +170,8 @@ export async function buildAddBtcLiquidity({ total }: { total: Decimal }) {
   }
 }
 
-async function buildInPsbtMode(total: Decimal) {
-  const btcjs = useBtcJsStore().get!
-  const address = useAddressStore().get!
-  const btcNetwork = useNetworkStore().btcNetwork
+  // PSBT mode
+  const address = useConnectionStore().getAddress
 
   let input
   let separatePsbt
@@ -219,6 +215,7 @@ async function buildInPsbtMode(total: Decimal) {
       index: 0,
       witnessUtxo: separatePsbt.txOutputs[0],
       sighashType: SIGHASH_SINGLE_ANYONECANPAY,
+      tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
     }
   }
 
@@ -367,6 +364,7 @@ export async function buildReleasePsbt({
     witnessScript: btcPsbt.data.inputs[0].witnessScript,
     partialSig: btcPsbt.data.inputs[0].partialSig,
     sighashType: SIGHASH_SINGLE_ANYONECANPAY,
+    tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
   })
 
   // Add BTC output
@@ -380,6 +378,7 @@ export async function buildReleasePsbt({
     partialSig: releasePsbt.data.inputs[0].partialSig,
     witnessScript: releasePsbt.data.inputs[0].witnessScript,
     sighashType: SIGHASH_SINGLE_ANYONECANPAY,
+    tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
   })
 
   // Add release output
@@ -529,6 +528,7 @@ export async function buildRecoverPsbt({
     partialSig: releasePsbt.data.inputs[0].partialSig,
     witnessScript: releasePsbt.data.inputs[0].witnessScript,
     sighashType: SIGHASH_SINGLE_ANYONECANPAY,
+    tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
   })
 
   // Add recover output

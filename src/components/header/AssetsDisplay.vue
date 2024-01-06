@@ -18,25 +18,23 @@ import {
 } from '@headlessui/vue'
 
 import { prettyBalance, prettyCoinDisplay } from '@/lib/formatters'
-import { useAddressStore, useNetworkStore } from '@/store'
-import { getBalance } from '@/queries/unisat'
+import { useConnectionStore } from '@/stores/connection'
+import { useNetworkStore } from '@/stores/network'
 import { getBrc20s } from '@/queries/orders-api'
 import { useExcludedBalanceQuery } from '@/queries/excluded-balance'
 import { unit, useBtcUnit } from '@/lib/helpers'
-import { useToast } from '@/components/ui/toast'
 
 const networkStore = useNetworkStore()
-const addressStore = useAddressStore()
-const address = computed(() => addressStore.get)
-const enabled = computed(() => !!addressStore.get)
-const { toast } = useToast()
+const connectionStore = useConnectionStore()
+const address = computed(() => connectionStore.getAddress)
+const enabled = computed(() => connectionStore.connected)
 
 const { data: balance } = useQuery({
   queryKey: [
     'balance',
     { network: networkStore.network, address: address.value! },
   ],
-  queryFn: () => getBalance(),
+  queryFn: () => connectionStore.adapter!.getBalance(),
   enabled,
 })
 
@@ -82,14 +80,14 @@ const { data: myBrc20s } = useQuery({
   queryKey: [
     'myBrc20s',
     {
-      address: addressStore.get!,
+      address: connectionStore.getAddress!,
       network: networkStore.network,
     },
   ],
-  queryFn: () => getBrc20s({ address: addressStore.get! }),
+  queryFn: () => getBrc20s({ address: connectionStore.getAddress! }),
 
   enabled: computed(
-    () => networkStore.network !== 'testnet' && !!addressStore.get
+    () => networkStore.network !== 'testnet' && !!connectionStore.getAddress
   ),
 })
 </script>
@@ -159,7 +157,7 @@ const { data: myBrc20s } = useQuery({
 
                 <!-- usable % -->
                 <div class="flex items-center mt-1 justify-between">
-                  <div class="text-xs text-zinc-500">Avaiable BTC %</div>
+                  <div class="text-xs text-zinc-500">Available BTC %</div>
                   <div
                     class="text-xs"
                     :class="availableBalanceRatioColor"

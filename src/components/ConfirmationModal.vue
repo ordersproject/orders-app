@@ -16,15 +16,16 @@ import {
   pushBuyTake,
   pushSellTake,
 } from '@/queries/orders-api'
-import { useAddressStore, useBtcJsStore, useNetworkStore } from '@/store'
+import { useBtcJsStore } from '@/stores/btcjs'
+import { useConnectionStore } from '@/stores/connection'
+import { useNetworkStore } from '@/stores/network'
 import { DEBUG, SIGHASH_ALL_ANYONECANPAY } from '@/data/constants'
 import { defaultPair, selectedPairKey } from '@/data/trading-pairs'
 import assets from '@/data/assets'
 import { useExcludedBalanceQuery } from '@/queries/excluded-balance'
+import BtcHelpers, { toXOnly } from '@/lib/btc-helpers'
+import { Buffer } from 'buffer'
 
-const unisat = window.unisat
-
-const addressStore = useAddressStore()
 const networkStore = useNetworkStore()
 
 const confirmButtonRef = ref<HTMLElement | null>(null)
@@ -50,9 +51,11 @@ function clearBuiltInfo() {
 
 const selectedPair = inject(selectedPairKey, defaultPair)
 
+const connectionStore = useConnectionStore()
+const adapter = connectionStore.adapter
 const { data: balance } = useExcludedBalanceQuery(
-  computed(() => addressStore.get),
-  computed(() => !!addressStore.get)
+  computed(() => connectionStore.getAddress),
+  computed(() => !!connectionStore.connected)
 )
 
 function getIconFromSymbol(symbol: string) {
@@ -73,12 +76,14 @@ async function submitBidOrder() {
 
   try {
     // 1. sign secondary order which is used to create the actual utxo to pay for the bid order
-    const payPsbtSigned = await window.unisat.signPsbt(
+    console.log({ before: builtInfo.secondaryOrder.toHex() })
+    const payPsbtSigned = await adapter.signPsbt(
       builtInfo.secondaryOrder.toHex()
     )
     const payPsbt = btcjs.Psbt.fromHex(payPsbtSigned)
-    // extract tx from signed payPsbt
-    const preTxRaw = payPsbt.extractTransaction().toHex()
+    console.log({ after: payPsbtSigned })
+    console.log({ payPsbt })
+    return
 
     // 2. now we can add that utxo to the bid order
     const bidPsbt = builtInfo.order
@@ -90,31 +95,38 @@ async function submitBidOrder() {
         value: payPsbt.extractTransaction().outs[0].value,
       },
       sighashType: SIGHASH_ALL_ANYONECANPAY,
+      tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
     })
+    console.log(
+      '🚀 ~ file: ConfirmationModal.vue:83 ~ submitBidOrder ~ bidPsbt:',
+      bidPsbt
+    )
+    return
 
     // 3. we sign the bid order
-    const signed = await unisat.signPsbt(bidPsbt.toHex())
+    const signed = await adapter.signPsbt(bidPsbt.toHex())
 
-    // 4. push the bid order to the api
-    const pushRes = await pushBidOrder({
-      psbtRaw: signed,
-      preTxRaw: preTxRaw,
-      network: networkStore.ordersNetwork,
-      address: addressStore.get!,
-      tick: selectedPair.fromSymbol,
-      feeb: builtInfo.feeb,
-      fee: builtInfo.mainFee,
-      total: builtInfo.total,
-      using: builtInfo.using,
-      orderId: builtInfo.orderId,
-    })
+    // // 4. push the bid order to the api
+    // const pushRes = await pushBidOrder({
+    //   psbtRaw: signed,
+    //   network: networkStore.ordersNetwork,
+    //   address: connectionStore.getAddress,
+    //   tick: selectedPair.fromSymbol,
+    //   feeb: builtInfo.feeb,
+    //   fee: builtInfo.mainFee,
+    //   total: builtInfo.total,
+    //   using: builtInfo.using,
+    //   orderId: builtInfo.orderId,
+    // })
 
     // // 5. if pushRes is not null, we can now push the secondary order to the blockchain
     // if (pushRes) {
-    //   const res = await window.unisat.pushPsbt(payPsbtSigned)
-    //   console.log('unisat push result', res)
+    //   const res = await connectionStore.adapter.pushPsbt(payPsbtSigned)
     // }
   } catch (err: any) {
+    if (DEBUG) {
+      console.error(err)
+    }
     // if error message contains missingorspent / mempool-conflict, show a more user-friendly message
     if (
       err.message.includes('missingorspent') ||
@@ -157,7 +169,11 @@ async function submitOrder() {
 
   try {
     // 1. sign
-    const signed = await unisat.signPsbt(builtInfo.order.toHex())
+    console.log('before', builtInfo.order.toHex())
+    const signed = await adapter.signPsbt(builtInfo.order.toHex(), {
+      type: 'list',
+    })
+    console.log('after', signed)
 
     let pushRes: any
     // 2. push
@@ -175,31 +191,33 @@ async function submitOrder() {
           psbtRaw: signed,
           network: networkStore.ordersNetwork,
           orderId: builtInfo.orderId,
-          address: addressStore.get!,
+          address: connectionStore.getAddress,
           value: builtInfo.value,
           amount: builtInfo.amount,
           networkFee: builtInfo.selfFee,
           networkFeeRate: builtInfo.networkFeeRate,
         })
         break
-      // case 'bid':
-      //   pushRes = await pushBidOrder({
-      //     psbtRaw: signed,
-      //     network: networkStore.ordersNetwork,
-      //     address: addressStore.get!,
-      //     tick: selectedPair.fromSymbol,
-      //     feeb: builtInfo.feeb,
-      //     fee: builtInfo.networkFee,
-      //     total: builtInfo.total,
-      //     using: builtInfo.using,
-      //     orderId: builtInfo.orderId,
-      //   })
-      //   break
-      case 'ask':
-        pushRes = await pushAskOrder({
+      case 'bid':
+        pushRes = await pushBidOrder({
           psbtRaw: signed,
           network: networkStore.ordersNetwork,
-          address: addressStore.get!,
+          address: connectionStore.getAddress,
+          tick: selectedPair.fromSymbol,
+          feeb: builtInfo.feeb,
+          fee: builtInfo.networkFee,
+          total: builtInfo.total,
+          using: builtInfo.using,
+          orderId: builtInfo.orderId,
+        })
+        break
+      case 'ask':
+        const finished = adapter.finishPsbt(signed)
+
+        pushRes = await pushAskOrder({
+          psbtRaw: finished,
+          network: networkStore.ordersNetwork,
+          address: connectionStore.getAddress,
           tick: selectedPair.fromSymbol,
           amount: builtInfo.amount,
         })

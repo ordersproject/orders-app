@@ -3,14 +3,18 @@ import {
   Dialog,
   DialogPanel,
   DialogTitle,
+  DialogDescription,
   TransitionChild,
   TransitionRoot,
 } from '@headlessui/vue'
 import { FrownIcon } from 'lucide-vue-next'
 import { ref } from 'vue'
 
-defineProps<{
-  open?: boolean
+import type { Wallet } from '@/stores/connection'
+
+const props = defineProps<{
+  open: boolean
+  missingWallet: Wallet
 }>()
 const emit = defineEmits(['update:open'])
 
@@ -20,12 +24,19 @@ function close() {
   emit('update:open', false)
 }
 
-function goToUnisat() {
+function goToMissingWallet() {
   close()
-  window.open(
-    'https://chrome.google.com/webstore/detail/unisat-wallet/ppbibelpcjmhbdihakflkdcoccbgbkpo',
-    '_blank'
-  )
+  if (props.missingWallet === 'unisat') {
+    window.open(
+      'https://chrome.google.com/webstore/detail/unisat-wallet/ppbibelpcjmhbdihakflkdcoccbgbkpo',
+      '_blank'
+    )
+  } else if (props.missingWallet === 'okx') {
+    window.open(
+      'https://chromewebstore.google.com/detail/mcohilncbfahbmgdjkbpemcciiolgcge',
+      '_blank'
+    )
+  }
 }
 </script>
 
@@ -80,13 +91,20 @@ function goToUnisat() {
                   <DialogTitle
                     as="h3"
                     class="text-base font-semibold leading-6 text-zinc-100"
-                    >Unisat not installed</DialogTitle
                   >
+                    <span class="capitalize">
+                      {{ missingWallet }}
+                    </span>
+                    wallet not installed
+                  </DialogTitle>
                   <div class="mt-2">
-                    <p class="text-sm text-zinc-500">
-                      Orders.Exchange requires Unisat to be installed. Please
-                      install Unisat to continue.
-                    </p>
+                    <DialogDescription
+                      class="text-sm text-zinc-500 text-center"
+                    >
+                      Please install
+                      <span class="capitalize">{{ missingWallet }}</span> wallet
+                      to continue.
+                    </DialogDescription>
                   </div>
                 </div>
               </div>
@@ -94,10 +112,15 @@ function goToUnisat() {
                 <button
                   type="button"
                   class="inline-flex w-full justify-center rounded-md bg-orange-300 px-3 py-2 text-sm font-semibold text-orange-950 shadow-sm transition-colors hover:bg-orange-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-300"
-                  @click="goToUnisat"
+                  @click="goToMissingWallet"
                   ref="goButtonRef"
                 >
-                  Go to Unisat
+                  Go to
+
+                  <span class="capitalize mx-2">
+                    {{ missingWallet }}
+                  </span>
+                  wallet
                 </button>
               </div>
             </DialogPanel>

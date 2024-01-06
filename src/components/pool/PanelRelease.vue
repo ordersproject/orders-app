@@ -5,26 +5,26 @@ import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
 
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import { getMyReleasedRecords, getMyUsedPoolRecords } from '@/queries/pool'
-import { useAddressStore } from '@/store'
+import { useConnectionStore } from '@/stores/connection'
 
 import PanelReleaseRecordItem from './PanelReleaseRecordItem.vue'
 import PanelReleaseHistoryItem from './PanelReleaseHistoryItem.vue'
 
 const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
-const addressStore = useAddressStore()
-const enabled = computed(() => !!addressStore.get)
+const connectionStore = useConnectionStore()
+const enabled = computed(() => !!connectionStore.connected)
 
 const { data: poolRecords, isLoading: isLoadingPoolRecords } = useQuery({
   queryKey: [
     'poolReleasableRecords',
     {
-      address: addressStore.get as string,
+      address: connectionStore.getAddress,
       tick: selectedPair.fromSymbol,
     },
   ],
   queryFn: () =>
     getMyUsedPoolRecords({
-      address: addressStore.get as string,
+      address: connectionStore.getAddress,
       tick: selectedPair.fromSymbol,
     }),
   enabled,
@@ -34,13 +34,13 @@ const { data: releaseHistory, isLoading: isLoadingReleaseHistory } = useQuery({
   queryKey: [
     'poolReleaseHistory',
     {
-      address: addressStore.get as string,
+      address: connectionStore.getAddress,
       tick: selectedPair.fromSymbol,
     },
   ],
   queryFn: () =>
     getMyReleasedRecords({
-      address: addressStore.get as string,
+      address: connectionStore.getAddress,
       tick: selectedPair.fromSymbol,
     }),
   enabled,

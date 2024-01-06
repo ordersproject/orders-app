@@ -3,18 +3,22 @@ import { Buffer } from 'buffer'
 import { isTaprootInput } from 'bitcoinjs-lib/src/psbt/bip371'
 import Decimal from 'decimal.js'
 
-import { useAddressStore, useBtcJsStore, useFeebStore } from '@/store'
+import { useBtcJsStore } from '@/stores/btcjs'
+import { useConnectionStore } from '@/stores/connection'
+import { useFeebStore } from '@/stores/feeb'
 import {
   DUST_UTXO_VALUE,
   FEEB_MULTIPLIER,
   MS_BRC20_UTXO_VALUE,
   MS_FEEB_MULTIPLIER,
+  OKX_TEMPLATE_PSBT,
   SIGHASH_ALL_ANYONECANPAY,
 } from '@/data/constants'
-import { getTxHex, getUtxos } from '@/queries/proxy'
+import { getUtxos } from '@/queries/proxy'
 import { raise } from './helpers'
 import { Output } from 'bitcoinjs-lib/src/transaction'
 import { getListingUtxos } from '@/queries/orders-api'
+import { toXOnly } from '@/lib/btc-helpers'
 
 const TX_EMPTY_SIZE = 4 + 1 + 1 + 4
 const TX_INPUT_BASE = 32 + 4 + 1 + 4 // 41
@@ -134,7 +138,7 @@ export function calculatePsbtFee(psbt: Psbt, feeRate: number, isMs?: boolean) {
   // clone a new psbt to mock the finalization
   const clonedPsbt = psbt.clone()
   const address =
-    useAddressStore().get ??
+    useConnectionStore().getAddress ??
     raise('Please connect to your UniSat wallet first.')
 
   // mock the change output
@@ -183,7 +187,7 @@ export async function exclusiveChange({
   const feeb = useFeebStore().get ?? raise('Choose a fee rate first.')
   // check if address is set
   const address =
-    useAddressStore().get ??
+    useConnectionStore().getAddress ??
     raise('Please connect to your UniSat wallet first.')
 
   // check if useSize is set but maxUtxosCount is larger than 1
@@ -237,11 +241,13 @@ export async function exclusiveChange({
       value: paymentUtxo.satoshis,
       script: paymentPrevOutputScript,
     }
-    const paymentInput: any = {
+    const pubKey = toXOnly(Buffer.from(useConnectionStore().getPubKey))
+    const paymentInput = {
       hash: paymentUtxo.txId,
       index: paymentUtxo.outputIndex,
       witnessUtxo: paymentWitnessUtxo,
       sighashType,
+      tapInternalKey: pubKey,
     }
     const vin = psbt.inputCount
     let psbtClone: Psbt
@@ -272,7 +278,7 @@ export async function exclusiveChange({
           raise(
             'Input invalid. Please try again or contact customer service for assistance.'
           )
-      )
+      ) as any
     )
     const changeValue = totalInput - totalOutput - fee + (extraInputValue || 0)
     console.log({
@@ -306,16 +312,18 @@ export async function exclusiveChange({
     }
     const toUseSighashType =
       i > 0 && otherSighashType ? otherSighashType : sighashType
-    const paymentInput: any = {
+    const pubKey = toXOnly(Buffer.from(useConnectionStore().getPubKey))
+    const paymentInput = {
       hash: paymentUtxo.txId,
       index: paymentUtxo.outputIndex,
       witnessUtxo: paymentWitnessUtxo,
       sighashType: toUseSighashType,
+      tapInternalKey: pubKey,
     }
 
-    if (pubKey) {
-      paymentInput.tapInternalPubkey = pubKey
-    }
+    // if (pubKey) {
+    //   paymentInput.tapInternalPubkey = pubKey
+    // }
 
     psbt.addInput(paymentInput)
 
@@ -338,7 +346,7 @@ export async function exclusiveChange({
               raise(
                 'Input invalid. Please try again or contact customer service for assistance.'
               )
-          )
+          ) as any
       )
     } else {
       // we pay for the whole transaction
@@ -351,7 +359,7 @@ export async function exclusiveChange({
             raise(
               'Input invalid. Please try again or contact customer service for assistance.'
             )
-        )
+        ) as any
       )
     }
 
@@ -417,4 +425,17 @@ export function safeOutputValue(value: number | Decimal, isMs = false): number {
   }
 
   return value.round().toNumber()
+}
+
+export function initPsbt() {
+  const bitcoinJs = useBtcJsStore().get!
+
+  // depends on wallet
+  const wallet = useConnectionStore().last.wallet
+  if (wallet === 'unisat') {
+    return new bitcoinJs.Psbt()
+  }
+
+  // use templatePsbt otherwise for okx
+  return bitcoinJs.Psbt.fromHex(OKX_TEMPLATE_PSBT)
 }

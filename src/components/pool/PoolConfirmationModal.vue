@@ -11,16 +11,14 @@ import { ElMessage } from 'element-plus'
 
 import { prettyAddress, prettyCoinDisplay } from '@/lib/formatters'
 import { pushAddLiquidity } from '@/queries/pool'
-import { useAddressStore, useBtcJsStore, useNetworkStore } from '@/store'
+import { useBtcJsStore } from '@/stores/btcjs'
+import { useConnectionStore } from '@/stores/connection'
+import { useNetworkStore } from '@/stores/network'
 import { BTC_POOL_MODE, DEBUG } from '@/data/constants'
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
 import assets from '@/data/assets'
-import { useExcludedBalanceQuery } from '@/queries/excluded-balance'
-import { sleep } from '@/lib/helpers'
 
-const unisat = window.unisat
-
-const addressStore = useAddressStore()
+const connectionStore = useConnectionStore()
 const networkStore = useNetworkStore()
 
 const confirmButtonRef = ref<HTMLElement | null>(null)
@@ -73,23 +71,24 @@ async function submitOrder() {
       toSigns.push(toRaw(props.builtBtcInfo).order.toHex())
     }
     // 1. sign
-    const signedPsbts = await unisat.signPsbts(
+    const signedPsbts = await connectionStore.adapter.signPsbts(
       toSigns,
       toSigns.map(() => {})
     )
 
     let preTxRaw: string | undefined
     if (props.builtBtcInfo?.separatePsbt) {
-      // instead of push psbt, we extract the signed tx
-      const btcjs = useBtcJsStore().get!
-      preTxRaw = btcjs.Psbt.fromHex(signedPsbts[1]).extractTransaction().toHex()
+      // push separate psbt
+      const pushSeparateRes = await connectionStore.adapter.pushPsbt(
+        signedPsbts[1]
+      )
     }
 
     // extract btc tx and get its txid
     const bidirectional = !!props.builtBtcInfo
     if (bidirectional && signedPsbts.length < 2) {
       throw new Error(
-        'Invalid signed transation. Please try again or contact customer service for assistance.'
+        'Invalid signed transaction. Please try again or contact customer service for assistance.'
       )
     }
     let btcTxOutputLocation: string = ''
@@ -109,7 +108,7 @@ async function submitOrder() {
       case 'add-liquidity':
         type LiquidityOffer = Parameters<typeof pushAddLiquidity>[0]
         const liquidityOffer: LiquidityOffer = {
-          address: addressStore.get!,
+          address: connectionStore.getAddress,
           amount: builtInfo.toValue.toNumber(),
           btcUtxoId:
             bidirectional && BTC_POOL_MODE !== 1

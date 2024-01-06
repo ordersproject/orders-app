@@ -3,26 +3,26 @@ import { useQuery } from '@tanstack/vue-query'
 import { computed } from 'vue'
 
 import { getMyStandbyRewardsClaimRecords } from '@/queries/pool'
-import { useAddressStore } from '@/store'
+import { useConnectionStore } from '@/stores/connection'
 import { EVENT_REWARDS_TICK } from '@/data/constants'
 
 import PanelClaimRecordItem from '@/components/pool/PanelClaimRecordItem.vue'
 
-const addressStore = useAddressStore()
+const connectionStore = useConnectionStore()
 
 const { data: records, isLoading: isLoadingRecords } = useQuery({
   queryKey: [
     'standbyRewardsClaimRecords',
-    { address: addressStore.get as string, tick: EVENT_REWARDS_TICK },
+    { address: connectionStore.getAddress, tick: EVENT_REWARDS_TICK },
   ],
   queryFn: () =>
     getMyStandbyRewardsClaimRecords({
       tick: EVENT_REWARDS_TICK,
     }),
-  select: (data) => {
+  select: (data: any) => {
     return data
   },
-  enabled: computed(() => !!addressStore.get),
+  enabled: computed(() => connectionStore.connected),
 })
 </script>
 

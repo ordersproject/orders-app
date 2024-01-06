@@ -11,7 +11,7 @@ declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     AssetsDisplay: typeof import('./src/components/header/AssetsDisplay.vue')['default']
     ConfirmationModal: typeof import('./src/components/ConfirmationModal.vue')['default']
-    copy: typeof import('./src/components/pool/PanelRelease copy.vue')['default']
+    ConnectionsModal: typeof import('./src/components/header/ConnectionsModal.vue')['default']
     ElPopover: typeof import('element-plus/es')['ElPopover']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     EventClaimRecords: typeof import('./src/components/pool/EventClaimRecords.vue')['default']
@@ -56,6 +56,6 @@ declare module '@vue/runtime-core' {
     ToastProvider: typeof import('./src/components/ui/toast/ToastProvider.vue')['default']
     ToastTitle: typeof import('./src/components/ui/toast/ToastTitle.vue')['default']
     ToastViewport: typeof import('./src/components/ui/toast/ToastViewport.vue')['default']
-    UnisatModal: typeof import('./src/components/header/UnisatModal.vue')['default']
+    WalletMissingModal: typeof import('./src/components/header/WalletMissingModal.vue')['default']
   }
 }

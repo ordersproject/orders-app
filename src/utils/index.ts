@@ -1,25 +1,20 @@
 import { ElMessage } from 'element-plus'
+import { Buffer } from 'buffer'
 
-import {
-  useAddressStore,
-  useDummiesStore,
-  useBtcJsStore,
-  DummyUtxo,
-  useNetworkStore,
-  useFeebStore,
-} from '@/store'
+import { useDummiesStore, type DummyUtxo } from '@/stores/dummies'
+import { useBtcJsStore } from '@/stores/btcjs'
+import { useNetworkStore } from '@/stores/network'
+import { useFeebStore } from '@/stores/feeb'
+import { useConnectionStore } from '@/stores/connection'
 import { getUtxos, getTxHex } from '@/queries/proxy'
 import { calculatePsbtFee } from '@/lib/build-helpers'
 import { DUMMY_UTXO_VALUE } from '@/data/constants'
 import { raise } from '@/lib/helpers'
+import { toXOnly } from '@/lib/btc-helpers'
 
 const utils = {
-  checkAndSelectDummies: async ({
-    checkOnly = false,
-    addressParam = null,
-    collectMode = false,
-  }) => {
-    const address = addressParam || useAddressStore().get!
+  checkAndSelectDummies: async ({ checkOnly = false, collectMode = false }) => {
+    const address = useConnectionStore().getAddress
     const dummiesStore = useDummiesStore()
     const btcjsStore = useBtcJsStore()
     const networkStore = useNetworkStore()
@@ -90,6 +85,7 @@ const utils = {
           script: paymentScriptPk,
           value: paymentUtxo.satoshis,
         },
+        tapInternalKey: toXOnly(Buffer.from(useConnectionStore().getPubKey)),
       })
 
       dummiesPsbt.addOutput({ address: address, value: DUMMY_UTXO_VALUE })
@@ -108,8 +104,9 @@ const utils = {
       }
 
       // push
-      const signed = await window.unisat.signPsbt(dummiesPsbt.toHex())
-      const pushedTxid = await window.unisat.pushPsbt(signed)
+      const connectionStore = useConnectionStore()
+      const signed = await connectionStore.adapter.signPsbt(dummiesPsbt.toHex())
+      const pushedTxid = await connectionStore.adapter.pushPsbt(signed)
 
       // extract txHex
       const signedToPsbt = btcjs.Psbt.fromHex(signed, {

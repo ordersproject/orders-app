@@ -6,17 +6,17 @@ import { computed, inject } from 'vue'
 
 import { getMyRewardsClaimRecords } from '@/queries/pool'
 import { defaultPoolPair, selectedPoolPairKey } from '@/data/trading-pairs'
-import { useAddressStore } from '@/store'
+import { useConnectionStore } from '@/stores/connection'
 
 import PanelClaimRecordItem from '@/components/pool/PanelClaimRecordItem.vue'
 
 const selectedPair = inject(selectedPoolPairKey, defaultPoolPair)
-const addressStore = useAddressStore()
+const connectionStore = useConnectionStore()
 
 const { data: records, isLoading: isLoadingRecords } = useQuery({
   queryKey: [
     'poolRewardsClaimRecords',
-    { address: addressStore.get as string, tick: selectedPair.fromSymbol },
+    { address: connectionStore.getAddress, tick: selectedPair.fromSymbol },
   ],
   queryFn: () =>
     getMyRewardsClaimRecords({
@@ -25,7 +25,7 @@ const { data: records, isLoading: isLoadingRecords } = useQuery({
   select: (data) => {
     return data
   },
-  enabled: computed(() => !!addressStore.get),
+  enabled: computed(() => connectionStore.connected),
 })
 </script>
 

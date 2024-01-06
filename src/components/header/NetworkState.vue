@@ -14,7 +14,8 @@ import {
 import { useQuery } from '@tanstack/vue-query'
 import { CarIcon, CheckIcon, Loader2Icon } from 'lucide-vue-next'
 
-import { useNetworkStore, useFeebStore } from '@/store'
+import { useNetworkStore } from '@/stores/network'
+import { useFeebStore } from '@/stores/feeb'
 import { FeebPlan, getFeebPlans } from '@/queries/proxy'
 import { calcFiatPrice, sleep, unit, useBtcUnit } from '@/lib/helpers'
 import { prettyBalance } from '@/lib/formatters'
