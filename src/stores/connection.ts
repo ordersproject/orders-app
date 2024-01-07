@@ -1,11 +1,24 @@
 import { defineStore } from 'pinia'
-import { useLocalStorage, type RemovableRef } from '@vueuse/core'
+import { useLocalStorage } from '@vueuse/core'
 import type { Psbt } from 'bitcoinjs-lib'
 
 import * as unisatAdapter from '@/wallet-adapters/unisat'
 import * as okxAdapter from '@/wallet-adapters/okx'
 import * as metaletAdapter from '@/wallet-adapters/metalet'
 import { login } from '@/queries/orders-api'
+
+function getWalletAdapter(wallet: Wallet) {
+  switch (wallet) {
+    case 'unisat':
+      return unisatAdapter
+    case 'okx':
+      return okxAdapter
+    case 'metalet':
+      return metaletAdapter
+    default:
+      throw new Error(`Unsupported wallet: ${wallet}`)
+  }
+}
 
 export type Wallet = 'unisat' | 'okx' | 'metalet'
 export type WalletConnection = {
@@ -22,7 +35,7 @@ export const useConnectionStore = defineStore('connection', {
         status: 'disconnected',
         address: '',
         pubKey: '',
-      } as WalletConnection) as RemovableRef<WalletConnection>,
+      } as WalletConnection),
     }
   },
 
@@ -54,7 +67,7 @@ export const useConnectionStore = defineStore('connection', {
         signPsbt: (psbt: string, options?: any) => Promise<string>
         signPsbts: (psbts: string[], options?: any) => Promise<string[]>
         pushPsbt: (psbt: string) => Promise<string>
-      } = state.last.wallet === 'unisat' ? unisatAdapter : okxAdapter
+      } = getWalletAdapter(state.last.wallet)
 
       return adapter
     },
@@ -65,26 +78,26 @@ export const useConnectionStore = defineStore('connection', {
       const connection: WalletConnection = this.last
         ? (JSON.parse(JSON.stringify(this.last)) as WalletConnection)
         : {
-            wallet,
-            status: 'connected',
-            address: '',
-            pubKey: '',
-          }
+          wallet,
+          status: 'connected',
+          address: '',
+          pubKey: '',
+        }
 
-      const connectRes =
-        wallet === 'unisat'
-          ? await unisatAdapter.connect()
-          : await okxAdapter.connect()
+      const connectRes = await this.adapter.connect()
 
-      connection.address = connectRes.address
-      connection.pubKey = connectRes.pubKey
+      if (connectRes) {
+        connection.address = connectRes.address
+        connection.pubKey = connectRes.pubKey
 
-      connection.status = 'connected'
-      connection.wallet = wallet
+        connection.status = 'connected'
+        connection.wallet = wallet
 
-      this.last = connection
+        this.last = connection
 
-      await login()
+        await login()
+      }
+
 
       return this.last
     },
@@ -93,11 +106,7 @@ export const useConnectionStore = defineStore('connection', {
       // get address again from wallet
       if (!this.connected) return
 
-      const address =
-        this.last.wallet === 'unisat'
-          ? await unisatAdapter.getAddress()
-          : await okxAdapter.getAddress()
-
+      const address = await this.adapter.getAddress()
       this.last.status = 'connected'
       this.last.address = address
 
@@ -115,6 +124,7 @@ export const useConnectionStore = defineStore('connection', {
 
       this.last.status = 'disconnected'
       this.last.address = ''
+      this.last.pubKey = ''
     },
   },
 })

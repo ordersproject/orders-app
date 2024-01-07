@@ -18,6 +18,7 @@ import Notifications from './Notifications.vue'
 import TheNavbar from './TheNavbar.vue'
 import unisatIcon from '@/assets/unisat-icon.png?url'
 import okxIcon from '@/assets/okx-icon.png?url'
+import metaletIcon from '@/assets/metalet-icon.png?url'
 
 const networkStore = useNetworkStore()
 const dummiesStore = useDummiesStore()
@@ -135,7 +136,16 @@ const walletIcon = computed(() => {
 
   if (!connection) return null
 
-  return connection.wallet === 'unisat' ? unisatIcon : okxIcon
+  switch (connection.wallet) {
+    case 'unisat':
+      return unisatIcon
+    case 'okx':
+      return okxIcon
+    case 'metalet':
+      return metaletIcon
+    default:
+      return
+  }
 })
 
 function copyAddress() {
@@ -155,14 +165,8 @@ function onWalletMissing(wallet: Wallet) {
 </script>
 
 <template>
-  <ConnectionsModal
-    v-model:open="connectionsModalOpen"
-    @wallet-missing="onWalletMissing"
-  />
-  <WalletMissingModal
-    v-model:open="walletMissingModalOpen"
-    :missing-wallet="missingWallet"
-  />
+  <ConnectionsModal v-model:open="connectionsModalOpen" @wallet-missing="onWalletMissing" />
+  <WalletMissingModal v-model:open="walletMissingModalOpen" :missing-wallet="missingWallet" />
 
   <header class="flex items-center justify-between px-6 py-4 select-none">
     <TheNavbar />
@@ -185,23 +189,14 @@ function onWalletMissing(wallet: Wallet) {
         </el-tooltip> -->
       </div>
 
-      <button
-        class="h-10 rounded-lg border-2 border-orange-300 px-4 transition hover:text-orange-950 hover:bg-orange-300"
-        @click="popConnectionsModal"
-        v-if="!connectionStore.connected"
-      >
+      <button class="h-10 rounded-lg border-2 border-orange-300 px-4 transition hover:text-orange-950 hover:bg-orange-300"
+        @click="popConnectionsModal" v-if="!connectionStore.connected">
         Connect Wallet
       </button>
 
       <div v-else class="flex items-center gap-2">
-        <div
-          class="flex h-10 items-center divide-x divide-zinc-700 rounded-lg bg-black/90 px-4"
-        >
-          <div
-            class="lg:flex gap-2 pr-3 hidden cursor-pointer"
-            @click="copyAddress"
-            title="copy address"
-          >
+        <div class="flex h-10 items-center divide-x divide-zinc-700 rounded-lg bg-black/90 px-4">
+          <div class="lg:flex gap-2 pr-3 hidden cursor-pointer" @click="copyAddress" title="copy address">
             <img class="h-5" :src="walletIcon" alt="Unisat" v-if="walletIcon" />
             <span class="text-sm text-orange-300">
               {{ address ? prettyAddress(address, 4) : '-' }}
@@ -219,9 +214,7 @@ function onWalletMissing(wallet: Wallet) {
                 <h3 class="my-2 text-sm font-bold text-orange-300">
                   Create 2 dummies UTXOs to begin
                 </h3>
-                <div
-                  class="mb-2 max-w-sm space-y-2 text-sm leading-relaxed text-zinc-300"
-                >
+                <div class="mb-2 max-w-sm space-y-2 text-sm leading-relaxed text-zinc-300">
                   <p>
                     When using Orders.Exchange for the first time, it's
                     necessary to prepare two UTXOs of 600 satoshis as a
@@ -230,10 +223,7 @@ function onWalletMissing(wallet: Wallet) {
                   <p>Click to complete this preparation.</p>
                 </div>
               </template>
-              <ShieldAlertIcon
-                class="h-5 text-red-500"
-                @click="utils.checkAndSelectDummies({})"
-              />
+              <ShieldAlertIcon class="h-5 text-red-500" @click="utils.checkAndSelectDummies({})" />
             </el-tooltip>
           </div>
           <div class="pl-3" v-else>

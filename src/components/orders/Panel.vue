@@ -26,10 +26,6 @@ import { useQuery } from '@tanstack/vue-query'
 import Decimal from 'decimal.js'
 import { get } from '@vueuse/core'
 
-<<<<<<< HEAD
-import btcIcon from '@/assets/btc.svg?url'
-=======
->>>>>>> abc18de2f07f5107c89fc1b9976295cc1140862e
 import { prettyBalance } from '@/lib/formatters'
 import { sleep, unit, useBtcUnit } from '@/lib/helpers'
 import { calculateFee } from '@/lib/build-helpers'
@@ -49,14 +45,9 @@ import {
   type Brc20Transferable,
   type BidCandidate,
 } from '@/queries/orders-api'
-<<<<<<< HEAD
-import { useAddressStore, useFeebStore, useNetworkStore } from '@/store'
-import { buildBuyTake } from '@/lib/order-builder'
-=======
 import { useConnectionStore } from '@/stores/connection'
 import { useFeebStore } from '@/stores/feeb'
 import { useNetworkStore } from '@/stores/network'
->>>>>>> abc18de2f07f5107c89fc1b9976295cc1140862e
 import { selectPair, selectedPairKey } from '@/data/trading-pairs'
 import { DEBUG, SELL_TX_SIZE } from '@/data/constants'
 
@@ -65,12 +56,8 @@ import OrderPanelHeader from './PanelHeader.vue'
 import OrderList from './List.vue'
 import OrderConfirmationModal from '../ConfirmationModal.vue'
 
-<<<<<<< HEAD
-const addressStore = useAddressStore()
-=======
 const connectionStore = useConnectionStore()
 const address = connectionStore.getAddress
->>>>>>> abc18de2f07f5107c89fc1b9976295cc1140862e
 const networkStore = useNetworkStore()
 const feebStore = useFeebStore()
 

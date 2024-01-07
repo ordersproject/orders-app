@@ -5,6 +5,7 @@ type ECPairFactory = typeof import('ecpair')
 interface Window {
   bitcoin: BitcoinJs
   ecpair: ECPairFactory
+  metaidwallet: any
   unisat: any
   unisat: {
     requestAccounts: () => Promise<string[]>
